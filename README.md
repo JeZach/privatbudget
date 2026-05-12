@@ -9,7 +9,9 @@ Den här versionen är gjord för att publiceras på GitHub Pages och använda S
 - Gemensam budgetdata i Supabase
 - Utlägg/köp sparar vilken inloggad användare som registrerade kostnaden
 - Adminvy för att lägga till fler tillåtna användare
-- Löneunderlag: lön i en månad används mot nästa månads kostnader
+- Budgetmall som sätts en gång och används som grund varje månad
+- Egna sidor för inkomster, utgifter och sparande
+- Löneunderlag: faktisk inkomst i en månad används mot nästa månads kostnader
 
 ## 1. Skapa Supabase-projekt
 
@@ -18,7 +20,7 @@ Den här versionen är gjord för att publiceras på GitHub Pages och använda S
 3. Klistra in innehållet från `supabase-schema.sql`.
 4. Kör SQL-koden.
 
-Du kan köra filen igen när appen uppdateras. Den skapar även tabellen `app_users` för admin/användare.
+Du kan köra filen igen när appen uppdateras. Den skapar tabellen `app_users` för admin/användare. Den nya budgetstrukturen sparas fortfarande i tabellen `budget_state`, så ingen extra tabell behövs för budgetmallen.
 
 ## 2. Hämta nycklar
 
@@ -52,6 +54,14 @@ window.PRIVATBUDGET_SUPABASE = {
 Första gången tabellen `app_users` är tom blir det första inloggade kontot admin. Därefter kan admin lägga till fler användare inne i appen under sidan **Användare**.
 
 En tillagd användare behöver skapa konto/logga in med samma e-postadress.
+
+## Ekonomilogik
+
+- **Budgetmall** sätts en gång.
+- **Inkomster** registreras som faktiskt utfall per månad.
+- **Utgifter** registreras som faktiskt utfall per månad mot budgetmallen.
+- **Sparande** har egen plan och eget månadsutfall.
+- Inkomster i en månad används som tillgång för nästa månads utgifter och sparande.
 
 För en mer privat familjeapp kan du stänga av öppen registrering i Supabase och skapa/bjuda in användare därifrån.
 
