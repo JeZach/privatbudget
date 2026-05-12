@@ -303,6 +303,10 @@
         grid-column: span 7;
       }
 
+      .page[data-page="overview"] .savings-overview-panel {
+        grid-column: 1 / -1;
+      }
+
       .page[hidden] {
         display: none;
       }
@@ -918,6 +922,19 @@
               <tbody id="focusRows"></tbody>
             </table>
           </section>
+
+          <section class="panel savings-overview-panel">
+            <div class="panel-title">
+              <h3>Ackumulerat sparande</h3>
+              <span>per sparpost fram till vald månad</span>
+            </div>
+            <table>
+              <thead>
+                <tr><th>Sparpost</th><th>Plan hittills</th><th>Sparat hittills</th><th>Mot plan</th></tr>
+              </thead>
+              <tbody id="savingsOverviewRows"></tbody>
+            </table>
+          </section>
         </section>
 
         <section class="page" data-page="income" hidden>
@@ -1282,6 +1299,7 @@
         renderSavingsRows();
         renderPurchaseForm();
         renderFocus();
+        renderSavingsOverview();
         renderBars();
         renderCategories();
         renderUsers();
@@ -1352,14 +1370,15 @@
 
       function actualRowHtml(row, actualType, groupType) {
         const actual = actualFor(row, actualType);
-        const hasManual = actualType === "savings" ? activeMonth().savingActuals[row.id] !== undefined && activeMonth().savingActuals[row.id] !== "" : activeMonth().expenseActuals[row.id] !== undefined && activeMonth().expenseActuals[row.id] !== "";
+        const isSavings = actualType === "savings";
+        const hasManual = isSavings ? activeMonth().savingActuals[row.id] !== undefined && activeMonth().savingActuals[row.id] !== "" : activeMonth().expenseActuals[row.id] !== undefined && activeMonth().expenseActuals[row.id] !== "";
         const hasPurchase = actualType === "expense" && purchaseTotal(row.id) > 0;
         const variance = (Number(row.amount) || 0) - actual;
         return `
-          <div class="entry-row" data-actual-type="${actualType}" data-group-type="${groupType}" data-actual-id="${row.id}">
-            <label class="line-field"><span>Post</span><input value="${escapeHtml(row.name)}" disabled /></label>
-            <label class="line-field"><span>Budget</span><input class="money" value="${row.amount || ""}" disabled /></label>
-            <label class="line-field"><span>Utfall</span><input class="money" value="${actualType === "savings" ? activeMonth().savingActuals[row.id] ?? "" : activeMonth().expenseActuals[row.id] ?? ""}" data-actual-field="actual" inputmode="numeric" placeholder="${hasPurchase ? `Köp: ${money(purchaseTotal(row.id))}` : "0"}" /></label>
+          <div class="entry-row" data-actual-type="${actualType}" data-group-type="${groupType}" data-actual-id="${row.id}"${isSavings ? ` data-template-type="${groupType}" data-template-id="${row.id}"` : ""}>
+            <label class="line-field"><span>Post</span><input value="${escapeHtml(row.name)}" ${isSavings ? `data-template-field="name" placeholder="Namn"` : "disabled"} /></label>
+            <label class="line-field"><span>${isSavings ? "Plan" : "Budget"}</span><input class="money" value="${row.amount || ""}" ${isSavings ? `data-template-field="amount" inputmode="numeric" placeholder="0"` : "disabled"} /></label>
+            <label class="line-field"><span>Utfall</span><input class="money" value="${isSavings ? activeMonth().savingActuals[row.id] ?? "" : activeMonth().expenseActuals[row.id] ?? ""}" data-actual-field="actual" inputmode="numeric" placeholder="${hasPurchase ? `Köp: ${money(purchaseTotal(row.id))}` : "0"}" /></label>
             <output class="variance ${hasManual || hasPurchase ? varianceClass(variance) : "missing"}">${hasManual || hasPurchase ? money(variance) : "Ej ifyllt"}</output>
           </div>`;
       }
@@ -1394,11 +1413,26 @@
         return [...expenseRows, ...savingRows].filter((row) => row.name.trim());
       }
 
+      function accumulatedSavingsRows(index = currentMonth) {
+        return savingsRows().map((row) => {
+          const actual = monthKeys.slice(0, index + 1).reduce((total, key) => total + actualFor(row, "savings", state.months[key]), 0);
+          const planned = (Number(row.amount) || 0) * (index + 1);
+          return { name: row.name || "Namnlös post", planned, actual, variance: actual - planned };
+        });
+      }
+
       function renderFocus() {
         const rows = allRowsForFocus().filter((row) => row.actual > 0).sort((a, b) => Math.abs(b.variance) - Math.abs(a.variance)).slice(0, 6);
         document.getElementById("focusRows").innerHTML = rows.length
           ? rows.map((row) => `<tr><td>${escapeHtml(row.name)}</td><td>${money(row.budget)}</td><td>${money(row.actual)}</td><td><span class="status ${row.variance >= 0 ? "ok" : "risk-badge"}">${money(row.variance)}</span></td></tr>`).join("")
           : `<tr><td>Fyll i utfall för månaden</td><td>0 kr</td><td>0 kr</td><td><span class="status watch">Väntar</span></td></tr>`;
+      }
+
+      function renderSavingsOverview() {
+        const rows = accumulatedSavingsRows().filter((row) => row.name.trim() || row.planned || row.actual);
+        document.getElementById("savingsOverviewRows").innerHTML = rows.length
+          ? rows.map((row) => `<tr><td>${escapeHtml(row.name)}</td><td>${money(row.planned)}</td><td>${money(row.actual)}</td><td><span class="status ${row.variance >= 0 ? "ok" : "risk-badge"}">${money(row.variance)}</span></td></tr>`).join("")
+          : `<tr><td>Lägg till ett sparmål</td><td>0 kr</td><td>0 kr</td><td><span class="status watch">Väntar</span></td></tr>`;
       }
 
       function renderBars() {
@@ -1424,15 +1458,15 @@
         const incomeRow = target.closest("[data-income-id]");
         const templateRow = target.closest("[data-template-id]");
         const actualRow = target.closest("[data-actual-id]");
-        if (incomeRow) {
+        if (incomeRow && target.dataset.incomeField) {
           const row = activeMonth().incomes.find((item) => item.id === incomeRow.dataset.incomeId);
           if (row) row[target.dataset.incomeField] = target.dataset.incomeField === "actual" ? (target.value.trim() === "" ? "" : parseAmount(target.value)) : target.value;
         }
-        if (templateRow) {
+        if (templateRow && target.dataset.templateField) {
           const row = state.budgetTemplate[templateRow.dataset.templateType].find((item) => item.id === templateRow.dataset.templateId);
           if (row) row[target.dataset.templateField] = target.dataset.templateField === "amount" ? parseAmount(target.value) : target.value;
         }
-        if (actualRow) {
+        if (actualRow && target.dataset.actualField) {
           const map = actualRow.dataset.actualType === "savings" ? activeMonth().savingActuals : activeMonth().expenseActuals;
           map[actualRow.dataset.actualId] = target.value.trim() === "" ? "" : parseAmount(target.value);
         }
