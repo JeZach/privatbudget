@@ -295,16 +295,12 @@
         grid-column: 1 / -1;
       }
 
-      .page[data-page="overview"] .quick-panel {
+      .page[data-page="overview"] .savings-pie-panel {
         grid-column: span 5;
       }
 
       .page[data-page="overview"] .deviation-panel {
         grid-column: span 7;
-      }
-
-      .page[data-page="overview"] .savings-overview-panel {
-        grid-column: 1 / -1;
       }
 
       .page[hidden] {
@@ -514,6 +510,81 @@
         display: block;
         color: var(--muted);
         margin-top: 2px;
+      }
+
+      .savings-chart-layout {
+        display: grid;
+        grid-template-columns: minmax(160px, 220px) minmax(0, 1fr);
+        gap: 18px;
+        align-items: center;
+      }
+
+      .pie-wrap {
+        position: relative;
+        display: grid;
+        place-items: center;
+      }
+
+      .pie-chart {
+        width: min(220px, 100%);
+        aspect-ratio: 1;
+        border-radius: 50%;
+        background: conic-gradient(var(--soft) 0deg 360deg);
+        display: grid;
+        place-items: center;
+        box-shadow: inset 0 0 0 1px var(--line);
+      }
+
+      .pie-chart::before {
+        content: "";
+        width: 54%;
+        aspect-ratio: 1;
+        border-radius: 50%;
+        background: var(--panel);
+        box-shadow: 0 0 0 1px var(--line);
+      }
+
+      .pie-total {
+        position: absolute;
+        text-align: center;
+        display: grid;
+        gap: 2px;
+      }
+
+      .pie-total strong {
+        font-size: 18px;
+      }
+
+      .pie-total span {
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 800;
+      }
+
+      .savings-legend {
+        display: grid;
+        gap: 8px;
+      }
+
+      .legend-row {
+        display: grid;
+        grid-template-columns: 12px minmax(0, 1fr) auto;
+        gap: 10px;
+        align-items: center;
+        border-bottom: 1px solid var(--line);
+        padding: 8px 0;
+      }
+
+      .legend-row i {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: var(--color);
+      }
+
+      .legend-row strong,
+      .legend-row span {
+        min-width: 0;
       }
 
       .money {
@@ -766,7 +837,7 @@
 
         .trend-layout .panel:first-child,
         .trend-layout .panel:last-child,
-        .page[data-page="overview"] .quick-panel,
+        .page[data-page="overview"] .savings-pie-panel,
         .page[data-page="overview"] .deviation-panel,
         .editor > section,
         .editor > section:first-of-type {
@@ -835,6 +906,11 @@
           grid-column: auto;
         }
 
+        .savings-chart-layout {
+          grid-template-columns: 1fr;
+          justify-items: center;
+        }
+
         [data-page="users"] #userForm,
         [data-page="users"] #userList,
         [data-page="users"] #userForm label:nth-child(n),
@@ -868,6 +944,7 @@
 
         <nav aria-label="Vyval">
           <button class="nav-item active" data-page-target="overview" type="button"><span class="icon">⌂</span>Översikt</button>
+          <button class="nav-item" data-page-target="purchases" type="button"><span class="icon">＋</span>Köp</button>
           <button class="nav-item" data-page-target="income" type="button"><span class="icon">＋</span>Inkomster</button>
           <button class="nav-item" data-page-target="budget" type="button"><span class="icon">✎</span>Budgetmall</button>
           <button class="nav-item" data-page-target="expenses" type="button"><span class="icon">−</span>Utgifter</button>
@@ -922,19 +999,18 @@
             </article>
           </section>
 
-          <section class="panel quick-panel">
+          <section class="panel savings-pie-panel">
             <div class="panel-title">
-              <h3>Snabbregistrera köp</h3>
-              <span>lägg direkt på månadens utfall</span>
+              <h3>Ackumulerat sparande</h3>
+              <span>per sparpost fram till vald månad</span>
             </div>
-            <form class="quick-form" id="purchaseForm">
-              <label>Datum <input id="purchaseDate" type="date" /></label>
-              <label>Beskrivning <input id="purchaseDescription" placeholder="Till exempel ICA, apotek, SL" /></label>
-              <label>Belopp <input class="money" id="purchaseAmount" inputmode="numeric" placeholder="0" /></label>
-              <label>Budgetpost <select id="purchaseCategory"></select></label>
-              <button class="add-button" type="submit">+ Lägg till köp</button>
-            </form>
-            <div class="recent-list" id="recentPurchases"></div>
+            <div class="savings-chart-layout">
+              <div class="pie-wrap">
+                <div class="pie-chart" id="savingsPieChart" aria-label="Ackumulerat sparande per post"></div>
+                <div class="pie-total"><strong id="savingsPieTotal">0 kr</strong><span>sparat</span></div>
+              </div>
+              <div class="savings-legend" id="savingsPieLegend"></div>
+            </div>
           </section>
 
           <section class="panel deviation-panel">
@@ -950,17 +1026,22 @@
             </table>
           </section>
 
-          <section class="panel savings-overview-panel">
+        </section>
+
+        <section class="page" data-page="purchases" hidden>
+          <section class="panel quick-panel">
             <div class="panel-title">
-              <h3>Ackumulerat sparande</h3>
-              <span>per sparpost fram till vald månad</span>
+              <h3>Snabbregistrera köp</h3>
+              <span>lägg direkt på månadens utfall</span>
             </div>
-            <table>
-              <thead>
-                <tr><th>Sparpost</th><th>Plan hittills</th><th>Sparat hittills</th><th>Mot plan</th></tr>
-              </thead>
-              <tbody id="savingsOverviewRows"></tbody>
-            </table>
+            <form class="quick-form" id="purchaseForm">
+              <label>Datum <input id="purchaseDate" type="date" /></label>
+              <label>Beskrivning <input id="purchaseDescription" placeholder="Till exempel ICA, apotek, SL" /></label>
+              <label>Belopp <input class="money" id="purchaseAmount" inputmode="numeric" placeholder="0" /></label>
+              <label>Budgetpost <select id="purchaseCategory"></select></label>
+              <button class="add-button" type="submit">+ Lägg till köp</button>
+            </form>
+            <div class="recent-list" id="recentPurchases"></div>
           </section>
         </section>
 
@@ -1092,6 +1173,7 @@
       const colors = ["#1e7a55", "#2d6cdf", "#bd7b16", "#b83b5e", "#5f6f52", "#576cbc", "#277da1"];
       const pages = {
         overview: { title: "Ekonomisk puls", intro: "Vald månads utfall jämförs mot budgetmallen och föregående månads inkomster." },
+        purchases: { title: "Köp", intro: "Registrera löpande köp direkt mot rätt budgetpost för vald månad." },
         income: { title: "Inkomster", intro: "Registrera faktisk lön och andra intäkter per månad. De blir tillgång för nästa månad." },
         budget: { title: "Budgetmall", intro: "Sätt standardbudget en gång. Den ligger sedan som grund för varje månads uppföljning." },
         expenses: { title: "Utgifter", intro: "Fyll i månadens faktiska utgifter mot budgetmallen." },
@@ -1326,7 +1408,7 @@
         renderSavingsRows();
         renderPurchaseForm();
         renderFocus();
-        renderSavingsOverview();
+        renderSavingsPie();
         renderBars();
         renderCategories();
         renderUsers();
@@ -1455,11 +1537,29 @@
           : `<tr><td>Fyll i utfall för månaden</td><td>0 kr</td><td>0 kr</td><td><span class="status watch">Väntar</span></td></tr>`;
       }
 
-      function renderSavingsOverview() {
+      function renderSavingsPie() {
         const rows = accumulatedSavingsRows().filter((row) => row.name.trim() || row.planned || row.actual);
-        document.getElementById("savingsOverviewRows").innerHTML = rows.length
-          ? rows.map((row) => `<tr><td>${escapeHtml(row.name)}</td><td>${money(row.planned)}</td><td>${money(row.actual)}</td><td><span class="status ${row.variance >= 0 ? "ok" : "risk-badge"}">${money(row.variance)}</span></td></tr>`).join("")
-          : `<tr><td>Lägg till ett sparmål</td><td>0 kr</td><td>0 kr</td><td><span class="status watch">Väntar</span></td></tr>`;
+        const chart = document.getElementById("savingsPieChart");
+        const legend = document.getElementById("savingsPieLegend");
+        const totalNode = document.getElementById("savingsPieTotal");
+        if (!chart || !legend || !totalNode) return;
+        const total = rows.reduce((sum, row) => sum + Math.max(0, row.actual), 0);
+        totalNode.textContent = money(total);
+        if (!rows.length || total <= 0) {
+          chart.style.background = "conic-gradient(var(--soft) 0deg 360deg)";
+          legend.innerHTML = `<div class="legend-row"><i style="--color:var(--soft)"></i><strong>Lägg till ett sparmål</strong><span>0 kr</span></div>`;
+          return;
+        }
+        let start = 0;
+        const segments = rows.map((row, index) => {
+          const value = Math.max(0, row.actual);
+          const end = start + (value / total) * 360;
+          const segment = `${colors[index % colors.length]} ${start}deg ${end}deg`;
+          start = end;
+          return segment;
+        });
+        chart.style.background = `conic-gradient(${segments.join(", ")})`;
+        legend.innerHTML = rows.map((row, index) => `<div class="legend-row"><i style="--color:${colors[index % colors.length]}"></i><strong>${escapeHtml(row.name)}</strong><span>${money(row.actual)}</span></div>`).join("");
       }
 
       function renderBars() {
