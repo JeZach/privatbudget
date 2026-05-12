@@ -473,6 +473,26 @@
         grid-column: 1 / -1;
       }
 
+      [data-page="users"] #userForm,
+      [data-page="users"] #userList {
+        grid-column: 1 / -1;
+      }
+
+      [data-page="users"] #userForm {
+        grid-template-columns: minmax(180px, 1.2fr) minmax(260px, 2fr) minmax(150px, 0.8fr) auto;
+        align-items: end;
+      }
+
+      [data-page="users"] #userForm label:nth-child(n),
+      [data-page="users"] #userForm button {
+        grid-column: auto;
+      }
+
+      [data-page="users"] #userForm button {
+        min-height: 42px;
+        white-space: nowrap;
+      }
+
       .recent-list {
         display: grid;
         gap: 8px;
@@ -813,6 +833,13 @@
         .quick-form label:nth-child(n) {
           grid-template-columns: 1fr;
           grid-column: auto;
+        }
+
+        [data-page="users"] #userForm,
+        [data-page="users"] #userList,
+        [data-page="users"] #userForm label:nth-child(n),
+        [data-page="users"] #userForm button {
+          grid-column: 1 / -1;
         }
 
         .bars {
