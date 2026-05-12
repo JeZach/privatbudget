@@ -8,6 +8,8 @@ Den här versionen är gjord för att publiceras på GitHub Pages och använda S
 - Supabase-inloggning via e-post och lösenord
 - Gemensam budgetdata i Supabase
 - Utlägg/köp sparar vilken inloggad användare som registrerade kostnaden
+- Adminvy för att lägga till fler tillåtna användare
+- Löneunderlag: lön i en månad används mot nästa månads kostnader
 
 ## 1. Skapa Supabase-projekt
 
@@ -15,6 +17,8 @@ Den här versionen är gjord för att publiceras på GitHub Pages och använda S
 2. Öppna SQL Editor.
 3. Klistra in innehållet från `supabase-schema.sql`.
 4. Kör SQL-koden.
+
+Du kan köra filen igen när appen uppdateras. Den skapar även tabellen `app_users` för admin/användare.
 
 ## 2. Hämta nycklar
 
@@ -45,7 +49,9 @@ window.PRIVATBUDGET_SUPABASE = {
 
 ## 4. Användare
 
-Första gången kan du skapa konto direkt i appen. Om Supabase kräver e-postbekräftelse behöver du klicka på länken i mejlet innan inloggning.
+Första gången tabellen `app_users` är tom blir det första inloggade kontot admin. Därefter kan admin lägga till fler användare inne i appen under sidan **Användare**.
+
+En tillagd användare behöver skapa konto/logga in med samma e-postadress.
 
 För en mer privat familjeapp kan du stänga av öppen registrering i Supabase och skapa/bjuda in användare därifrån.
 
