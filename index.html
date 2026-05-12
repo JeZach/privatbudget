@@ -1,0 +1,1551 @@
+<!doctype html>
+<html lang="sv">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#10251d" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="Privatbudget" />
+    <title>Ekonomisk uppföljning</title>
+    <link rel="manifest" href="manifest.json" />
+    <link rel="icon" href="icon.svg" type="image/svg+xml" />
+    <style>
+      :root {
+        color-scheme: light;
+        --ink: #16211d;
+        --muted: #63716b;
+        --line: #dce5df;
+        --paper: #eef4f0;
+        --panel: #ffffff;
+        --deep: #10251d;
+        --green: #1e7a55;
+        --mint: #dff4e9;
+        --blue: #2d6cdf;
+        --amber: #bd7b16;
+        --rose: #b83b5e;
+        --soft: #edf3ef;
+        --shadow: 0 16px 40px rgba(22, 33, 29, 0.08);
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background: var(--paper);
+        color: var(--ink);
+      }
+
+      button,
+      input,
+      select {
+        font: inherit;
+      }
+
+      button {
+        cursor: pointer;
+      }
+
+      .app {
+        min-height: 100vh;
+        display: grid;
+        grid-template-columns: 280px 1fr;
+      }
+
+      aside {
+        background: var(--deep);
+        color: #eef8f2;
+        padding: 28px 22px;
+        display: flex;
+        flex-direction: column;
+        gap: 26px;
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .mark {
+        width: 42px;
+        height: 42px;
+        border-radius: 8px;
+        background: linear-gradient(135deg, #80d5a3, #f3c879);
+        display: grid;
+        place-items: center;
+        color: var(--deep);
+        font-weight: 850;
+      }
+
+      .brand h1 {
+        margin: 0;
+        font-size: 18px;
+        line-height: 1.15;
+      }
+
+      .brand p,
+      .nav-label,
+      .small {
+        margin: 0;
+        color: rgba(238, 248, 242, 0.68);
+        font-size: 13px;
+      }
+
+      nav,
+      .save-card {
+        display: grid;
+        gap: 8px;
+      }
+
+      .nav-item,
+      .side-action {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        border: 1px solid transparent;
+        background: transparent;
+        color: inherit;
+        width: 100%;
+        min-height: 42px;
+        padding: 10px 12px;
+        border-radius: 8px;
+        text-align: left;
+      }
+
+      .nav-item.active,
+      .nav-item:hover,
+      .side-action:hover {
+        background: rgba(255, 255, 255, 0.1);
+        border-color: rgba(255, 255, 255, 0.12);
+      }
+
+      .icon {
+        width: 20px;
+        height: 20px;
+        display: inline-grid;
+        place-items: center;
+        flex: 0 0 auto;
+      }
+
+      .save-card {
+        margin-top: auto;
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        border-radius: 8px;
+        padding: 14px;
+        background: rgba(255, 255, 255, 0.06);
+      }
+
+      main {
+        padding: 28px;
+        display: grid;
+        gap: 22px;
+        align-content: start;
+      }
+
+      header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 16px;
+      }
+
+      .title h2 {
+        margin: 0;
+        font-size: clamp(28px, 4vw, 42px);
+        letter-spacing: 0;
+      }
+
+      .title p {
+        margin: 8px 0 0;
+        color: var(--muted);
+        max-width: 680px;
+      }
+
+      .period {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 8px;
+        box-shadow: 0 8px 22px rgba(22, 33, 29, 0.05);
+      }
+
+      .period button,
+      .icon-button {
+        border: 0;
+        background: transparent;
+        min-width: 38px;
+        height: 34px;
+        border-radius: 8px;
+      }
+
+      .period button:hover,
+      .icon-button:hover {
+        background: var(--soft);
+      }
+
+      .period strong {
+        min-width: 128px;
+        text-align: center;
+      }
+
+      .summary {
+        display: grid;
+        grid-template-columns: repeat(12, minmax(0, 1fr));
+        gap: 14px;
+      }
+
+      .metric,
+      .panel {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        box-shadow: var(--shadow);
+      }
+
+      .metric {
+        padding: 20px;
+        min-height: 154px;
+        display: grid;
+        align-content: space-between;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .metric::before {
+        content: "";
+        position: absolute;
+        inset: 0 0 auto;
+        height: 5px;
+        background: var(--accent, var(--green));
+      }
+
+      .metric:nth-child(1) {
+        grid-column: span 2;
+        --accent: var(--green);
+      }
+
+      .metric:nth-child(2) {
+        grid-column: span 2;
+        --accent: var(--amber);
+      }
+
+      .metric:nth-child(3) {
+        grid-column: span 4;
+        --accent: var(--blue);
+      }
+
+      .metric:nth-child(4) {
+        grid-column: span 4;
+        --accent: var(--rose);
+      }
+
+      .metric span,
+      .panel-title span,
+      th,
+      label,
+      .field-label {
+        color: var(--muted);
+        font-size: 13px;
+        font-weight: 700;
+      }
+
+      .metric strong {
+        display: block;
+        font-size: clamp(24px, 3vw, 34px);
+        margin-top: 8px;
+      }
+
+      .trend {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        color: var(--green);
+        font-weight: 750;
+        font-size: 13px;
+      }
+
+      .trend.warn {
+        color: var(--amber);
+      }
+
+      .trend.risk {
+        color: var(--rose);
+      }
+
+      .page {
+        display: grid;
+        gap: 18px;
+      }
+
+      .page[data-page="overview"] {
+        grid-template-columns: repeat(12, minmax(0, 1fr));
+      }
+
+      .page[data-page="overview"] .summary {
+        grid-column: 1 / -1;
+      }
+
+      .page[data-page="overview"] .panel {
+        grid-column: 1 / -1;
+      }
+
+      .page[data-page="overview"] .quick-panel {
+        grid-column: span 5;
+      }
+
+      .page[data-page="overview"] .deviation-panel {
+        grid-column: span 7;
+      }
+
+      .page[hidden] {
+        display: none;
+      }
+
+      .trend-layout {
+        display: grid;
+        grid-template-columns: repeat(12, minmax(0, 1fr));
+        gap: 18px;
+        align-items: start;
+      }
+
+      .trend-layout .panel:first-child {
+        grid-column: span 8;
+      }
+
+      .trend-layout .panel:last-child {
+        grid-column: span 4;
+      }
+
+      .panel {
+        padding: 20px;
+        min-width: 0;
+      }
+
+      .panel-title {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 16px;
+      }
+
+      .panel-title h3 {
+        margin: 0;
+        font-size: 18px;
+      }
+
+      .editor {
+        display: grid;
+        grid-template-columns: repeat(12, minmax(0, 1fr));
+        gap: 16px;
+      }
+
+      .editor > .panel-title {
+        grid-column: 1 / -1;
+      }
+
+      .editor > section {
+        grid-column: span 6;
+        background: #fbfdfb;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 16px;
+      }
+
+      .editor > section:first-of-type {
+        grid-column: 1 / -1;
+      }
+
+      .section-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 10px;
+      }
+
+      .section-head h4 {
+        margin: 0;
+        font-size: 15px;
+      }
+
+      .add-button,
+      .copy-button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        min-height: 36px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #fdfefd;
+        color: var(--ink);
+        font-weight: 750;
+        padding: 0 12px;
+      }
+
+      .add-button:hover,
+      .copy-button:hover {
+        background: var(--soft);
+      }
+
+      .entry-list {
+        display: grid;
+        gap: 8px;
+      }
+
+      .entry-heading,
+      .entry-row {
+        display: grid;
+        grid-template-columns: minmax(140px, 1fr) minmax(100px, 140px) minmax(100px, 140px) minmax(100px, 140px) 38px;
+        gap: 8px;
+        align-items: center;
+      }
+
+      .entry-heading {
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 800;
+        padding: 0 46px 0 2px;
+      }
+
+      input,
+      select {
+        width: 100%;
+        min-height: 42px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #fbfdfb;
+        color: var(--ink);
+        padding: 10px 12px;
+      }
+
+      .line-field {
+        display: grid;
+        gap: 5px;
+      }
+
+      .line-field span {
+        display: none;
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 800;
+      }
+
+      input:focus,
+      select:focus {
+        outline: 2px solid rgba(30, 122, 85, 0.18);
+        border-color: rgba(30, 122, 85, 0.55);
+      }
+
+      .quick-form {
+        display: grid;
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+        gap: 10px;
+      }
+
+      .quick-form label {
+        display: grid;
+        gap: 6px;
+      }
+
+      .quick-form label:nth-child(1),
+      .quick-form label:nth-child(3) {
+        grid-column: span 2;
+      }
+
+      .quick-form label:nth-child(2),
+      .quick-form label:nth-child(4) {
+        grid-column: span 4;
+      }
+
+      .quick-form button {
+        grid-column: 1 / -1;
+      }
+
+      .recent-list {
+        display: grid;
+        gap: 8px;
+        margin-top: 16px;
+      }
+
+      .recent-item {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 8px;
+        align-items: center;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 10px 12px;
+        background: #fbfdfb;
+      }
+
+      .recent-item small {
+        display: block;
+        color: var(--muted);
+        margin-top: 2px;
+      }
+
+      .money {
+        text-align: right;
+      }
+
+      .variance {
+        min-height: 42px;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        border-radius: 8px;
+        background: var(--soft);
+        color: var(--muted);
+        font-weight: 800;
+        padding: 0 10px;
+      }
+
+      .variance.good {
+        background: var(--mint);
+        color: var(--green);
+      }
+
+      .variance.bad {
+        background: #ffe3e9;
+        color: var(--rose);
+      }
+
+      .variance.missing {
+        color: var(--muted);
+        font-size: 12px;
+        justify-content: center;
+      }
+
+      .auth-screen {
+        position: fixed;
+        inset: 0;
+        z-index: 20;
+        display: grid;
+        place-items: center;
+        padding: 20px;
+        background: rgba(16, 37, 29, 0.74);
+      }
+
+      .auth-screen[hidden] {
+        display: none;
+      }
+
+      .auth-card {
+        width: min(440px, 100%);
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 24px;
+        box-shadow: var(--shadow);
+      }
+
+      .auth-card h2 {
+        margin: 0 0 8px;
+      }
+
+      .auth-card p {
+        color: var(--muted);
+        margin: 0 0 16px;
+      }
+
+      .auth-card form {
+        display: grid;
+        gap: 12px;
+      }
+
+      .auth-card label {
+        display: grid;
+        gap: 6px;
+        color: var(--muted);
+        font-size: 13px;
+        font-weight: 800;
+      }
+
+      .auth-error {
+        min-height: 22px;
+        color: var(--rose);
+        font-weight: 800;
+      }
+
+      .auth-actions {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 10px;
+      }
+
+      .user-pill {
+        margin: 0;
+        color: rgba(238, 248, 242, 0.72);
+        font-size: 13px;
+        line-height: 1.35;
+      }
+
+      .bars {
+        height: 280px;
+        display: grid;
+        grid-template-columns: repeat(12, minmax(32px, 1fr));
+        align-items: end;
+        gap: 10px;
+        padding-top: 12px;
+      }
+
+      .bar {
+        display: grid;
+        gap: 8px;
+        justify-items: center;
+      }
+
+      .bar i {
+        width: 100%;
+        min-height: 10px;
+        height: var(--height);
+        background: linear-gradient(180deg, #2d6cdf, #1e7a55);
+        border-radius: 6px 6px 3px 3px;
+      }
+
+      .bar.negative i {
+        background: linear-gradient(180deg, #d86f83, #b83b5e);
+      }
+
+      .bar span {
+        color: var(--muted);
+        font-size: 12px;
+        text-align: center;
+      }
+
+      .category-list {
+        display: grid;
+        gap: 14px;
+      }
+
+      .category {
+        display: grid;
+        gap: 8px;
+      }
+
+      .category-head {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        font-size: 14px;
+      }
+
+      .track {
+        height: 10px;
+        background: #edf2ef;
+        border-radius: 999px;
+        overflow: hidden;
+      }
+
+      .fill {
+        width: var(--width);
+        height: 100%;
+        background: var(--color, var(--green));
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+
+      th,
+      td {
+        text-align: left;
+        padding: 12px 8px;
+        border-bottom: 1px solid var(--line);
+        font-size: 14px;
+      }
+
+      td:last-child,
+      th:last-child {
+        text-align: right;
+      }
+
+      .status {
+        display: inline-flex;
+        align-items: center;
+        min-height: 26px;
+        padding: 4px 9px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 800;
+      }
+
+      .ok {
+        background: var(--mint);
+        color: var(--green);
+      }
+
+      .watch {
+        background: #fff1d6;
+        color: var(--amber);
+      }
+
+      .risk-badge {
+        background: #ffe3e9;
+        color: var(--rose);
+      }
+
+      .stack {
+        display: grid;
+        gap: 18px;
+      }
+
+      @media (max-width: 1080px) {
+        .summary {
+          grid-template-columns: 1fr 1fr;
+        }
+
+        .metric:nth-child(n) {
+          grid-column: auto;
+        }
+
+        .trend-layout {
+          grid-template-columns: 1fr;
+        }
+
+        .editor {
+          grid-template-columns: 1fr;
+        }
+
+        .trend-layout .panel:first-child,
+        .trend-layout .panel:last-child,
+        .page[data-page="overview"] .quick-panel,
+        .page[data-page="overview"] .deviation-panel,
+        .editor > section,
+        .editor > section:first-of-type {
+          grid-column: auto;
+        }
+      }
+
+      @media (max-width: 860px) {
+        .app {
+          grid-template-columns: 1fr;
+        }
+
+        aside {
+          position: sticky;
+          top: 0;
+          z-index: 2;
+          padding: 16px;
+        }
+
+        nav {
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+
+        .save-card {
+          display: none;
+        }
+
+        header {
+          flex-direction: column;
+        }
+
+      }
+
+      @media (max-width: 640px) {
+        main {
+          padding: 18px;
+        }
+
+        nav {
+          display: flex;
+          overflow-x: auto;
+        }
+
+        .nav-item {
+          white-space: nowrap;
+        }
+
+        .entry-row {
+          grid-template-columns: 1fr;
+          border: 1px solid var(--line);
+          border-radius: 8px;
+          padding: 10px;
+        }
+
+        .entry-heading {
+          display: none;
+        }
+
+        .line-field span {
+          display: block;
+        }
+
+        .quick-form,
+        .quick-form label:nth-child(n) {
+          grid-template-columns: 1fr;
+          grid-column: auto;
+        }
+
+        .bars {
+          overflow-x: auto;
+          grid-template-columns: repeat(12, 46px);
+        }
+      }
+
+      @media (max-width: 480px) {
+        .summary {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <aside>
+        <div class="brand">
+          <div class="mark">kr</div>
+          <div>
+            <h1>Privatbudget</h1>
+            <p>Direkt i gränssnittet</p>
+          </div>
+        </div>
+
+        <nav aria-label="Vyval">
+          <button class="nav-item active" data-page-target="overview" type="button"><span class="icon">⌂</span>Översikt</button>
+          <button class="nav-item" data-page-target="budget" type="button"><span class="icon">✎</span>Budget</button>
+          <button class="nav-item" data-page-target="trend" type="button"><span class="icon">↗</span>Trend</button>
+        </nav>
+
+        <div class="save-card">
+          <p class="nav-label">Sparstatus</p>
+          <p class="small" id="saveStatus">Autosparar i den här webbläsaren.</p>
+          <p class="user-pill" id="userStatus">Inte inloggad</p>
+          <button class="side-action" id="logoutButton" type="button"><span class="icon">⇥</span>Logga ut</button>
+          <button class="side-action" id="resetMonthButton" type="button"><span class="icon">↺</span>Nollställ månad</button>
+        </div>
+      </aside>
+
+      <main>
+        <header>
+          <div class="title">
+            <h2 id="pageTitle">Ekonomisk puls</h2>
+            <p id="pageIntro">Skriv in löner, intäkter, kostnader och utfall direkt här. Dashboarden räknar om månaden och avvikelserna automatiskt.</p>
+          </div>
+          <div class="period" aria-label="Välj period">
+            <button id="previousMonth" type="button" aria-label="Föregående månad">‹</button>
+            <strong id="periodLabel">Juni 2026</strong>
+            <button id="nextMonth" type="button" aria-label="Nästa månad">›</button>
+          </div>
+        </header>
+
+        <section class="page active" data-page="overview">
+          <section class="summary" id="overview" aria-label="Sammanfattning">
+            <article class="metric">
+              <span>Budgeterade intäkter</span>
+              <strong id="incomeValue">0 kr</strong>
+              <small class="trend">från löner och övrigt</small>
+            </article>
+            <article class="metric">
+              <span>Planerade kostnader</span>
+              <strong id="costValue">0 kr</strong>
+              <small class="trend warn">fasta och rörliga</small>
+            </article>
+            <article class="metric">
+              <span>Faktiskt resultat</span>
+              <strong id="actualResultValue">0 kr</strong>
+              <small class="trend" id="actualStatus">mot utfall</small>
+            </article>
+            <article class="metric">
+              <span>Avvikelse</span>
+              <strong id="varianceValue">0 kr</strong>
+              <small class="trend" id="varianceStatus">mot budget</small>
+            </article>
+          </section>
+
+          <section class="panel quick-panel">
+            <div class="panel-title">
+              <h3>Snabbregistrera köp</h3>
+              <span>lägg direkt på utfall</span>
+            </div>
+            <form class="quick-form" id="purchaseForm">
+              <label>
+                Datum
+                <input id="purchaseDate" type="date" />
+              </label>
+              <label>
+                Beskrivning
+                <input id="purchaseDescription" placeholder="Till exempel ICA, apotek, SL" />
+              </label>
+              <label>
+                Belopp
+                <input class="money" id="purchaseAmount" inputmode="numeric" placeholder="0" />
+              </label>
+              <label>
+                Budgetpost
+                <select id="purchaseCategory"></select>
+              </label>
+              <button class="add-button" type="submit">+ Lägg till köp</button>
+            </form>
+            <div class="recent-list" id="recentPurchases"></div>
+          </section>
+
+          <section class="panel deviation-panel">
+            <div class="panel-title">
+              <h3>Avvikelser</h3>
+              <span>största skillnader mot budget</span>
+            </div>
+            <table>
+              <thead>
+                <tr>
+                  <th>Område</th>
+                  <th>Budget</th>
+                  <th>Utfall</th>
+                  <th>Avvikelse</th>
+                </tr>
+              </thead>
+              <tbody id="focusRows"></tbody>
+            </table>
+          </section>
+        </section>
+
+        <section class="page" data-page="budget" hidden>
+          <article class="panel editor" id="budgetEditor">
+            <div class="panel-title">
+              <h3>Budget denna månad</h3>
+              <button class="copy-button" id="copyPreviousButton" type="button">↙ Kopiera föregående</button>
+            </div>
+
+            <section>
+              <div class="section-head">
+                <h4>Intäkter</h4>
+                <button class="add-button" data-add="incomes" type="button">+ Lägg till</button>
+              </div>
+              <div class="entry-heading"><span>Post</span><span>Budget</span><span>Utfall</span><span>Avvikelse</span></div>
+              <div class="entry-list" id="incomeRows"></div>
+            </section>
+
+            <section>
+              <div class="section-head">
+                <h4>Fasta kostnader</h4>
+                <button class="add-button" data-add="fixedCosts" type="button">+ Lägg till</button>
+              </div>
+              <div class="entry-heading"><span>Post</span><span>Budget</span><span>Utfall</span><span>Avvikelse</span></div>
+              <div class="entry-list" id="fixedRows"></div>
+            </section>
+
+            <section>
+              <div class="section-head">
+                <h4>Rörliga kostnader</h4>
+                <button class="add-button" data-add="variableCosts" type="button">+ Lägg till</button>
+              </div>
+              <div class="entry-heading"><span>Post</span><span>Budget</span><span>Utfall</span><span>Avvikelse</span></div>
+              <div class="entry-list" id="variableRows"></div>
+            </section>
+
+          </article>
+        </section>
+
+        <section class="page trend-layout" data-page="trend" hidden>
+          <article class="panel" id="trendPanel">
+            <div class="panel-title">
+              <h3>Årsöversikt</h3>
+              <span>kvar per månad</span>
+            </div>
+            <div class="bars" id="bars" aria-label="Kvar per månad"></div>
+          </article>
+
+          <article class="panel">
+            <div class="panel-title">
+              <h3>Kategorier</h3>
+              <span>största kostnader</span>
+            </div>
+            <div class="category-list" id="categories"></div>
+          </article>
+        </section>
+      </main>
+    </div>
+
+    <section class="auth-screen" id="authScreen">
+      <div class="auth-card">
+        <h2 id="authTitle">Logga in</h2>
+        <p id="authIntro">Logga in för att använda den gemensamma budgeten på alla enheter.</p>
+        <form id="authForm">
+          <label>
+            Namn
+            <input id="authName" autocomplete="name" />
+          </label>
+          <label>
+            E-post
+            <input id="authEmail" type="email" autocomplete="email" required />
+          </label>
+          <label>
+            Lösenord
+            <input id="authPassword" type="password" autocomplete="current-password" minlength="8" required />
+          </label>
+          <div class="auth-actions">
+            <button class="add-button" type="submit" id="authSubmit">Logga in</button>
+            <button class="copy-button" type="button" id="authToggle">Skapa konto</button>
+          </div>
+          <div class="auth-error" id="authError"></div>
+        </form>
+      </div>
+    </section>
+
+    <script src="config.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+      const storageKey = "privateBudgetDashboard.v2";
+      const budgetRowId = "main";
+      const monthLabels = [
+        "Juni 2026",
+        "Juli 2026",
+        "Augusti 2026",
+        "September 2026",
+        "Oktober 2026",
+        "November 2026",
+        "December 2026",
+        "Januari 2027",
+        "Februari 2027",
+        "Mars 2027",
+        "April 2027",
+        "Maj 2027",
+      ];
+      const monthKeys = ["jun-26", "jul-26", "aug-26", "sep-26", "okt-26", "nov-26", "dec-26", "jan-27", "feb-27", "mar-27", "apr-27", "maj-27"];
+      const colors = ["#1e7a55", "#2d6cdf", "#bd7b16", "#b83b5e", "#5f6f52", "#576cbc", "#277da1", "#8f5c7c"];
+      const pages = {
+        overview: {
+          title: "Ekonomisk puls",
+          intro: "Se månadens läge, faktiskt resultat och största avvikelser mot budget.",
+        },
+        budget: {
+          title: "Budget",
+          intro: "Skriv in budget och utfall per post. Avvikelsen räknas direkt på varje rad.",
+        },
+        trend: {
+          title: "Trend",
+          intro: "Följ utvecklingen över året och se vilka kostnadskategorier som väger tyngst.",
+        },
+      };
+      let currentMonth = 0;
+      let currentPage = location.hash.replace("#", "") || "overview";
+      if (!pages[currentPage]) currentPage = "overview";
+      let authMode = "login";
+      let currentUser = null;
+      let saveTimer = null;
+      let state = loadState();
+      const supabaseConfig = window.PRIVATBUDGET_SUPABASE || {};
+      const hasSupabaseConfig = Boolean(supabaseConfig.url && supabaseConfig.anonKey && !supabaseConfig.url.includes("DIN-"));
+      const supabaseClient = hasSupabaseConfig && window.supabase ? window.supabase.createClient(supabaseConfig.url, supabaseConfig.anonKey) : null;
+
+      function newEntry(name = "", amount = 0, actual = "") {
+        return { id: crypto.randomUUID(), name, amount, actual };
+      }
+
+      function blankMonth() {
+        return {
+          incomes: [newEntry("Lön Jens"), newEntry("Lön Lena"), newEntry("Övrig intäkt")],
+          fixedCosts: [newEntry("Hyra"), newEntry("El"), newEntry("Försäkringar"), newEntry("Telefon"), newEntry("Lån")],
+          variableCosts: [newEntry("Mat"), newEntry("Resor"), newEntry("Hälsa"), newEntry("Nöje"), newEntry("Sparande")],
+          purchases: [],
+        };
+      }
+
+      function loadState() {
+        const saved = localStorage.getItem(storageKey);
+        if (saved) {
+          try {
+            const parsed = JSON.parse(saved);
+            return { months: Object.fromEntries(monthKeys.map((key) => [key, normalizeMonth(parsed.months?.[key] || blankMonth())])) };
+          } catch {
+            localStorage.removeItem(storageKey);
+          }
+        }
+        return { months: Object.fromEntries(monthKeys.map((key) => [key, blankMonth()])) };
+      }
+
+      function saveState() {
+        localStorage.setItem(storageKey, JSON.stringify(state));
+        document.getElementById("saveStatus").textContent = `Sparat ${new Date().toLocaleTimeString("sv-SE", { hour: "2-digit", minute: "2-digit" })}`;
+        queueServerSave();
+      }
+
+      function queueServerSave() {
+        if (!currentUser || !supabaseClient) return;
+        clearTimeout(saveTimer);
+        saveTimer = setTimeout(saveToSupabase, 500);
+      }
+
+      async function saveToSupabase() {
+        const { error } = await supabaseClient
+          .from("budget_state")
+          .upsert({ id: budgetRowId, data: state, updated_by: currentUser.id, updated_at: new Date().toISOString() });
+
+        if (error) {
+          document.getElementById("saveStatus").textContent = "Sparat lokalt, kunde inte synka";
+          return;
+        }
+
+        document.getElementById("saveStatus").textContent = `Synkat ${new Date().toLocaleTimeString("sv-SE", { hour: "2-digit", minute: "2-digit" })}`;
+      }
+
+      function money(value) {
+        return new Intl.NumberFormat("sv-SE", { style: "currency", currency: "SEK", maximumFractionDigits: 0 }).format(Number(value) || 0);
+      }
+
+      function sum(rows) {
+        return rows.reduce((total, row) => total + (Number(row.amount) || 0), 0);
+      }
+
+      function actualSum(rows) {
+        return rows.reduce((total, row) => total + actualForRow(row), 0);
+      }
+
+      function normalizeMonth(month) {
+        for (const type of ["incomes", "fixedCosts", "variableCosts"]) {
+          month[type] = (month[type] || []).map((row) => ({ id: row.id || crypto.randomUUID(), name: row.name || "", amount: Number(row.amount) || 0, actual: row.actual === "" || row.actual === undefined ? "" : Number(row.actual) || 0 }));
+        }
+        month.purchases = (month.purchases || []).map((purchase) => ({
+          id: purchase.id || crypto.randomUUID(),
+          date: purchase.date || today(),
+          description: purchase.description || "",
+          amount: Number(purchase.amount) || 0,
+          targetId: purchase.targetId || "",
+          userId: purchase.userId || null,
+          userName: purchase.userName || "",
+          userEmail: purchase.userEmail || "",
+        }));
+        return month;
+      }
+
+      function activeMonth() {
+        return state.months[monthKeys[currentMonth]];
+      }
+
+      function totals(month = activeMonth()) {
+        const income = sum(month.incomes);
+        const fixed = sum(month.fixedCosts);
+        const variable = sum(month.variableCosts);
+        const costs = fixed + variable;
+        const actualIncome = actualSum(month.incomes);
+        const actualFixed = actualSum(month.fixedCosts);
+        const actualVariable = actualSum(month.variableCosts);
+        const actualCosts = actualFixed + actualVariable;
+        const left = income - costs;
+        const actualLeft = actualIncome - actualCosts;
+        const variance = monthVariance(month);
+        return { income, fixed, variable, costs, actualIncome, actualFixed, actualVariable, actualCosts, left, actualLeft, variance };
+      }
+
+      function rowVariance(type, row) {
+        if (!hasActual(row)) return 0;
+        const budget = Number(row.amount) || 0;
+        const actual = actualForRow(row);
+        return type === "incomes" ? actual - budget : budget - actual;
+      }
+
+      function hasActual(row) {
+        return (row.actual !== "" && row.actual !== undefined) || purchaseTotalFor(row.id) > 0;
+      }
+
+      function actualForRow(row) {
+        const manual = row.actual === "" || row.actual === undefined ? 0 : Number(row.actual) || 0;
+        return manual + purchaseTotalFor(row.id);
+      }
+
+      function purchaseTotalFor(targetId) {
+        return activeMonth().purchases.reduce((total, purchase) => purchase.targetId === targetId ? total + (Number(purchase.amount) || 0) : total, 0);
+      }
+
+      function monthVariance(month) {
+        return [
+          ...month.incomes.map((row) => rowVariance("incomes", row)),
+          ...month.fixedCosts.map((row) => rowVariance("fixedCosts", row)),
+          ...month.variableCosts.map((row) => rowVariance("variableCosts", row)),
+        ].reduce((total, value) => total + value, 0);
+      }
+
+      function renderRows(type, containerId) {
+        const rows = activeMonth()[type];
+        document.getElementById(containerId).innerHTML = rows
+          .map(
+            (row) => `
+              <div class="entry-row" data-type="${type}" data-id="${row.id}">
+                <label class="line-field"><span>Post</span><input aria-label="Namn" value="${escapeHtml(row.name)}" data-field="name" placeholder="Namn" /></label>
+                <label class="line-field"><span>Budget</span><input class="money" aria-label="Budget" value="${row.amount || ""}" data-field="amount" inputmode="numeric" placeholder="0" /></label>
+                <label class="line-field"><span>Utfall</span><input class="money" aria-label="Utfall" value="${row.actual === "" ? "" : row.actual}" data-field="actual" inputmode="numeric" placeholder="${purchaseTotalFor(row.id) > 0 ? `Köp: ${money(purchaseTotalFor(row.id))}` : "Skriv utfall"}" /></label>
+                <output class="variance ${varianceClass(rowVariance(type, row), row)}" data-variance="${row.id}">${varianceText(type, row)}</output>
+                <button class="icon-button" type="button" data-remove="${row.id}" aria-label="Ta bort">×</button>
+              </div>
+            `
+          )
+          .join("");
+      }
+
+      function renderSummary() {
+        const total = totals();
+        document.getElementById("incomeValue").textContent = money(total.income);
+        document.getElementById("costValue").textContent = money(total.costs);
+        document.getElementById("actualResultValue").textContent = money(total.actualLeft);
+        document.getElementById("varianceValue").textContent = money(total.variance);
+
+        const actualStatus = document.getElementById("actualStatus");
+        actualStatus.textContent = total.actualLeft >= 0 ? "plus" : "minus";
+        actualStatus.className = total.actualLeft >= 0 ? "trend" : "trend risk";
+
+        const varianceStatus = document.getElementById("varianceStatus");
+        varianceStatus.textContent = total.variance >= 0 ? "bättre än budget" : "sämre än budget";
+        varianceStatus.className = total.variance >= 0 ? "trend" : "trend risk";
+      }
+
+      function renderBars() {
+        const values = monthKeys.map((key) => totals(state.months[key]).left);
+        const max = Math.max(...values.map((value) => Math.abs(value)), 1);
+        document.getElementById("bars").innerHTML = values
+          .map((value, index) => {
+            const height = Math.max(10, Math.round((Math.abs(value) / max) * 190));
+            const negative = value < 0 ? " negative" : "";
+            return `<div class="bar${negative}"><i style="--height:${height}px"></i><span>${monthKeys[index]}</span></div>`;
+          })
+          .join("");
+      }
+
+      function renderCategories() {
+        const rows = [...activeMonth().fixedCosts, ...activeMonth().variableCosts].filter((row) => row.name.trim());
+        const sorted = rows.sort((a, b) => categoryValue(b) - categoryValue(a)).slice(0, 7);
+        const max = Math.max(...sorted.map((row) => categoryValue(row)), 1);
+        document.getElementById("categories").innerHTML = sorted
+          .map((row, index) => {
+            const value = categoryValue(row);
+            const width = Math.max(4, Math.round((value / max) * 100));
+            return `<div class="category">
+              <div class="category-head"><strong>${escapeHtml(row.name)}</strong><span>${money(value)}</span></div>
+              <div class="track"><div class="fill" style="--width:${width}%;--color:${colors[index % colors.length]}"></div></div>
+            </div>`;
+          })
+          .join("");
+      }
+
+      function categoryValue(row) {
+        return hasActual(row) ? actualForRow(row) : Number(row.amount) || 0;
+      }
+
+      function renderFocus() {
+        const rows = allBudgetRows()
+          .filter((row) => row.name.trim() && row.hasActual)
+          .sort((a, b) => Math.abs(b.variance) - Math.abs(a.variance))
+          .slice(0, 6);
+        document.getElementById("focusRows").innerHTML = rows.length
+          ? rows.map((row) => `<tr><td>${escapeHtml(row.name)}</td><td>${money(row.budget)}</td><td>${money(row.actual)}</td><td><span class="status ${row.variance >= 0 ? "ok" : "risk-badge"}">${money(row.variance)}</span></td></tr>`).join("")
+          : `<tr><td>Fyll i utfall på en budgetpost</td><td>0 kr</td><td>0 kr</td><td><span class="status watch">Väntar</span></td></tr>`;
+      }
+
+      function allBudgetRows() {
+        const month = activeMonth();
+        return [
+          ...month.incomes.map((row) => ({ name: row.name, budget: row.amount, actual: actualForRow(row), hasActual: hasActual(row), variance: rowVariance("incomes", row) })),
+          ...month.fixedCosts.map((row) => ({ name: row.name, budget: row.amount, actual: actualForRow(row), hasActual: hasActual(row), variance: rowVariance("fixedCosts", row) })),
+          ...month.variableCosts.map((row) => ({ name: row.name, budget: row.amount, actual: actualForRow(row), hasActual: hasActual(row), variance: rowVariance("variableCosts", row) })),
+        ];
+      }
+
+      function varianceClass(value, row) {
+        if (row && !hasActual(row)) return "missing";
+        if (value > 0) return "good";
+        if (value < 0) return "bad";
+        return "";
+      }
+
+      function varianceText(type, row) {
+        return hasActual(row) ? money(rowVariance(type, row)) : "Ej ifyllt";
+      }
+
+      function renderRowVariances() {
+        document.querySelectorAll(".entry-row").forEach((rowElement) => {
+          const entry = activeMonth()[rowElement.dataset.type].find((row) => row.id === rowElement.dataset.id);
+          const output = rowElement.querySelector("[data-variance]");
+          if (!entry || !output) return;
+          const value = rowVariance(rowElement.dataset.type, entry);
+          output.textContent = varianceText(rowElement.dataset.type, entry);
+          output.className = `variance ${varianceClass(value, entry)}`.trim();
+        });
+      }
+
+      function renderPurchaseForm() {
+        const dateInput = document.getElementById("purchaseDate");
+        if (!dateInput.value) dateInput.value = today();
+
+        const options = costRows();
+        document.getElementById("purchaseCategory").innerHTML = options.length
+          ? options.map(({ row }) => `<option value="${row.id}">${escapeHtml(row.name || "Namnlös post")}</option>`).join("")
+          : `<option value="">Lägg till en kostnadspost först</option>`;
+
+        const recent = [...activeMonth().purchases].slice(-5).reverse();
+        document.getElementById("recentPurchases").innerHTML = recent.length
+          ? recent.map((purchase) => {
+              const target = options.find(({ row }) => row.id === purchase.targetId)?.row;
+              const userText = purchase.userName || purchase.userEmail ? ` · ${escapeHtml(purchase.userName || purchase.userEmail)}` : "";
+              return `<div class="recent-item"><div><strong>${escapeHtml(purchase.description || "Köp")}</strong><small>${purchase.date} · ${escapeHtml(target?.name || "Okänd post")}${userText}</small></div><strong>${money(purchase.amount)}</strong></div>`;
+            }).join("")
+          : `<div class="recent-item"><div><strong>Inga köp registrerade ännu</strong><small>Registrera första köpet ovan.</small></div><strong>0 kr</strong></div>`;
+      }
+
+      function costRows() {
+        const month = activeMonth();
+        return [
+          ...month.fixedCosts.map((row) => ({ type: "fixedCosts", row })),
+          ...month.variableCosts.map((row) => ({ type: "variableCosts", row })),
+        ].filter(({ row }) => row.name.trim());
+      }
+
+      function today() {
+        return new Date().toISOString().slice(0, 10);
+      }
+
+      function render() {
+        document.getElementById("periodLabel").textContent = monthLabels[currentMonth];
+        renderPage();
+        renderRows("incomes", "incomeRows");
+        renderRows("fixedCosts", "fixedRows");
+        renderRows("variableCosts", "variableRows");
+        renderPurchaseForm();
+        renderSummary();
+        renderBars();
+        renderCategories();
+        renderFocus();
+      }
+
+      function renderPage() {
+        document.getElementById("pageTitle").textContent = pages[currentPage].title;
+        document.getElementById("pageIntro").textContent = pages[currentPage].intro;
+        document.querySelectorAll("[data-page]").forEach((page) => {
+          page.hidden = page.dataset.page !== currentPage;
+        });
+        document.querySelectorAll("[data-page-target]").forEach((button) => {
+          button.classList.toggle("active", button.dataset.pageTarget === currentPage);
+        });
+      }
+
+      function escapeHtml(value) {
+        return String(value).replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" })[char]);
+      }
+
+      function parseAmount(value) {
+        return Number(String(value).replace(/\s/g, "").replace("kr", "").replace(",", ".").replace(/[^\d.-]/g, "")) || 0;
+      }
+
+      document.addEventListener("input", (event) => {
+        const target = event.target;
+        const row = target.closest(".entry-row");
+        if (row) {
+          const entry = activeMonth()[row.dataset.type].find((item) => item.id === row.dataset.id);
+          if (!entry) return;
+          entry[target.dataset.field] = target.dataset.field === "actual" && target.value.trim() === "" ? "" : target.dataset.field === "amount" || target.dataset.field === "actual" ? parseAmount(target.value) : target.value;
+        }
+        saveState();
+        renderRowVariances();
+        renderPurchaseForm();
+        renderSummary();
+        renderBars();
+        renderCategories();
+        renderFocus();
+      });
+
+      document.addEventListener("click", (event) => {
+        const addType = event.target.closest("[data-add]")?.dataset.add;
+        const removeId = event.target.closest("[data-remove]")?.dataset.remove;
+        const pageTarget = event.target.closest("[data-page-target]")?.dataset.pageTarget;
+
+        if (pageTarget && pages[pageTarget]) {
+          currentPage = pageTarget;
+          history.replaceState(null, "", `#${currentPage}`);
+          renderPage();
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        }
+
+        if (addType) {
+          activeMonth()[addType].push(newEntry());
+          saveState();
+          render();
+        }
+
+        if (removeId) {
+          for (const type of ["incomes", "fixedCosts", "variableCosts"]) {
+            activeMonth()[type] = activeMonth()[type].filter((row) => row.id !== removeId);
+          }
+          activeMonth().purchases = activeMonth().purchases.filter((purchase) => purchase.targetId !== removeId);
+          saveState();
+          render();
+        }
+      });
+
+      document.getElementById("previousMonth").addEventListener("click", () => {
+        currentMonth = (currentMonth + monthKeys.length - 1) % monthKeys.length;
+        render();
+      });
+
+      document.getElementById("nextMonth").addEventListener("click", () => {
+        currentMonth = (currentMonth + 1) % monthKeys.length;
+        render();
+      });
+
+      document.getElementById("copyPreviousButton").addEventListener("click", () => {
+        const previous = monthKeys[(currentMonth + monthKeys.length - 1) % monthKeys.length];
+        state.months[monthKeys[currentMonth]] = JSON.parse(JSON.stringify(state.months[previous]));
+        for (const type of ["incomes", "fixedCosts", "variableCosts"]) {
+          state.months[monthKeys[currentMonth]][type] = state.months[monthKeys[currentMonth]][type].map((row) => ({ ...row, id: crypto.randomUUID(), actual: "" }));
+        }
+        state.months[monthKeys[currentMonth]].purchases = [];
+        saveState();
+        render();
+      });
+
+      document.getElementById("purchaseForm").addEventListener("submit", (event) => {
+        event.preventDefault();
+        const amount = parseAmount(document.getElementById("purchaseAmount").value);
+        const targetId = document.getElementById("purchaseCategory").value;
+        if (!amount || !targetId) return;
+        activeMonth().purchases.push({
+          id: crypto.randomUUID(),
+          date: document.getElementById("purchaseDate").value || today(),
+          description: document.getElementById("purchaseDescription").value.trim(),
+          amount,
+          targetId,
+          userId: currentUser?.id || null,
+          userName: currentUser?.user_metadata?.name || currentUser?.email || "",
+          userEmail: currentUser?.email || "",
+        });
+        document.getElementById("purchaseAmount").value = "";
+        document.getElementById("purchaseDescription").value = "";
+        saveState();
+        render();
+      });
+
+      document.getElementById("resetMonthButton").addEventListener("click", () => {
+        if (!confirm(`Nollställa ${monthLabels[currentMonth]}?`)) return;
+        state.months[monthKeys[currentMonth]] = blankMonth();
+        saveState();
+        render();
+      });
+
+      window.addEventListener("hashchange", () => {
+        const page = location.hash.replace("#", "");
+        if (!pages[page]) return;
+        currentPage = page;
+        renderPage();
+      });
+
+      if ("serviceWorker" in navigator && location.protocol !== "file:") {
+        navigator.serviceWorker.register("service-worker.js").catch(() => {});
+      }
+
+      async function loadFromSupabase() {
+        const { data, error } = await supabaseClient
+          .from("budget_state")
+          .select("data")
+          .eq("id", budgetRowId)
+          .maybeSingle();
+
+        if (error) throw error;
+
+        if (data?.data?.months) {
+          state = { months: Object.fromEntries(monthKeys.map((key) => [key, normalizeMonth(data.data.months?.[key] || blankMonth())])) };
+          localStorage.setItem(storageKey, JSON.stringify(state));
+        } else {
+          await saveToSupabase();
+        }
+      }
+
+      function updateAuthUi() {
+        document.getElementById("authScreen").hidden = !!currentUser && hasSupabaseConfig;
+        document.getElementById("logoutButton").hidden = !currentUser;
+        document.getElementById("userStatus").textContent = currentUser ? `Inloggad: ${currentUser.user_metadata?.name || currentUser.email}` : "Inte inloggad";
+        document.getElementById("authName").parentElement.hidden = authMode !== "signup";
+        document.getElementById("authTitle").textContent = authMode === "signup" ? "Skapa konto" : "Logga in";
+        document.getElementById("authIntro").textContent = hasSupabaseConfig
+          ? authMode === "signup"
+            ? "Skapa en användare för den gemensamma budgeten."
+            : "Logga in för att läsa och spara budgeten på alla enheter."
+          : "Supabase är inte kopplat ännu. Fyll i config.js innan appen publiceras.";
+        document.getElementById("authSubmit").textContent = authMode === "signup" ? "Skapa konto" : "Logga in";
+        document.getElementById("authToggle").textContent = authMode === "signup" ? "Jag har konto" : "Skapa konto";
+      }
+
+      async function initializeAuth() {
+        updateAuthUi();
+        if (!supabaseClient) return;
+
+        const { data } = await supabaseClient.auth.getSession();
+        currentUser = data.session?.user || null;
+        updateAuthUi();
+
+        if (currentUser) {
+          try {
+            await loadFromSupabase();
+            render();
+          } catch {
+            document.getElementById("saveStatus").textContent = "Kunde inte läsa från Supabase";
+          }
+        }
+      }
+
+      document.getElementById("authToggle").addEventListener("click", () => {
+        authMode = authMode === "signup" ? "login" : "signup";
+        document.getElementById("authError").textContent = "";
+        document.getElementById("authError").style.color = "#b83b5e";
+        updateAuthUi();
+      });
+
+      document.getElementById("authForm").addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const authError = document.getElementById("authError");
+        authError.textContent = "";
+        authError.style.color = "#b83b5e";
+        if (!supabaseClient) {
+          authError.textContent = "Supabase är inte kopplat ännu.";
+          return;
+        }
+
+        const email = document.getElementById("authEmail").value.trim();
+        const password = document.getElementById("authPassword").value;
+        const name = document.getElementById("authName").value.trim();
+
+        if (authMode === "signup") {
+          const { data, error } = await supabaseClient.auth.signUp({ email, password, options: { data: { name } } });
+          if (error) {
+            authError.textContent = error.message;
+            return;
+          }
+          currentUser = data.session?.user || null;
+          if (!currentUser) {
+            authError.style.color = "#1e7a55";
+            authError.textContent = "Kontot är skapat. Kontrollera mejlen om Supabase kräver bekräftelse.";
+            authMode = "login";
+            updateAuthUi();
+            return;
+          }
+        } else {
+          const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+          if (error) {
+            authError.textContent = error.message;
+            return;
+          }
+          currentUser = data.user;
+        }
+
+        updateAuthUi();
+        await loadFromSupabase();
+        render();
+      });
+
+      document.getElementById("logoutButton").addEventListener("click", async () => {
+        if (supabaseClient) await supabaseClient.auth.signOut();
+        currentUser = null;
+        updateAuthUi();
+      });
+
+      render();
+      initializeAuth();
+    </script>
+  </body>
+</html>

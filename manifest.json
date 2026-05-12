@@ -1,0 +1,16 @@
+{
+  "name": "Privatbudget",
+  "short_name": "Budget",
+  "start_url": "./index.html#overview",
+  "display": "standalone",
+  "background_color": "#eef4f0",
+  "theme_color": "#10251d",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
