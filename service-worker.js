@@ -1,4 +1,4 @@
-const CACHE_NAME = "privatbudget-github-v2";
+const CACHE_NAME = "privatbudget-github-v3";
 const ASSETS = ["./", "./index.html", "./config.js", "./manifest.json", "./icon.svg"];
 
 self.addEventListener("install", (event) => {
