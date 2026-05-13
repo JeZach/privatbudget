@@ -1,0 +1,379 @@
+<!doctype html>
+<html lang="sv">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#10251d" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="Snabbköp" />
+    <title>Snabbköp</title>
+    <link rel="manifest" href="quick-manifest.json" />
+    <link rel="icon" href="icon.svg" type="image/svg+xml" />
+    <style>
+      :root {
+        color-scheme: light;
+        --ink: #16211d;
+        --muted: #63716b;
+        --line: #dce5df;
+        --paper: #eef4f0;
+        --panel: #ffffff;
+        --deep: #10251d;
+        --green: #1e7a55;
+        --mint: #dff4e9;
+        --amber: #bd7b16;
+        --rose: #b83b5e;
+        --soft: #edf3ef;
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background: var(--paper);
+        color: var(--ink);
+      }
+
+      main {
+        width: min(680px, 100%);
+        margin: 0 auto;
+        padding: max(18px, env(safe-area-inset-top)) 16px max(28px, env(safe-area-inset-bottom));
+        display: grid;
+        gap: 14px;
+      }
+
+      header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
+
+      h1,
+      h2,
+      p {
+        margin: 0;
+      }
+
+      h1 {
+        font-size: 34px;
+        line-height: 1;
+      }
+
+      h2 {
+        font-size: 18px;
+      }
+
+      p,
+      label,
+      .small {
+        color: var(--muted);
+        font-weight: 750;
+      }
+
+      .mark {
+        width: 42px;
+        height: 42px;
+        border-radius: 8px;
+        background: linear-gradient(135deg, #80d5a3, #f3c879);
+        display: grid;
+        place-items: center;
+        color: var(--deep);
+        font-weight: 850;
+      }
+
+      .card {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 16px;
+        display: grid;
+        gap: 14px;
+        box-shadow: 0 16px 40px rgba(22, 33, 29, 0.08);
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+      }
+
+      label {
+        display: grid;
+        gap: 6px;
+        font-size: 13px;
+      }
+
+      input,
+      select,
+      textarea,
+      button {
+        font: inherit;
+      }
+
+      input,
+      select,
+      textarea {
+        width: 100%;
+        min-height: 46px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #fbfdfb;
+        color: var(--ink);
+        padding: 10px 12px;
+      }
+
+      textarea {
+        min-height: 98px;
+        resize: vertical;
+      }
+
+      input:focus,
+      select:focus,
+      textarea:focus {
+        outline: 2px solid rgba(30, 122, 85, 0.18);
+        border-color: rgba(30, 122, 85, 0.55);
+      }
+
+      .money {
+        text-align: right;
+      }
+
+      button {
+        min-height: 46px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #fdfefd;
+        color: var(--ink);
+        font-weight: 850;
+        padding: 0 14px;
+      }
+
+      button.primary {
+        background: var(--deep);
+        color: #eef8f2;
+        border-color: var(--deep);
+      }
+
+      button:disabled {
+        opacity: 0.55;
+      }
+
+      .full {
+        grid-column: 1 / -1;
+      }
+
+      .receipt-actions {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 10px;
+        align-items: end;
+      }
+
+      .status {
+        min-height: 34px;
+        border-radius: 8px;
+        padding: 8px 10px;
+        background: var(--soft);
+        color: var(--muted);
+        font-weight: 800;
+        line-height: 1.35;
+      }
+
+      .status.ok {
+        background: var(--mint);
+        color: var(--green);
+      }
+
+      .status.bad {
+        background: #ffe3e9;
+        color: var(--rose);
+      }
+
+      .hidden {
+        display: none !important;
+      }
+
+      @media (max-width: 560px) {
+        .grid,
+        .receipt-actions {
+          grid-template-columns: 1fr;
+        }
+
+        h1 {
+          font-size: 30px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <div>
+          <h1>Snabbköp</h1>
+          <p>Registrera köp direkt från mobilen.</p>
+        </div>
+        <div class="mark">kr</div>
+      </header>
+
+      <section class="card" id="pinCard">
+        <h2>Öppna snabbregistrering</h2>
+        <label>PIN <input id="pinInput" inputmode="numeric" autocomplete="one-time-code" placeholder="Till exempel 1234" /></label>
+        <button class="primary" id="pinButton" type="button">Hämta kategorier</button>
+        <div class="status" id="pinStatus">PIN krävs för att lägga in köp utan vanlig inloggning.</div>
+      </section>
+
+      <section class="card hidden" id="purchaseCard">
+        <h2>Nytt köp</h2>
+        <div class="grid">
+          <label>Budgetmånad <select id="monthKey"></select></label>
+          <label>Kategori <select id="category"></select></label>
+          <label>Datum <input id="purchaseDate" type="date" /></label>
+          <label>Belopp <input class="money" id="amount" inputmode="decimal" placeholder="0" /></label>
+          <label class="full">Butik/beskrivning <input id="description" placeholder="Till exempel ICA, apotek, SL" /></label>
+        </div>
+
+        <div class="receipt-actions">
+          <label>Fota kvitto <input id="receipt" type="file" accept="image/*" capture="environment" /></label>
+          <button id="ocrButton" type="button">Läs kvitto</button>
+        </div>
+        <textarea id="receiptText" placeholder="OCR-text visas här efter läsning. Du kan rätta den innan du registrerar."></textarea>
+        <button class="primary" id="saveButton" type="button">Registrera köp</button>
+        <div class="status" id="saveStatus">Välj kategori innan köpet registreras.</div>
+      </section>
+    </main>
+
+    <script src="config.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+    <script>
+      const monthLabels = ["Maj 2027", "Juni 2027", "Juli 2027", "Augusti 2027", "September 2027", "Oktober 2027", "November 2027", "December 2027", "Januari 2028", "Februari 2028", "Mars 2028", "April 2028"];
+      const monthKeys = ["maj-27", "jun-27", "jul-27", "aug-27", "sep-27", "okt-27", "nov-27", "dec-27", "jan-28", "feb-28", "mar-28", "apr-28"];
+      const supabaseConfig = window.PRIVATBUDGET_SUPABASE || {};
+      const client = window.supabase && supabaseConfig.url && supabaseConfig.anonKey ? window.supabase.createClient(supabaseConfig.url, supabaseConfig.anonKey) : null;
+      const pinInput = document.getElementById("pinInput");
+      const pinStatus = document.getElementById("pinStatus");
+      const purchaseCard = document.getElementById("purchaseCard");
+      const category = document.getElementById("category");
+      const monthKey = document.getElementById("monthKey");
+      const purchaseDate = document.getElementById("purchaseDate");
+      const amount = document.getElementById("amount");
+      const description = document.getElementById("description");
+      const receipt = document.getElementById("receipt");
+      const receiptText = document.getElementById("receiptText");
+      const saveStatus = document.getElementById("saveStatus");
+
+      monthKey.innerHTML = monthKeys.map((key, index) => `<option value="${key}">${monthLabels[index]}</option>`).join("");
+      purchaseDate.value = new Date().toISOString().slice(0, 10);
+      pinInput.value = localStorage.getItem("quickPurchasePin") || "";
+
+      function setStatus(node, text, type = "") {
+        node.textContent = text;
+        node.className = `status ${type}`.trim();
+      }
+
+      function parseAmount(value) {
+        return Number(String(value).replace(/\s/g, "").replace("kr", "").replace(",", ".").replace(/[^\d.-]/g, "")) || 0;
+      }
+
+      function formatAmount(value) {
+        return String(value || "").replace(".", ",");
+      }
+
+      function parseReceipt(text) {
+        const lines = text.split(/\n+/).map((line) => line.trim()).filter(Boolean);
+        const dateMatch = text.match(/\b(20\d{2})[-/.](\d{1,2})[-/.](\d{1,2})\b/) || text.match(/\b(\d{1,2})[-/.](\d{1,2})[-/.](20\d{2})\b/);
+        if (dateMatch) {
+          const date = dateMatch[1].length === 4
+            ? `${dateMatch[1]}-${dateMatch[2].padStart(2, "0")}-${dateMatch[3].padStart(2, "0")}`
+            : `${dateMatch[3]}-${dateMatch[2].padStart(2, "0")}-${dateMatch[1].padStart(2, "0")}`;
+          purchaseDate.value = date;
+        }
+        const totalLine = lines.find((line) => /summa|total|att betala|belopp/i.test(line)) || "";
+        const amountSource = totalLine || text;
+        const values = [...amountSource.matchAll(/\b\d{1,5}(?:[ .]\d{3})*(?:[,:.]\d{2})\b|\b\d{2,5}\b/g)]
+          .map((match) => parseAmount(match[0]))
+          .filter((value) => value > 0 && value < 100000);
+        if (values.length) amount.value = formatAmount(Math.max(...values));
+        if (!description.value && lines.length) {
+          description.value = lines.find((line) => /[A-Za-zÅÄÖåäö]{3}/.test(line))?.slice(0, 70) || "";
+        }
+      }
+
+      async function loadCategories() {
+        if (!client) {
+          setStatus(pinStatus, "Supabase saknas i config.js.", "bad");
+          return;
+        }
+        const pin = pinInput.value.trim();
+        if (!pin) {
+          setStatus(pinStatus, "Fyll i PIN först.", "bad");
+          return;
+        }
+        setStatus(pinStatus, "Hämtar kategorier...");
+        const { data, error } = await client.rpc("quick_budget_categories", { p_pin: pin });
+        if (error || !data?.length) {
+          setStatus(pinStatus, "Kunde inte hämta kategorier. Kontrollera PIN och att SQL är körd i Supabase.", "bad");
+          return;
+        }
+        localStorage.setItem("quickPurchasePin", pin);
+        category.innerHTML = data.map((row) => `<option value="${row.id}">${row.name}</option>`).join("");
+        purchaseCard.classList.remove("hidden");
+        setStatus(pinStatus, "Snabbregistrering är öppen.", "ok");
+      }
+
+      async function readReceipt() {
+        const file = receipt.files?.[0];
+        if (!file) {
+          setStatus(saveStatus, "Välj eller fota ett kvitto först.", "bad");
+          return;
+        }
+        setStatus(saveStatus, "Läser kvittot i mobilen...");
+        const result = await Tesseract.recognize(file, "swe+eng");
+        receiptText.value = result.data.text.trim();
+        parseReceipt(receiptText.value);
+        setStatus(saveStatus, "Kvittot är läst. Kontrollera belopp och kategori innan du registrerar.", "ok");
+      }
+
+      async function savePurchase() {
+        const pin = pinInput.value.trim();
+        const value = parseAmount(amount.value);
+        if (!category.value) {
+          setStatus(saveStatus, "Välj kategori innan köpet registreras.", "bad");
+          return;
+        }
+        if (!value) {
+          setStatus(saveStatus, "Fyll i belopp.", "bad");
+          return;
+        }
+        setStatus(saveStatus, "Registrerar köp...");
+        const { error } = await client.rpc("quick_add_purchase", {
+          p_pin: pin,
+          p_month_key: monthKey.value,
+          p_target_id: category.value,
+          p_purchase_date: purchaseDate.value,
+          p_description: description.value.trim() || "Snabbköp",
+          p_amount: value,
+          p_receipt_text: receiptText.value.trim(),
+        });
+        if (error) {
+          setStatus(saveStatus, error.message || "Köpet kunde inte registreras.", "bad");
+          return;
+        }
+        amount.value = "";
+        description.value = "";
+        receipt.value = "";
+        receiptText.value = "";
+        setStatus(saveStatus, "Köpet är registrerat i budgeten.", "ok");
+      }
+
+      document.getElementById("pinButton").addEventListener("click", loadCategories);
+      document.getElementById("ocrButton").addEventListener("click", readReceipt);
+      document.getElementById("saveButton").addEventListener("click", savePurchase);
+      if (pinInput.value) loadCategories();
+    </script>
+  </body>
+</html>

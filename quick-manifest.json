@@ -1,0 +1,16 @@
+{
+  "name": "Snabbköp",
+  "short_name": "Köp",
+  "start_url": "./quick.html",
+  "display": "standalone",
+  "background_color": "#eef4f0",
+  "theme_color": "#10251d",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

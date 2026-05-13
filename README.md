@@ -55,6 +55,20 @@ Första gången tabellen `app_users` är tom blir det första inloggade kontot a
 
 En tillagd användare behöver skapa konto/logga in med samma e-postadress.
 
+## 5. Snabbköp i mobilen
+
+Öppna `quick.html` från mobilen och lägg till den på hemskärmen om ni vill ha en separat webbapp för köp. Sidan använder PIN och kan lägga in köp utan vanlig inloggning. Standard-PIN efter att `supabase-schema.sql` körts är `1234`.
+
+Byt PIN i Supabase SQL Editor med:
+
+```sql
+update public.app_settings
+set quick_pin = 'ny-pin'
+where id = 'main';
+```
+
+Kvitto-OCR görs i webbläsaren via kamerabild. Kontrollera alltid belopp och kategori innan köpet registreras.
+
 ## Ekonomilogik
 
 - **Budgetmall** sätts en gång.

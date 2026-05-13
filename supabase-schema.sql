@@ -15,6 +15,16 @@ create table if not exists public.app_users (
   created_at timestamptz not null default now()
 );
 
+create table if not exists public.app_settings (
+  id text primary key,
+  quick_pin text not null default '1234',
+  updated_at timestamptz not null default now()
+);
+
+insert into public.app_settings (id, quick_pin)
+values ('main', '1234')
+on conflict (id) do nothing;
+
 create or replace function public.current_auth_email()
 returns text
 language sql
@@ -65,6 +75,7 @@ $$;
 
 alter table public.budget_state enable row level security;
 alter table public.app_users enable row level security;
+alter table public.app_settings enable row level security;
 
 drop policy if exists "app_users_read_allowed" on public.app_users;
 create policy "app_users_read_allowed"
@@ -125,3 +136,144 @@ for update
 to authenticated
 using (id = 'main' and public.is_budget_user())
 with check (id = 'main' and public.is_budget_user());
+
+drop policy if exists "app_settings_read_admin" on public.app_settings;
+create policy "app_settings_read_admin"
+on public.app_settings
+for select
+to authenticated
+using (public.is_app_admin());
+
+drop policy if exists "app_settings_update_admin" on public.app_settings;
+create policy "app_settings_update_admin"
+on public.app_settings
+for update
+to authenticated
+using (public.is_app_admin())
+with check (public.is_app_admin());
+
+create or replace function public.quick_pin_ok(p_pin text)
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select exists (
+    select 1
+    from public.app_settings
+    where id = 'main'
+      and quick_pin = p_pin
+  )
+$$;
+
+create or replace function public.quick_budget_categories(p_pin text)
+returns table(id text, name text, kind text)
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  with state as (
+    select data
+    from public.budget_state
+    where id = 'main'
+      and public.quick_pin_ok(p_pin)
+  ),
+  rows as (
+    select item, 'fixedCosts'::text as kind
+    from state, jsonb_array_elements(coalesce(data #> '{budgetTemplate,fixedCosts}', '[]'::jsonb)) item
+    union all
+    select item, 'variableCosts'::text as kind
+    from state, jsonb_array_elements(coalesce(data #> '{budgetTemplate,variableCosts}', '[]'::jsonb)) item
+  )
+  select item ->> 'id' as id, item ->> 'name' as name, kind
+  from rows
+  where coalesce(item ->> 'id', '') <> ''
+    and coalesce(item ->> 'name', '') <> ''
+  order by kind, name
+$$;
+
+create or replace function public.quick_add_purchase(
+  p_pin text,
+  p_month_key text,
+  p_target_id text,
+  p_purchase_date date,
+  p_description text,
+  p_amount numeric,
+  p_receipt_text text default ''
+)
+returns uuid
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  purchase_id uuid := gen_random_uuid();
+  purchase jsonb;
+  purchase_path text[];
+  current_purchases jsonb;
+  current_data jsonb;
+  target_exists boolean;
+begin
+  if not public.quick_pin_ok(p_pin) then
+    raise exception 'Fel PIN-kod';
+  end if;
+
+  if p_amount is null or p_amount <= 0 then
+    raise exception 'Belopp saknas';
+  end if;
+
+  select data into current_data
+  from public.budget_state
+  where id = 'main'
+  for update;
+
+  if current_data is null then
+    raise exception 'Budgeten saknas';
+  end if;
+
+  if current_data #> array['months', p_month_key] is null then
+    raise exception 'Budgetmånaden saknas';
+  end if;
+
+  select exists (
+    select 1
+    from (
+      select jsonb_array_elements(coalesce(current_data #> '{budgetTemplate,fixedCosts}', '[]'::jsonb)) item
+      union all
+      select jsonb_array_elements(coalesce(current_data #> '{budgetTemplate,variableCosts}', '[]'::jsonb)) item
+    ) categories
+    where item ->> 'id' = p_target_id
+  ) into target_exists;
+
+  if not target_exists then
+    raise exception 'Kategorin finns inte';
+  end if;
+
+  purchase := jsonb_build_object(
+    'id', purchase_id::text,
+    'date', coalesce(p_purchase_date, current_date)::text,
+    'description', left(coalesce(p_description, 'Kvitto'), 120),
+    'amount', p_amount,
+    'targetId', p_target_id,
+    'userId', null,
+    'userName', 'Snabbköp',
+    'userEmail', '',
+    'receiptText', left(coalesce(p_receipt_text, ''), 4000)
+  );
+
+  purchase_path := array['months', p_month_key, 'purchases'];
+  current_purchases := coalesce(current_data #> purchase_path, '[]'::jsonb);
+
+  update public.budget_state
+  set data = jsonb_set(current_data, purchase_path, current_purchases || jsonb_build_array(purchase), true),
+      updated_at = now()
+  where id = 'main';
+
+  return purchase_id;
+end;
+$$;
+
+grant execute on function public.quick_budget_categories(text) to anon, authenticated;
+grant execute on function public.quick_add_purchase(text, text, text, date, text, numeric, text) to anon, authenticated;
