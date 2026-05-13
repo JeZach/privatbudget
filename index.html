@@ -303,6 +303,15 @@
         grid-column: span 7;
       }
 
+      .page[data-page="overview"] .expense-health-panel,
+      .page[data-page="overview"] .overview-ai-panel {
+        grid-column: span 7;
+      }
+
+      .page[data-page="overview"] .savings-target-panel {
+        grid-column: span 5;
+      }
+
       .page[hidden] {
         display: none;
       }
@@ -347,6 +356,63 @@
         margin: 0;
         color: var(--muted);
         line-height: 1.5;
+      }
+
+      .status-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 10px;
+      }
+
+      .status-tile {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 12px;
+        background: #fbfdfb;
+        display: grid;
+        gap: 6px;
+      }
+
+      .status-tile span {
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 800;
+      }
+
+      .status-tile strong {
+        font-size: 22px;
+      }
+
+      .progress-block {
+        display: grid;
+        gap: 10px;
+      }
+
+      .progress-row {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 12px;
+        align-items: center;
+      }
+
+      .progress-row strong {
+        min-width: 0;
+      }
+
+      .progress-bar {
+        grid-column: 1 / -1;
+        height: 12px;
+        background: var(--soft);
+        border-radius: 999px;
+        overflow: hidden;
+      }
+
+      .progress-bar i {
+        display: block;
+        width: min(100%, var(--progress, 0%));
+        height: 100%;
+        border-radius: inherit;
+        background: linear-gradient(90deg, var(--green), var(--blue));
       }
 
       .panel {
@@ -873,6 +939,9 @@
         .insight-grid .panel:first-child,
         .page[data-page="overview"] .savings-pie-panel,
         .page[data-page="overview"] .deviation-panel,
+        .page[data-page="overview"] .expense-health-panel,
+        .page[data-page="overview"] .savings-target-panel,
+        .page[data-page="overview"] .overview-ai-panel,
         .editor > section,
         .editor > section:first-of-type {
           grid-column: auto;
@@ -962,6 +1031,10 @@
         .summary {
           grid-template-columns: 1fr;
         }
+
+        .status-grid {
+          grid-template-columns: 1fr;
+        }
       }
     </style>
   </head>
@@ -1036,6 +1109,32 @@
             </article>
           </section>
 
+          <section class="panel expense-health-panel">
+            <div class="panel-title">
+              <h3>Utgiftsläge</h3>
+              <span>budget, utfall och kvar att använda</span>
+            </div>
+            <div class="status-grid">
+              <div class="status-tile"><span>Utgiftsbudget</span><strong id="expenseBudgetValue">0 kr</strong></div>
+              <div class="status-tile"><span>Utfall hittills</span><strong id="expenseActualValue">0 kr</strong></div>
+              <div class="status-tile"><span>Kvar/över</span><strong id="expenseLeftValue">0 kr</strong></div>
+            </div>
+            <div class="recent-list" id="expenseHealthRows"></div>
+          </section>
+
+          <section class="panel savings-target-panel">
+            <div class="panel-title">
+              <h3>Sparande mot mål</h3>
+              <span>ackumulerat jämfört med årsmål</span>
+            </div>
+            <div class="status-grid">
+              <div class="status-tile"><span>Ackumulerat</span><strong id="savingsAccumulatedValue">0 kr</strong></div>
+              <div class="status-tile"><span>Årsmål</span><strong id="savingsYearGoalValue">0 kr</strong></div>
+              <div class="status-tile"><span>Uppnått</span><strong id="savingsGoalPercentValue">0%</strong></div>
+            </div>
+            <div class="recent-list" id="savingsGoalRows"></div>
+          </section>
+
           <section class="panel savings-pie-panel">
             <div class="panel-title">
               <h3>Ackumulerat sparande</h3>
@@ -1061,6 +1160,14 @@
               </thead>
               <tbody id="focusRows"></tbody>
             </table>
+          </section>
+
+          <section class="panel overview-ai-panel">
+            <div class="panel-title">
+              <h3>AI-kommentar</h3>
+              <button class="copy-button" id="overviewAiButton" type="button">Analysera läget</button>
+            </div>
+            <div class="recent-list" id="overviewAiResult"></div>
           </section>
 
         </section>
@@ -1503,6 +1610,8 @@
         document.getElementById("incomeHelperText").textContent = `${monthLabels[currentMonth]}s inkomster blir tillgång för ${monthLabels[Math.min(currentMonth + 1, monthLabels.length - 1)]}.`;
         renderPage();
         renderSummary();
+        renderExpenseHealth();
+        renderSavingsGoals();
         renderIncomeRows();
         renderBudgetRows();
         renderExpenseRows();
@@ -1542,6 +1651,43 @@
         document.getElementById("actualStatus").className = total.actualLeft >= 0 ? "trend" : "trend risk";
         document.getElementById("varianceStatus").textContent = total.variance >= 0 ? "bättre än budget" : "sämre än budget";
         document.getElementById("varianceStatus").className = total.variance >= 0 ? "trend" : "trend risk";
+      }
+
+      function expenseOnlyRows() {
+        return templateRows().map((row) => ({ name: row.name, budget: Number(row.amount) || 0, actual: actualFor(row, "expense"), variance: (Number(row.amount) || 0) - actualFor(row, "expense") })).filter((row) => row.name.trim());
+      }
+
+      function renderExpenseHealth() {
+        const rows = expenseOnlyRows();
+        const budget = rows.reduce((sum, row) => sum + row.budget, 0);
+        const actual = rows.reduce((sum, row) => sum + row.actual, 0);
+        const left = budget - actual;
+        const risky = rows.filter((row) => row.actual > 0 || row.budget > 0).sort((a, b) => a.variance - b.variance).slice(0, 4);
+        document.getElementById("expenseBudgetValue").textContent = money(budget);
+        document.getElementById("expenseActualValue").textContent = money(actual);
+        document.getElementById("expenseLeftValue").textContent = money(left);
+        document.getElementById("expenseLeftValue").style.color = left >= 0 ? "var(--green)" : "var(--rose)";
+        document.getElementById("expenseHealthRows").innerHTML = risky.length
+          ? risky.map((row) => `<div class="recent-item"><div><strong>${escapeHtml(row.name)}</strong><small>Budget ${money(row.budget)} · utfall ${money(row.actual)}</small></div><strong class="trend ${row.variance < 0 ? "risk" : ""}">${money(row.variance)}</strong></div>`).join("")
+          : `<div class="recent-item"><div><strong>Inga utgifter registrerade ännu</strong><small>När utfall finns visas de viktigaste kostnadsposterna här.</small></div></div>`;
+      }
+
+      function renderSavingsGoals() {
+        const rows = accumulatedSavingsRows().filter((row) => row.name.trim());
+        const actual = rows.reduce((sum, row) => sum + Math.max(0, row.actual), 0);
+        const explicitGoal = rows.reduce((sum, row) => sum + (Number(row.targetAmount) || 0), 0);
+        const yearGoal = explicitGoal || savingsRows().reduce((sum, row) => sum + (Number(row.amount) || 0) * monthKeys.length, 0);
+        const percent = yearGoal > 0 ? Math.round((actual / yearGoal) * 100) : 0;
+        document.getElementById("savingsAccumulatedValue").textContent = money(actual);
+        document.getElementById("savingsYearGoalValue").textContent = money(yearGoal);
+        document.getElementById("savingsGoalPercentValue").textContent = `${percent}%`;
+        document.getElementById("savingsGoalRows").innerHTML = rows.length
+          ? rows.map((row) => {
+              const goal = row.targetAmount || row.monthlyPlan * monthKeys.length;
+              const rowPercent = goal > 0 ? Math.min(100, Math.round((row.actual / goal) * 100)) : 0;
+              return `<div class="progress-row"><strong>${escapeHtml(row.name)}</strong><span>${money(row.actual)} / ${money(goal)}</span><div class="progress-bar"><i style="--progress:${rowPercent}%"></i></div></div>`;
+            }).join("")
+          : `<div class="recent-item"><div><strong>Inga sparmål ännu</strong><small>Lägg till sparande för att jämföra mot årsmål.</small></div></div>`;
       }
 
       function renderIncomeRows() {
@@ -1745,6 +1891,9 @@
         document.getElementById("aiReportResult").innerHTML = aiReport
           ? `<div class="recent-item"><div><strong>AI-kommentar</strong><small>${escapeHtml(aiReport.summary || "")}</small></div></div>${(aiReport.actions || []).map((item) => `<div class="recent-item"><div><strong>${escapeHtml(item)}</strong></div></div>`).join("")}`
           : `<div class="recent-item"><div><strong>Ingen AI-kommentar ännu</strong><small>Klicka på Sammanfatta månaden för en kort tolkning.</small></div></div>`;
+        document.getElementById("overviewAiResult").innerHTML = aiReport
+          ? `<div class="recent-item"><div><strong>AI-kommentar</strong><small>${escapeHtml(aiReport.summary || "")}</small></div></div>${(aiReport.risks || []).slice(0, 2).map((item) => `<div class="recent-item"><div><strong>${escapeHtml(item)}</strong></div></div>`).join("")}`
+          : `<div class="recent-item"><div><strong>Ingen AI-kommentar ännu</strong><small>Klicka på Analysera läget för en kort tolkning av utgifter, sparande och avvikelser.</small></div></div>`;
         document.getElementById("insightAlerts").innerHTML = overspent.length
           ? overspent.slice(0, 5).map((row) => `<div class="recent-item"><div><strong>${escapeHtml(row.name)}</strong><small>Budget ${money(row.budget)} · utfall ${money(row.actual)}</small></div><strong class="trend risk">${money(row.variance)}</strong></div>`).join("")
           : `<div class="recent-item"><div><strong>Inga varningar</strong><small>Alla ifyllda poster ligger inom plan.</small></div></div>`;
@@ -1770,9 +1919,11 @@
 
       async function summarizeMonthWithAi() {
         if (!supabaseClient || !currentUser) return;
-        const button = document.getElementById("aiReportButton");
-        button.disabled = true;
-        button.textContent = "Sammanfattar...";
+        const buttons = [document.getElementById("aiReportButton"), document.getElementById("overviewAiButton")].filter(Boolean);
+        buttons.forEach((button) => {
+          button.disabled = true;
+          button.textContent = "Analyserar...";
+        });
         try {
           const { data, error } = await supabaseClient.functions.invoke("ai-parse-purchase", {
             body: { mode: "monthly_report", report: monthlyReportPayload() },
@@ -1784,8 +1935,11 @@
           aiReport = { summary: error.message || "AI-rapporten kunde inte skapas.", actions: [] };
           renderInsights();
         } finally {
-          button.disabled = false;
-          button.textContent = "Sammanfatta månaden";
+          buttons.forEach((button) => {
+            button.disabled = false;
+          });
+          document.getElementById("aiReportButton").textContent = "Sammanfatta månaden";
+          document.getElementById("overviewAiButton").textContent = "Analysera läget";
         }
       }
 
@@ -1956,6 +2110,7 @@
 
       document.getElementById("exportReportButton").addEventListener("click", exportMonthlyCsv);
       document.getElementById("aiReportButton").addEventListener("click", summarizeMonthWithAi);
+      document.getElementById("overviewAiButton").addEventListener("click", summarizeMonthWithAi);
 
       window.addEventListener("hashchange", () => {
         const page = location.hash.replace("#", "");

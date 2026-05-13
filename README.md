@@ -13,7 +13,10 @@ Den här versionen är gjord för att publiceras på GitHub Pages och använda S
 - Egna sidor för inkomster, utgifter och sparande
 - Löneunderlag: faktisk inkomst i en månad används mot nästa månads kostnader
 - Snabbköp i mobilen med kvittoläsning, röstinmatning och godkännande innan köp förs in i budgeten
-- Rapportvy med månadssammanfattning, varningar, sparprognos och CSV-export
+- Rapportvy med AI-kommentar, månadssammanfattning, varningar, sparprognos och CSV-export
+- Sparmål med målbelopp, måldatum och prognos
+- Historik med återställning av tidigare budgetversioner
+- Tydligare översikt med utgiftsläge, sparande mot årsmål och AI-kommentar
 
 ## 1. Skapa Supabase-projekt
 
@@ -91,6 +94,26 @@ Under **Godkänn köp** kan admin lägga till kategoriregler, till exempel `ICA 
 ## 7. Rapport och export
 
 Sidan **Rapport** visar månadens korta sammanfattning, största varningar och sparprognos. Knappen **Exportera CSV** hämtar vald månads budget, utfall och avvikelse till en fil som kan öppnas i Numbers eller Excel.
+
+Knappen **Sammanfatta månaden** använder samma Supabase Edge Function och OpenAI-nyckel som snabbköp. Den kräver att användaren är inloggad i budgetappen.
+
+## 8. Sparmål och historik
+
+På sidan **Sparande** kan varje sparpost få målbelopp och måldatum. Rapporten räknar ut ungefär när målet nås med nuvarande takt.
+
+Sidan **Historik** visar tidigare sparade versioner av budgeten och kan återställa en tidigare version. Kör alltid senaste `supabase-schema.sql` efter uppdatering så funktionerna `save_budget_state` och `restore_budget_history` finns i Supabase.
+
+## 9. ChatGPT som köpklient
+
+Det går att låta en egen GPT i ChatGPT lägga köp i samma godkännandekö som mobilwebbappen. Funktionen finns i samma Supabase Edge Function och använder läget `chatgpt_purchase`.
+
+1. Lägg till en Supabase secret som heter `CHATGPT_ACTION_KEY` med ett eget långt hemligt värde.
+2. Deploya `supabase/functions/ai-parse-purchase/index.ts` igen.
+3. Skapa en egen GPT i ChatGPT och lägg till en Action.
+4. Klistra in schemat från `chatgpt-action-openapi.json`.
+5. Lägg in headern `x-budget-action-key` med samma hemliga värde.
+
+Exempel att säga i ChatGPT: "Lägg till ett köp: Jag handlade en smörgås på Mackeriet för 85 kr." Köpet hamnar då under **Godkänn köp**.
 
 ## Ekonomilogik
 

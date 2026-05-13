@@ -1,0 +1,78 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Privatbudget köp",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "https://ojfointhlwduolylebsc.supabase.co/functions/v1"
+    }
+  ],
+  "paths": {
+    "/ai-parse-purchase": {
+      "post": {
+        "operationId": "addPurchaseForApproval",
+        "summary": "Lägg till ett köp i budgetens godkännandekö",
+        "description": "Tolkar ett svenskt köp och lägger det i Godkänn köp i Privatbudget.",
+        "parameters": [
+          {
+            "name": "x-budget-action-key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "mode": {
+                    "type": "string",
+                    "const": "chatgpt_purchase"
+                  },
+                  "text": {
+                    "type": "string",
+                    "description": "Köp i naturligt språk, till exempel: Jag handlade en smörgås på Mackeriet för 85 kr."
+                  },
+                  "monthKey": {
+                    "type": "string",
+                    "description": "Budgetmånad. Använd maj-27 om användaren inte säger något annat."
+                  }
+                },
+                "required": ["mode", "text", "monthKey"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Köpet har lagts i godkännandekön eller ett tydligt felmeddelande returneras.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ok": { "type": "boolean" },
+                    "message": { "type": "string" },
+                    "description": { "type": "string" },
+                    "amount": { "type": "number" },
+                    "categoryName": { "type": "string" },
+                    "status": { "type": "string" },
+                    "error": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

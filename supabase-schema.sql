@@ -222,6 +222,14 @@ for select
 to authenticated
 using (public.is_budget_user());
 
+drop policy if exists "budget_state_history_admin_write" on public.budget_state_history;
+create policy "budget_state_history_admin_write"
+on public.budget_state_history
+for all
+to authenticated
+using (public.is_app_admin())
+with check (public.is_app_admin());
+
 create or replace function public.quick_pin_ok(p_pin text)
 returns boolean
 language sql
@@ -436,8 +444,98 @@ begin
 end;
 $$;
 
+create or replace function public.save_budget_state(p_data jsonb)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  current_data jsonb;
+  latest_snapshot timestamptz;
+begin
+  if not public.is_budget_user() then
+    raise exception 'Saknar behörighet';
+  end if;
+
+  select data into current_data
+  from public.budget_state
+  where id = 'main'
+  for update;
+
+  if current_data is null then
+    insert into public.budget_state (id, data, updated_by, updated_at)
+    values ('main', p_data, auth.uid(), now())
+    on conflict (id) do update
+      set data = excluded.data,
+          updated_by = auth.uid(),
+          updated_at = now();
+    return;
+  end if;
+
+  if current_data is distinct from p_data then
+    select max(saved_at) into latest_snapshot
+    from public.budget_state_history
+    where budget_id = 'main';
+
+    if latest_snapshot is null or latest_snapshot < now() - interval '2 minutes' then
+      insert into public.budget_state_history (budget_id, data, saved_by)
+      values ('main', current_data, auth.uid());
+    end if;
+  end if;
+
+  update public.budget_state
+  set data = p_data,
+      updated_by = auth.uid(),
+      updated_at = now()
+  where id = 'main';
+end;
+$$;
+
+create or replace function public.restore_budget_history(p_history_id uuid)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  current_data jsonb;
+  restore_data jsonb;
+begin
+  if not public.is_budget_user() then
+    raise exception 'Saknar behörighet';
+  end if;
+
+  select data into restore_data
+  from public.budget_state_history
+  where id = p_history_id and budget_id = 'main';
+
+  if restore_data is null then
+    raise exception 'Historikversionen finns inte';
+  end if;
+
+  select data into current_data
+  from public.budget_state
+  where id = 'main'
+  for update;
+
+  if current_data is not null then
+    insert into public.budget_state_history (budget_id, data, saved_by)
+    values ('main', current_data, auth.uid());
+  end if;
+
+  update public.budget_state
+  set data = restore_data,
+      updated_by = auth.uid(),
+      updated_at = now()
+  where id = 'main';
+end;
+$$;
+
 grant execute on function public.quick_budget_categories(text) to anon, authenticated;
 grant execute on function public.quick_category_rules(text) to anon, authenticated;
 grant execute on function public.quick_add_purchase(text, text, text, date, text, numeric, text) to anon, authenticated;
 grant execute on function public.approve_purchase_inbox(uuid) to authenticated;
 grant execute on function public.reject_purchase_inbox(uuid) to authenticated;
+grant execute on function public.save_budget_state(jsonb) to authenticated;
+grant execute on function public.restore_budget_history(uuid) to authenticated;
