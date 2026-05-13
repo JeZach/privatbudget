@@ -435,6 +435,10 @@
         align-items: center;
       }
 
+      [data-page="savings"] .entry-row {
+        grid-template-columns: minmax(140px, 1fr) minmax(90px, 120px) minmax(90px, 120px) minmax(100px, 130px) minmax(130px, 150px) minmax(100px, 130px) 38px;
+      }
+
       .entry-heading {
         color: var(--muted);
         font-size: 12px;
@@ -983,6 +987,7 @@
           <button class="nav-item" data-page-target="users" type="button"><span class="icon">☉</span>Användare</button>
           <button class="nav-item" data-page-target="trend" type="button"><span class="icon">↗</span>Trend</button>
           <button class="nav-item" data-page-target="insights" type="button"><span class="icon">▣</span>Rapport</button>
+          <button class="nav-item" data-page-target="history" type="button"><span class="icon">↺</span>Historik</button>
         </nav>
 
         <div class="save-card">
@@ -1163,7 +1168,6 @@
             </div>
             <section>
               <div class="section-head"><h4>Sparmål</h4><button class="add-button" data-add-template="savings" type="button">+ Lägg till</button></div>
-              <div class="entry-heading"><span>Post</span><span>Plan</span><span>Utfall</span><span>Avvikelse</span></div>
               <div class="entry-list" id="savingsRows"></div>
             </section>
           </article>
@@ -1200,9 +1204,13 @@
           <article class="panel">
             <div class="panel-title">
               <h3>Månadsrapport</h3>
-              <button class="copy-button" id="exportReportButton" type="button">Exportera CSV</button>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end">
+                <button class="copy-button" id="aiReportButton" type="button">Sammanfatta månaden</button>
+                <button class="copy-button" id="exportReportButton" type="button">Exportera CSV</button>
+              </div>
             </div>
             <div class="report-text" id="monthlyReport"></div>
+            <div class="recent-list" id="aiReportResult"></div>
           </article>
           <article class="panel">
             <div class="panel-title"><h3>Att hålla koll på</h3><span>största avvikelser</span></div>
@@ -1211,6 +1219,16 @@
           <article class="panel">
             <div class="panel-title"><h3>Sparprognos</h3><span>ackumulerat mot plan</span></div>
             <div class="recent-list" id="savingsForecast"></div>
+          </article>
+        </section>
+
+        <section class="page" data-page="history" hidden>
+          <article class="panel">
+            <div class="panel-title">
+              <h3>Historik</h3>
+              <span>återställ tidigare sparad version</span>
+            </div>
+            <div class="recent-list" id="historyList"></div>
           </article>
         </section>
       </main>
@@ -1254,6 +1272,7 @@
         users: { title: "Användare", intro: "Lägg till vilka som får använda budgeten och se vem som registrerat utlägg." },
         trend: { title: "Trend", intro: "Följ faktiskt kvar per månad och vilka områden som väger tyngst." },
         insights: { title: "Rapport", intro: "Månadens sammanfattning, varningssignaler och sparprognos." },
+        history: { title: "Historik", intro: "Se tidigare sparade versioner och återställ om något blivit fel." },
       };
 
       let currentMonth = 0;
@@ -1265,6 +1284,8 @@
       let appUsers = [];
       let purchaseInbox = [];
       let categoryRules = [];
+      let historyRows = [];
+      let aiReport = null;
       let saveTimer = null;
 
       const supabaseConfig = window.PRIVATBUDGET_SUPABASE || {};
@@ -1276,8 +1297,8 @@
         return crypto.randomUUID();
       }
 
-      function templateEntry(name = "", amount = 0) {
-        return { id: newId(), name, amount: Number(amount) || 0 };
+      function templateEntry(name = "", amount = 0, targetAmount = 0, targetDate = "") {
+        return { id: newId(), name, amount: Number(amount) || 0, targetAmount: Number(targetAmount) || 0, targetDate: targetDate || "" };
       }
 
       function incomeEntry(name = "", actual = "") {
@@ -1337,7 +1358,7 @@
 
       function normalizeTemplate(rows, fallback) {
         const source = rows?.length ? rows : fallback;
-        return source.map((row) => ({ id: row.id || newId(), name: row.name || "", amount: Number(row.amount) || 0 }));
+        return source.map((row) => ({ id: row.id || newId(), name: row.name || "", amount: Number(row.amount) || 0, targetAmount: Number(row.targetAmount) || 0, targetDate: row.targetDate || "" }));
       }
 
       function normalizeMonth(month = {}) {
@@ -1392,7 +1413,11 @@
       }
 
       async function saveToSupabase() {
-        const { error } = await supabaseClient.from("budget_state").upsert({ id: budgetRowId, data: state, updated_by: currentUser.id, updated_at: new Date().toISOString() });
+        let { error } = await supabaseClient.rpc("save_budget_state", { p_data: state });
+        if (error) {
+          const fallback = await supabaseClient.from("budget_state").upsert({ id: budgetRowId, data: state, updated_by: currentUser.id, updated_at: new Date().toISOString() });
+          error = fallback.error;
+        }
         document.getElementById("saveStatus").textContent = error ? "Sparat lokalt, kunde inte synka" : `Synkat ${new Date().toLocaleTimeString("sv-SE", { hour: "2-digit", minute: "2-digit" })}`;
       }
 
@@ -1490,6 +1515,7 @@
         renderPurchaseInbox();
         renderCategoryRules();
         renderInsights();
+        renderHistory();
         renderUsers();
         updateAuthUi();
       }
@@ -1549,7 +1575,7 @@
       }
 
       function renderSavingsRows() {
-        document.getElementById("savingsRows").innerHTML = state.budgetTemplate.savings.map((row) => actualRowHtml(row, "savings", "savings")).join("");
+        document.getElementById("savingsRows").innerHTML = state.budgetTemplate.savings.map((row) => savingsRowHtml(row)).join("");
       }
 
       function renderActualGroup(type, containerId, actualType) {
@@ -1568,6 +1594,22 @@
             <label class="line-field"><span>${isSavings ? "Plan" : "Budget"}</span><input class="money" value="${row.amount || ""}" ${isSavings ? `data-template-field="amount" inputmode="numeric" placeholder="0"` : "disabled"} /></label>
             <label class="line-field"><span>Utfall</span><input class="money" value="${isSavings ? activeMonth().savingActuals[row.id] ?? "" : activeMonth().expenseActuals[row.id] ?? ""}" data-actual-field="actual" inputmode="numeric" placeholder="${hasPurchase ? `Köp: ${money(purchaseTotal(row.id))}` : "0"}" /></label>
             <output class="variance ${hasManual || hasPurchase ? varianceClass(variance) : "missing"}">${hasManual || hasPurchase ? money(variance) : "Ej ifyllt"}</output>
+          </div>`;
+      }
+
+      function savingsRowHtml(row) {
+        const actual = actualFor(row, "savings");
+        const hasManual = activeMonth().savingActuals[row.id] !== undefined && activeMonth().savingActuals[row.id] !== "";
+        const variance = (Number(row.amount) || 0) - actual;
+        return `
+          <div class="entry-row" data-actual-type="savings" data-group-type="savings" data-actual-id="${row.id}" data-template-type="savings" data-template-id="${row.id}">
+            <label class="line-field"><span>Post</span><input value="${escapeHtml(row.name)}" data-template-field="name" placeholder="Namn" /></label>
+            <label class="line-field"><span>Plan/mån</span><input class="money" value="${row.amount || ""}" data-template-field="amount" inputmode="numeric" placeholder="0" /></label>
+            <label class="line-field"><span>Utfall</span><input class="money" value="${activeMonth().savingActuals[row.id] ?? ""}" data-actual-field="actual" inputmode="numeric" placeholder="0" /></label>
+            <label class="line-field"><span>Målbelopp</span><input class="money" value="${row.targetAmount || ""}" data-template-field="targetAmount" inputmode="numeric" placeholder="0" /></label>
+            <label class="line-field"><span>Måldatum</span><input value="${escapeHtml(row.targetDate || "")}" data-template-field="targetDate" type="date" /></label>
+            <output class="variance ${hasManual ? varianceClass(variance) : "missing"}">${hasManual ? money(variance) : "Ej ifyllt"}</output>
+            <button class="icon-button" type="button" data-remove-template="savings:${row.id}" aria-label="Ta bort">×</button>
           </div>`;
       }
 
@@ -1605,7 +1647,7 @@
         return savingsRows().map((row) => {
           const actual = monthKeys.slice(0, index + 1).reduce((total, key) => total + actualFor(row, "savings", state.months[key]), 0);
           const planned = (Number(row.amount) || 0) * (index + 1);
-          return { name: row.name || "Namnlös post", planned, actual, variance: actual - planned };
+          return { id: row.id, name: row.name || "Namnlös post", planned, actual, variance: actual - planned, targetAmount: Number(row.targetAmount) || 0, targetDate: row.targetDate || "", monthlyPlan: Number(row.amount) || 0 };
         });
       }
 
@@ -1664,6 +1706,27 @@
         return sumActuals(month.incomes) > 0 || month.purchases.length > 0 || Object.values(month.expenseActuals).some((value) => Number(value) > 0) || Object.values(month.savingActuals).some((value) => Number(value) > 0);
       }
 
+      function targetMonthLabel(dateValue) {
+        if (!dateValue) return "";
+        const date = new Date(`${dateValue}T00:00:00`);
+        if (Number.isNaN(date.getTime())) return "";
+        return date.toLocaleDateString("sv-SE", { month: "long", year: "numeric" });
+      }
+
+      function projectedSavingsLabel(row) {
+        const remaining = Math.max(0, row.targetAmount - row.actual);
+        if (!row.targetAmount) return "Lägg till målbelopp för prognos.";
+        if (remaining <= 0) return "Målet är uppnått.";
+        const monthlyPace = row.actual / Math.max(1, currentMonth + 1);
+        if (monthlyPace <= 0) return "Prognos saknas tills utfall finns.";
+        const monthsLeft = Math.ceil(remaining / monthlyPace);
+        const date = new Date();
+        date.setMonth(date.getMonth() + monthsLeft);
+        const projected = date.toLocaleDateString("sv-SE", { month: "long", year: "numeric" });
+        const target = targetMonthLabel(row.targetDate);
+        return target ? `Med nuvarande takt: ${projected}. Mål: ${target}.` : `Med nuvarande takt: ${projected}.`;
+      }
+
       function renderInsights() {
         const total = totals();
         const monthRows = allRowsForFocus().filter((row) => row.actual > 0 || row.budget > 0);
@@ -1679,18 +1742,51 @@
           `Genomsnittligt faktiskt kvar för månader med data är ${money(averageLeft)}.`,
         ];
         document.getElementById("monthlyReport").innerHTML = report.map((line) => `<p>${escapeHtml(line)}</p>`).join("");
+        document.getElementById("aiReportResult").innerHTML = aiReport
+          ? `<div class="recent-item"><div><strong>AI-kommentar</strong><small>${escapeHtml(aiReport.summary || "")}</small></div></div>${(aiReport.actions || []).map((item) => `<div class="recent-item"><div><strong>${escapeHtml(item)}</strong></div></div>`).join("")}`
+          : `<div class="recent-item"><div><strong>Ingen AI-kommentar ännu</strong><small>Klicka på Sammanfatta månaden för en kort tolkning.</small></div></div>`;
         document.getElementById("insightAlerts").innerHTML = overspent.length
           ? overspent.slice(0, 5).map((row) => `<div class="recent-item"><div><strong>${escapeHtml(row.name)}</strong><small>Budget ${money(row.budget)} · utfall ${money(row.actual)}</small></div><strong class="trend risk">${money(row.variance)}</strong></div>`).join("")
           : `<div class="recent-item"><div><strong>Inga varningar</strong><small>Alla ifyllda poster ligger inom plan.</small></div></div>`;
         const savings = accumulatedSavingsRows().filter((row) => row.name.trim());
         document.getElementById("savingsForecast").innerHTML = savings.length
           ? savings.map((row) => {
-              const monthlyPlan = row.planned / (currentMonth + 1 || 1);
-              const yearPlan = monthlyPlan * monthKeys.length;
               const pace = row.actual - row.planned;
-              return `<div class="recent-item"><div><strong>${escapeHtml(row.name)}</strong><small>${pace >= 0 ? "Före plan" : "Efter plan"} ${money(Math.abs(pace))} · årsplan ${money(yearPlan)}</small></div><strong>${money(row.actual)}</strong></div>`;
+              const targetText = row.targetAmount ? ` · mål ${money(row.targetAmount)}` : "";
+              return `<div class="recent-item"><div><strong>${escapeHtml(row.name)}</strong><small>${pace >= 0 ? "Före plan" : "Efter plan"} ${money(Math.abs(pace))}${targetText}<br>${escapeHtml(projectedSavingsLabel(row))}</small></div><strong>${money(row.actual)}</strong></div>`;
             }).join("")
           : `<div class="recent-item"><div><strong>Inga sparmål ännu</strong><small>Lägg till sparande för att få prognos.</small></div></div>`;
+      }
+
+      function monthlyReportPayload() {
+        return {
+          month: monthLabels[currentMonth],
+          totals: totals(),
+          rows: allRowsForFocus(),
+          savings: accumulatedSavingsRows(),
+          purchases: activeMonth().purchases,
+        };
+      }
+
+      async function summarizeMonthWithAi() {
+        if (!supabaseClient || !currentUser) return;
+        const button = document.getElementById("aiReportButton");
+        button.disabled = true;
+        button.textContent = "Sammanfattar...";
+        try {
+          const { data, error } = await supabaseClient.functions.invoke("ai-parse-purchase", {
+            body: { mode: "monthly_report", report: monthlyReportPayload() },
+          });
+          if (error || data?.error) throw new Error(data?.error || error?.message || "AI-rapporten kunde inte skapas.");
+          aiReport = data;
+          renderInsights();
+        } catch (error) {
+          aiReport = { summary: error.message || "AI-rapporten kunde inte skapas.", actions: [] };
+          renderInsights();
+        } finally {
+          button.disabled = false;
+          button.textContent = "Sammanfatta månaden";
+        }
       }
 
       function exportMonthlyCsv() {
@@ -1719,7 +1815,10 @@
         }
         if (templateRow && target.dataset.templateField) {
           const row = state.budgetTemplate[templateRow.dataset.templateType].find((item) => item.id === templateRow.dataset.templateId);
-          if (row) row[target.dataset.templateField] = target.dataset.templateField === "amount" ? parseAmount(target.value) : target.value;
+          if (row) {
+            const field = target.dataset.templateField;
+            row[field] = ["amount", "targetAmount"].includes(field) ? parseAmount(target.value) : target.value;
+          }
         }
         if (actualRow && target.dataset.actualField) {
           const map = actualRow.dataset.actualType === "savings" ? activeMonth().savingActuals : activeMonth().expenseActuals;
@@ -1741,6 +1840,7 @@
         const approvePurchase = event.target.closest("[data-approve-purchase]")?.dataset.approvePurchase;
         const rejectPurchase = event.target.closest("[data-reject-purchase]")?.dataset.rejectPurchase;
         const removeRule = event.target.closest("[data-remove-rule]")?.dataset.removeRule;
+        const restoreHistory = event.target.closest("[data-restore-history]")?.dataset.restoreHistory;
         if (pageTarget && pages[pageTarget]) {
           currentPage = pageTarget;
           history.replaceState(null, "", `#${currentPage}`);
@@ -1792,15 +1892,24 @@
           await loadCategoryRules();
           renderCategoryRules();
         }
+        if (restoreHistory && supabaseClient && confirm("Återställa budgeten till den här versionen? Nuvarande version sparas i historiken först.")) {
+          const { error } = await supabaseClient.rpc("restore_budget_history", { p_history_id: restoreHistory });
+          document.getElementById("saveStatus").textContent = error ? "Kunde inte återställa" : "Budgeten är återställd";
+          await loadFromSupabase();
+          await loadHistory();
+          render();
+        }
       });
 
       document.getElementById("previousMonth").addEventListener("click", () => {
         currentMonth = (currentMonth + monthKeys.length - 1) % monthKeys.length;
+        aiReport = null;
         render();
       });
 
       document.getElementById("nextMonth").addEventListener("click", () => {
         currentMonth = (currentMonth + 1) % monthKeys.length;
+        aiReport = null;
         render();
       });
 
@@ -1846,6 +1955,7 @@
       });
 
       document.getElementById("exportReportButton").addEventListener("click", exportMonthlyCsv);
+      document.getElementById("aiReportButton").addEventListener("click", summarizeMonthWithAi);
 
       window.addEventListener("hashchange", () => {
         const page = location.hash.replace("#", "");
@@ -1887,6 +1997,12 @@
         if (!supabaseClient || !currentUser) return;
         const { data, error } = await supabaseClient.from("category_rules").select("id,pattern,target_id,created_at").order("created_at", { ascending: false });
         categoryRules = error ? [] : data || [];
+      }
+
+      async function loadHistory() {
+        if (!supabaseClient || !currentUser) return;
+        const { data, error } = await supabaseClient.from("budget_state_history").select("id,saved_at,saved_by").order("saved_at", { ascending: false }).limit(20);
+        historyRows = error ? [] : data || [];
       }
 
       function isAdmin() {
@@ -1973,6 +2089,17 @@
           : `<div class="recent-item"><div><strong>Inga regler ännu</strong><small>Lägg till butik eller ord som ofta ska hamna på samma post.</small></div></div>`;
       }
 
+      function renderHistory() {
+        const container = document.getElementById("historyList");
+        if (!container) return;
+        container.innerHTML = historyRows.length
+          ? historyRows.map((row) => {
+              const savedAt = new Date(row.saved_at).toLocaleString("sv-SE", { dateStyle: "medium", timeStyle: "short" });
+              return `<div class="recent-item"><div><strong>${escapeHtml(savedAt)}</strong><small>Automatisk återställningspunkt</small></div><button class="copy-button" type="button" data-restore-history="${row.id}">Återställ</button></div>`;
+            }).join("")
+          : `<div class="recent-item"><div><strong>Ingen historik ännu</strong><small>Historik skapas när budgeten sparas efter att databasschemat uppdaterats.</small></div></div>`;
+      }
+
       function updateAuthUi() {
         const authScreen = document.getElementById("authScreen");
         const loggedIn = !!currentUser;
@@ -2010,6 +2137,7 @@
             await loadFromSupabase();
             await loadPurchaseInbox();
             await loadCategoryRules();
+            await loadHistory();
             updateAuthUi();
             render();
           } catch {
@@ -2082,6 +2210,7 @@
           await withTimeout(loadFromSupabase(), "Inloggad, men budgetdata kunde inte hämtas.");
           await loadPurchaseInbox();
           await loadCategoryRules();
+          await loadHistory();
           updateAuthUi();
           render();
           const remainingError = document.getElementById("authError");
