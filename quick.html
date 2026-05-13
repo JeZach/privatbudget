@@ -168,7 +168,7 @@
 
       .receipt-actions {
         display: grid;
-        grid-template-columns: minmax(0, 1fr) minmax(130px, auto);
+        grid-template-columns: minmax(0, 1fr) minmax(120px, auto) minmax(120px, auto);
         gap: 10px;
         align-items: end;
       }
@@ -285,6 +285,7 @@
         <div class="receipt-actions">
           <label class="file-input">Fota kvitto <input id="receipt" type="file" accept="image/*" capture="environment" /></label>
           <button id="ocrButton" type="button">Läs kvitto</button>
+          <button id="voiceButton" type="button">Tala in köp</button>
         </div>
         <div class="receipt-summary" id="receiptSummary">
           <div><span>Butik</span><strong id="receiptStore">Inte läst</strong></div>
@@ -316,6 +317,8 @@
       const receiptTotal = document.getElementById("receiptTotal");
       const saveStatus = document.getElementById("saveStatus");
       let receiptOcrText = "";
+      let categoryRows = [];
+      let categoryRules = [];
 
       monthKey.innerHTML = monthKeys.map((key, index) => `<option value="${key}">${monthLabels[index]}</option>`).join("");
       purchaseDate.value = new Date().toISOString().slice(0, 10);
@@ -332,6 +335,43 @@
 
       function formatAmount(value) {
         return String(value || "").replace(".", ",");
+      }
+
+      function categoriesForAi() {
+        return categoryRows.map((row) => ({
+          id: row.id,
+          name: row.name,
+          rules: categoryRules.filter((rule) => rule.target_id === row.id).map((rule) => rule.pattern),
+        }));
+      }
+
+      function fileToDataUrl(file) {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(String(reader.result || ""));
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        });
+      }
+
+      function applyAiPurchase(parsed) {
+        if (parsed.store) description.value = parsed.store;
+        if (parsed.amount) amount.value = formatAmount(parsed.amount);
+        if (parsed.date) purchaseDate.value = parsed.date;
+        if (parsed.categoryId && [...category.options].some((option) => option.value === parsed.categoryId)) {
+          category.value = parsed.categoryId;
+        }
+        receiptStore.textContent = parsed.store || "Hittades inte";
+        receiptTotal.textContent = parsed.amount ? `${formatAmount(parsed.amount)} kr` : "Hittades inte";
+      }
+
+      async function parseWithAi(payload) {
+        const { data, error } = await client.functions.invoke("ai-parse-purchase", {
+          body: { ...payload, categories: categoriesForAi() },
+        });
+        if (error || data?.error) throw new Error(data?.error || error?.message || "AI-tolkningen misslyckades.");
+        applyAiPurchase(data);
+        return data;
       }
 
       function storeCandidate(lines) {
@@ -384,7 +424,10 @@
           return;
         }
         localStorage.setItem("quickPurchasePin", pin);
-        category.innerHTML = data.map((row) => `<option value="${row.id}">${row.name}</option>`).join("");
+        categoryRows = data;
+        const rulesResult = await client.rpc("quick_category_rules", { p_pin: pin });
+        categoryRules = rulesResult.data || [];
+        category.innerHTML = categoryRows.map((row) => `<option value="${row.id}">${row.name}</option>`).join("");
         purchaseCard.classList.remove("hidden");
         setStatus(pinStatus, "Snabbregistrering är öppen.", "ok");
       }
@@ -395,11 +438,45 @@
           setStatus(saveStatus, "Välj eller fota ett kvitto först.", "bad");
           return;
         }
-        setStatus(saveStatus, "Läser kvittot i mobilen...");
-        const result = await Tesseract.recognize(file, "swe+eng");
-        receiptOcrText = result.data.text.trim();
-        parseReceipt(receiptOcrText);
-        setStatus(saveStatus, "Butik och totalsumma är hämtade. Välj kategori innan du registrerar.", "ok");
+        setStatus(saveStatus, "Läser kvittot med AI...");
+        try {
+          const imageDataUrl = await fileToDataUrl(file);
+          const parsed = await parseWithAi({ imageDataUrl });
+          receiptOcrText = parsed.note || "";
+          setStatus(saveStatus, "Butik, totalsumma och kategori är tolkade. Kontrollera innan du registrerar.", "ok");
+        } catch {
+          setStatus(saveStatus, "AI kunde inte läsa kvittot. Försöker lokal OCR...");
+          const result = await Tesseract.recognize(file, "swe+eng");
+          receiptOcrText = result.data.text.trim();
+          parseReceipt(receiptOcrText);
+          setStatus(saveStatus, "Butik och totalsumma är hämtade. Välj kategori innan du registrerar.", "ok");
+        }
+      }
+
+      async function voicePurchase() {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SpeechRecognition) {
+          setStatus(saveStatus, "Taligenkänning stöds inte i den här webbläsaren.", "bad");
+          return;
+        }
+        const recognition = new SpeechRecognition();
+        recognition.lang = "sv-SE";
+        recognition.interimResults = false;
+        recognition.maxAlternatives = 1;
+        setStatus(saveStatus, "Lyssnar... säg till exempel: jag köpte mat på Ica för 733 kr.");
+        recognition.onresult = async (event) => {
+          const text = event.results[0][0].transcript;
+          receiptOcrText = text;
+          setStatus(saveStatus, `Tolkar: ${text}`);
+          try {
+            await parseWithAi({ text });
+            setStatus(saveStatus, "Köpet är tolkat från röst. Kontrollera kategori och belopp.", "ok");
+          } catch (error) {
+            setStatus(saveStatus, error.message || "Kunde inte tolka rösten med AI.", "bad");
+          }
+        };
+        recognition.onerror = () => setStatus(saveStatus, "Kunde inte lyssna klart. Försök igen.", "bad");
+        recognition.start();
       }
 
       async function savePurchase() {
@@ -433,11 +510,12 @@
         receiptOcrText = "";
         receiptStore.textContent = "Inte läst";
         receiptTotal.textContent = "0 kr";
-        setStatus(saveStatus, "Köpet är registrerat i budgeten.", "ok");
+        setStatus(saveStatus, "Köpet är skickat till Godkänn köp i budgeten.", "ok");
       }
 
       document.getElementById("pinButton").addEventListener("click", loadCategories);
       document.getElementById("ocrButton").addEventListener("click", readReceipt);
+      document.getElementById("voiceButton").addEventListener("click", voicePurchase);
       document.getElementById("saveButton").addEventListener("click", savePurchase);
       if (pinInput.value) loadCategories();
     </script>

@@ -12,6 +12,8 @@ Den här versionen är gjord för att publiceras på GitHub Pages och använda S
 - Budgetmall som sätts en gång och används som grund varje månad
 - Egna sidor för inkomster, utgifter och sparande
 - Löneunderlag: faktisk inkomst i en månad används mot nästa månads kostnader
+- Snabbköp i mobilen med kvittoläsning, röstinmatning och godkännande innan köp förs in i budgeten
+- Rapportvy med månadssammanfattning, varningar, sparprognos och CSV-export
 
 ## 1. Skapa Supabase-projekt
 
@@ -20,7 +22,7 @@ Den här versionen är gjord för att publiceras på GitHub Pages och använda S
 3. Klistra in innehållet från `supabase-schema.sql`.
 4. Kör SQL-koden.
 
-Du kan köra filen igen när appen uppdateras. Den skapar tabellen `app_users` för admin/användare. Den nya budgetstrukturen sparas fortfarande i tabellen `budget_state`, så ingen extra tabell behövs för budgetmallen.
+Du kan köra filen igen när appen uppdateras. Den skapar tabeller för admin/användare, snabbköpsinkorg och historik. Budgetstrukturen sparas fortfarande i tabellen `budget_state`.
 
 ## 2. Hämta nycklar
 
@@ -67,7 +69,28 @@ set quick_pin = 'ny-pin'
 where id = 'main';
 ```
 
-Kvitto-OCR görs i webbläsaren via kamerabild. Kontrollera alltid belopp och kategori innan köpet registreras.
+Snabbköp hamnar först under **Godkänn köp** i huvudappen. Där kan ni kontrollera och godkänna köpet innan det förs in i budgeten.
+
+Kvitto-OCR görs i första hand med AI om funktionen nedan är aktiverad. Om AI-funktionen saknas försöker sidan fortfarande läsa kvittot lokalt i webbläsaren och plockar bara ut butik och totalsumma.
+
+## 6. AI för kvitto och röst
+
+För att AI-läsa kvitton och tolka röstkommandon behöver Supabase Edge Function-filen i `supabase/functions/ai-parse-purchase` publiceras i ert Supabase-projekt.
+
+I Supabase behöver ni även lägga in en OpenAI-nyckel som hemlig inställning:
+
+```bash
+supabase secrets set OPENAI_API_KEY=din-openai-nyckel
+supabase functions deploy ai-parse-purchase
+```
+
+När det är gjort kan snabbköpssidan tolka exempel som: "Jag köpte mat på Ica Maxi idag för 733 kronor." Den fyller då i butik/beskrivning, belopp, datum och föreslagen kategori. Ni kontrollerar alltid uppgifterna innan köpet skickas till **Godkänn köp**.
+
+Under **Godkänn köp** kan admin lägga till kategoriregler, till exempel `ICA Maxi` -> `Mat`. De reglerna skickas med till AI-tolkningen så att kvitto och röst blir bättre över tid.
+
+## 7. Rapport och export
+
+Sidan **Rapport** visar månadens korta sammanfattning, största varningar och sparprognos. Knappen **Exportera CSV** hämtar vald månads budget, utfall och avvikelse till en fil som kan öppnas i Numbers eller Excel.
 
 ## Ekonomilogik
 

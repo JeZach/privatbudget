@@ -322,6 +322,33 @@
         grid-column: span 4;
       }
 
+      .insight-grid {
+        display: grid;
+        grid-template-columns: repeat(12, minmax(0, 1fr));
+        gap: 18px;
+        align-items: start;
+      }
+
+      .insight-grid .panel {
+        grid-column: span 6;
+      }
+
+      .insight-grid .panel:first-child {
+        grid-column: 1 / -1;
+      }
+
+      .report-text {
+        display: grid;
+        gap: 10px;
+        margin: 0;
+      }
+
+      .report-text p {
+        margin: 0;
+        color: var(--muted);
+        line-height: 1.5;
+      }
+
       .panel {
         padding: 20px;
         min-width: 0;
@@ -827,7 +854,8 @@
           grid-column: auto;
         }
 
-        .trend-layout {
+        .trend-layout,
+        .insight-grid {
           grid-template-columns: 1fr;
         }
 
@@ -837,6 +865,8 @@
 
         .trend-layout .panel:first-child,
         .trend-layout .panel:last-child,
+        .insight-grid .panel,
+        .insight-grid .panel:first-child,
         .page[data-page="overview"] .savings-pie-panel,
         .page[data-page="overview"] .deviation-panel,
         .editor > section,
@@ -945,12 +975,14 @@
         <nav aria-label="Vyval">
           <button class="nav-item active" data-page-target="overview" type="button"><span class="icon">⌂</span>Översikt</button>
           <button class="nav-item" data-page-target="purchases" type="button"><span class="icon">＋</span>Köp</button>
+          <button class="nav-item" data-page-target="inbox" type="button"><span class="icon">✓</span>Godkänn</button>
           <button class="nav-item" data-page-target="income" type="button"><span class="icon">＋</span>Inkomster</button>
           <button class="nav-item" data-page-target="budget" type="button"><span class="icon">✎</span>Budgetmall</button>
           <button class="nav-item" data-page-target="expenses" type="button"><span class="icon">−</span>Utgifter</button>
           <button class="nav-item" data-page-target="savings" type="button"><span class="icon">◇</span>Sparande</button>
           <button class="nav-item" data-page-target="users" type="button"><span class="icon">☉</span>Användare</button>
           <button class="nav-item" data-page-target="trend" type="button"><span class="icon">↗</span>Trend</button>
+          <button class="nav-item" data-page-target="insights" type="button"><span class="icon">▣</span>Rapport</button>
         </nav>
 
         <div class="save-card">
@@ -1043,6 +1075,28 @@
             </form>
             <div class="recent-list" id="recentPurchases"></div>
           </section>
+        </section>
+
+        <section class="page" data-page="inbox" hidden>
+          <article class="panel">
+            <div class="panel-title">
+              <h3>Att godkänna</h3>
+              <span>snabbköp från mobil och AI</span>
+            </div>
+            <div class="recent-list" id="purchaseInbox"></div>
+          </article>
+          <article class="panel">
+            <div class="panel-title">
+              <h3>Kategoriregler</h3>
+              <span>hjälper AI att välja rätt post</span>
+            </div>
+            <form class="quick-form" id="categoryRuleForm">
+              <label>Text att känna igen <input id="rulePattern" placeholder="Till exempel ICA Maxi" /></label>
+              <label>Budgetpost <select id="ruleTarget"></select></label>
+              <button class="add-button" type="submit">+ Lägg till regel</button>
+            </form>
+            <div class="recent-list" id="categoryRules"></div>
+          </article>
         </section>
 
         <section class="page" data-page="income" hidden>
@@ -1141,6 +1195,24 @@
             <div class="category-list" id="categories"></div>
           </article>
         </section>
+
+        <section class="page insight-grid" data-page="insights" hidden>
+          <article class="panel">
+            <div class="panel-title">
+              <h3>Månadsrapport</h3>
+              <button class="copy-button" id="exportReportButton" type="button">Exportera CSV</button>
+            </div>
+            <div class="report-text" id="monthlyReport"></div>
+          </article>
+          <article class="panel">
+            <div class="panel-title"><h3>Att hålla koll på</h3><span>största avvikelser</span></div>
+            <div class="recent-list" id="insightAlerts"></div>
+          </article>
+          <article class="panel">
+            <div class="panel-title"><h3>Sparprognos</h3><span>ackumulerat mot plan</span></div>
+            <div class="recent-list" id="savingsForecast"></div>
+          </article>
+        </section>
       </main>
     </div>
 
@@ -1174,12 +1246,14 @@
       const pages = {
         overview: { title: "Ekonomisk puls", intro: "Vald månads utfall jämförs mot budgetmallen och föregående månads inkomster." },
         purchases: { title: "Köp", intro: "Registrera löpande köp direkt mot rätt budgetpost för vald månad." },
+        inbox: { title: "Godkänn köp", intro: "Kontrollera snabbköp innan de förs in i budgeten." },
         income: { title: "Inkomster", intro: "Registrera faktisk lön och andra intäkter per månad. De blir tillgång för nästa månad." },
         budget: { title: "Budgetmall", intro: "Sätt standardbudget en gång. Den ligger sedan som grund för varje månads uppföljning." },
         expenses: { title: "Utgifter", intro: "Fyll i månadens faktiska utgifter mot budgetmallen." },
         savings: { title: "Sparande", intro: "Planera sparandet separat från kostnader och följ faktiskt sparande per månad." },
         users: { title: "Användare", intro: "Lägg till vilka som får använda budgeten och se vem som registrerat utlägg." },
         trend: { title: "Trend", intro: "Följ faktiskt kvar per månad och vilka områden som väger tyngst." },
+        insights: { title: "Rapport", intro: "Månadens sammanfattning, varningssignaler och sparprognos." },
       };
 
       let currentMonth = 0;
@@ -1189,6 +1263,8 @@
       let currentUser = null;
       let currentProfile = null;
       let appUsers = [];
+      let purchaseInbox = [];
+      let categoryRules = [];
       let saveTimer = null;
 
       const supabaseConfig = window.PRIVATBUDGET_SUPABASE || {};
@@ -1411,6 +1487,9 @@
         renderSavingsPie();
         renderBars();
         renderCategories();
+        renderPurchaseInbox();
+        renderCategoryRules();
+        renderInsights();
         renderUsers();
         updateAuthUi();
       }
@@ -1580,6 +1659,55 @@
         }).join("");
       }
 
+      function monthHasData(index) {
+        const month = state.months[monthKeys[index]];
+        return sumActuals(month.incomes) > 0 || month.purchases.length > 0 || Object.values(month.expenseActuals).some((value) => Number(value) > 0) || Object.values(month.savingActuals).some((value) => Number(value) > 0);
+      }
+
+      function renderInsights() {
+        const total = totals();
+        const monthRows = allRowsForFocus().filter((row) => row.actual > 0 || row.budget > 0);
+        const overspent = monthRows.filter((row) => row.variance < 0).sort((a, b) => a.variance - b.variance);
+        const best = monthRows.filter((row) => row.variance > 0).sort((a, b) => b.variance - a.variance)[0];
+        const activeIndexes = monthKeys.map((_, index) => index).filter(monthHasData);
+        const averageLeft = activeIndexes.length ? activeIndexes.reduce((sum, index) => sum + totals(index).actualLeft, 0) / activeIndexes.length : total.actualLeft;
+        const report = [
+          `${monthLabels[currentMonth]} har ${money(total.actualLeft)} kvar efter registrerat utfall.`,
+          total.variance >= 0 ? `Ni ligger ${money(total.variance)} bättre än budgetmallen just nu.` : `Ni ligger ${money(Math.abs(total.variance))} sämre än budgetmallen just nu.`,
+          overspent[0] ? `Största avvikelsen är ${overspent[0].name}, ${money(Math.abs(overspent[0].variance))} över plan.` : "Inga kostnadsposter ligger över plan just nu.",
+          best ? `Bästa bufferten finns i ${best.name}, ${money(best.variance)} under plan.` : "Det finns ännu ingen tydlig buffertpost den här månaden.",
+          `Genomsnittligt faktiskt kvar för månader med data är ${money(averageLeft)}.`,
+        ];
+        document.getElementById("monthlyReport").innerHTML = report.map((line) => `<p>${escapeHtml(line)}</p>`).join("");
+        document.getElementById("insightAlerts").innerHTML = overspent.length
+          ? overspent.slice(0, 5).map((row) => `<div class="recent-item"><div><strong>${escapeHtml(row.name)}</strong><small>Budget ${money(row.budget)} · utfall ${money(row.actual)}</small></div><strong class="trend risk">${money(row.variance)}</strong></div>`).join("")
+          : `<div class="recent-item"><div><strong>Inga varningar</strong><small>Alla ifyllda poster ligger inom plan.</small></div></div>`;
+        const savings = accumulatedSavingsRows().filter((row) => row.name.trim());
+        document.getElementById("savingsForecast").innerHTML = savings.length
+          ? savings.map((row) => {
+              const monthlyPlan = row.planned / (currentMonth + 1 || 1);
+              const yearPlan = monthlyPlan * monthKeys.length;
+              const pace = row.actual - row.planned;
+              return `<div class="recent-item"><div><strong>${escapeHtml(row.name)}</strong><small>${pace >= 0 ? "Före plan" : "Efter plan"} ${money(Math.abs(pace))} · årsplan ${money(yearPlan)}</small></div><strong>${money(row.actual)}</strong></div>`;
+            }).join("")
+          : `<div class="recent-item"><div><strong>Inga sparmål ännu</strong><small>Lägg till sparande för att få prognos.</small></div></div>`;
+      }
+
+      function exportMonthlyCsv() {
+        const rows = [
+          ["Månad", "Område", "Budget", "Utfall", "Avvikelse"],
+          ...allRowsForFocus().map((row) => [monthLabels[currentMonth], row.name, row.budget, row.actual, row.variance]),
+        ];
+        const csv = rows.map((row) => row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(";")).join("\n");
+        const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `budgetrapport-${monthKeys[currentMonth]}.csv`;
+        link.click();
+        URL.revokeObjectURL(url);
+      }
+
       document.addEventListener("input", (event) => {
         const target = event.target;
         const incomeRow = target.closest("[data-income-id]");
@@ -1605,11 +1733,14 @@
         render();
       });
 
-      document.addEventListener("click", (event) => {
+      document.addEventListener("click", async (event) => {
         const pageTarget = event.target.closest("[data-page-target]")?.dataset.pageTarget;
         const addTemplate = event.target.closest("[data-add-template]")?.dataset.addTemplate;
         const removeTemplate = event.target.closest("[data-remove-template]")?.dataset.removeTemplate;
         const removeIncome = event.target.closest("[data-remove-income]")?.dataset.removeIncome;
+        const approvePurchase = event.target.closest("[data-approve-purchase]")?.dataset.approvePurchase;
+        const rejectPurchase = event.target.closest("[data-reject-purchase]")?.dataset.rejectPurchase;
+        const removeRule = event.target.closest("[data-remove-rule]")?.dataset.removeRule;
         if (pageTarget && pages[pageTarget]) {
           currentPage = pageTarget;
           history.replaceState(null, "", `#${currentPage}`);
@@ -1641,6 +1772,25 @@
           activeMonth().incomes = activeMonth().incomes.filter((row) => row.id !== removeIncome);
           saveState();
           render();
+        }
+        if (approvePurchase && supabaseClient) {
+          const { error } = await supabaseClient.rpc("approve_purchase_inbox", { p_id: approvePurchase });
+          document.getElementById("saveStatus").textContent = error ? "Kunde inte godkänna köpet" : "Köpet är godkänt";
+          await loadFromSupabase();
+          await loadPurchaseInbox();
+          render();
+        }
+        if (rejectPurchase && supabaseClient) {
+          const { error } = await supabaseClient.rpc("reject_purchase_inbox", { p_id: rejectPurchase });
+          document.getElementById("saveStatus").textContent = error ? "Kunde inte avvisa köpet" : "Köpet är avvisat";
+          await loadPurchaseInbox();
+          renderPurchaseInbox();
+        }
+        if (removeRule && supabaseClient && isAdmin()) {
+          const { error } = await supabaseClient.from("category_rules").delete().eq("id", removeRule);
+          document.getElementById("saveStatus").textContent = error ? "Kunde inte ta bort regeln" : "Regeln är borttagen";
+          await loadCategoryRules();
+          renderCategoryRules();
         }
       });
 
@@ -1675,12 +1825,27 @@
         render();
       });
 
+      document.getElementById("categoryRuleForm").addEventListener("submit", async (event) => {
+        event.preventDefault();
+        if (!supabaseClient || !isAdmin()) return;
+        const pattern = document.getElementById("rulePattern").value.trim();
+        const targetId = document.getElementById("ruleTarget").value;
+        if (!pattern || !targetId) return;
+        const { error } = await supabaseClient.from("category_rules").insert({ pattern, target_id: targetId });
+        document.getElementById("saveStatus").textContent = error ? "Kunde inte lägga till regeln" : "Regeln är sparad";
+        if (!error) document.getElementById("rulePattern").value = "";
+        await loadCategoryRules();
+        renderCategoryRules();
+      });
+
       document.getElementById("resetActualsButton").addEventListener("click", () => {
         if (!confirm(`Nollställa utfall för ${monthLabels[currentMonth]}? Budgetmallen påverkas inte.`)) return;
         state.months[monthKeys[currentMonth]] = blankMonth();
         saveState();
         render();
       });
+
+      document.getElementById("exportReportButton").addEventListener("click", exportMonthlyCsv);
 
       window.addEventListener("hashchange", () => {
         const page = location.hash.replace("#", "");
@@ -1706,6 +1871,22 @@
         } else {
           await saveToSupabase();
         }
+      }
+
+      async function loadPurchaseInbox() {
+        if (!supabaseClient || !currentUser) return;
+        const { data, error } = await supabaseClient.from("purchase_inbox").select("id,purchase_date,month_key,target_id,description,amount,source,created_at").eq("status", "pending").order("created_at", { ascending: false });
+        if (error) {
+          purchaseInbox = [];
+          return;
+        }
+        purchaseInbox = data || [];
+      }
+
+      async function loadCategoryRules() {
+        if (!supabaseClient || !currentUser) return;
+        const { data, error } = await supabaseClient.from("category_rules").select("id,pattern,target_id,created_at").order("created_at", { ascending: false });
+        categoryRules = error ? [] : data || [];
       }
 
       function isAdmin() {
@@ -1750,6 +1931,48 @@
           : `<div class="recent-item"><div><strong>Inga användare laddade</strong><small>Logga in och kör databasreglerna om listan inte visas.</small></div></div>`;
       }
 
+      function renderPurchaseInbox() {
+        const container = document.getElementById("purchaseInbox");
+        if (!container) return;
+        const rows = purchaseInbox.map((item) => {
+          const target = templateRows().find((row) => row.id === item.target_id);
+          const month = monthLabels[monthKeys.indexOf(item.month_key)] || item.month_key;
+          return `<div class="recent-item">
+            <div>
+              <strong>${escapeHtml(item.description)}</strong>
+              <small>${item.purchase_date} · ${escapeHtml(month)} · ${escapeHtml(target?.name || "Okänd post")} · ${escapeHtml(item.source)}</small>
+            </div>
+            <div style="display:grid;gap:6px;justify-items:end">
+              <strong>${money(item.amount)}</strong>
+              <div style="display:flex;gap:6px">
+                <button class="copy-button" type="button" data-reject-purchase="${item.id}">Avvisa</button>
+                <button class="add-button" type="button" data-approve-purchase="${item.id}">Godkänn</button>
+              </div>
+            </div>
+          </div>`;
+        });
+        container.innerHTML = rows.length ? rows.join("") : `<div class="recent-item"><div><strong>Inga köp att godkänna</strong><small>Snabbköp från mobilen visas här först.</small></div></div>`;
+      }
+
+      function renderCategoryRules() {
+        const form = document.getElementById("categoryRuleForm");
+        const target = document.getElementById("ruleTarget");
+        const list = document.getElementById("categoryRules");
+        if (!form || !target || !list) return;
+        const admin = isAdmin();
+        form.querySelectorAll("input, select, button").forEach((field) => field.disabled = !admin);
+        const selected = target.value;
+        const options = templateRows().filter((row) => row.name.trim());
+        target.innerHTML = options.length ? options.map((row) => `<option value="${row.id}">${escapeHtml(row.name)}</option>`).join("") : `<option value="">Lägg till budgetpost först</option>`;
+        if (options.some((row) => row.id === selected)) target.value = selected;
+        list.innerHTML = categoryRules.length
+          ? categoryRules.map((rule) => {
+              const row = templateRows().find((item) => item.id === rule.target_id);
+              return `<div class="recent-item"><div><strong>${escapeHtml(rule.pattern)}</strong><small>${escapeHtml(row?.name || "Okänd post")}</small></div>${admin ? `<button class="icon-button" type="button" data-remove-rule="${rule.id}" aria-label="Ta bort">×</button>` : ""}</div>`;
+            }).join("")
+          : `<div class="recent-item"><div><strong>Inga regler ännu</strong><small>Lägg till butik eller ord som ofta ska hamna på samma post.</small></div></div>`;
+      }
+
       function updateAuthUi() {
         const authScreen = document.getElementById("authScreen");
         const loggedIn = !!currentUser;
@@ -1785,6 +2008,8 @@
             await ensureUserProfile();
             if (!currentUser) return;
             await loadFromSupabase();
+            await loadPurchaseInbox();
+            await loadCategoryRules();
             updateAuthUi();
             render();
           } catch {
@@ -1855,6 +2080,8 @@
           await withTimeout(ensureUserProfile(), "Inloggad, men användarkontrollen tog för lång tid.");
           if (!currentUser) return;
           await withTimeout(loadFromSupabase(), "Inloggad, men budgetdata kunde inte hämtas.");
+          await loadPurchaseInbox();
+          await loadCategoryRules();
           updateAuthUi();
           render();
           const remainingError = document.getElementById("authError");
