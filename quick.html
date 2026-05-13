@@ -40,9 +40,9 @@
       main {
         width: min(680px, 100%);
         margin: 0 auto;
-        padding: max(18px, env(safe-area-inset-top)) 16px max(28px, env(safe-area-inset-bottom));
+        padding: max(14px, env(safe-area-inset-top)) 12px max(22px, env(safe-area-inset-bottom));
         display: grid;
-        gap: 14px;
+        gap: 12px;
       }
 
       header {
@@ -59,12 +59,12 @@
       }
 
       h1 {
-        font-size: 34px;
+        font-size: 30px;
         line-height: 1;
       }
 
       h2 {
-        font-size: 18px;
+        font-size: 17px;
       }
 
       p,
@@ -89,9 +89,9 @@
         background: var(--panel);
         border: 1px solid var(--line);
         border-radius: 8px;
-        padding: 16px;
+        padding: 14px;
         display: grid;
-        gap: 14px;
+        gap: 12px;
         box-shadow: 0 16px 40px rgba(22, 33, 29, 0.08);
       }
 
@@ -118,16 +118,16 @@
       select,
       textarea {
         width: 100%;
-        min-height: 46px;
+        min-height: 42px;
         border: 1px solid var(--line);
         border-radius: 8px;
         background: #fbfdfb;
         color: var(--ink);
-        padding: 10px 12px;
+        padding: 9px 10px;
       }
 
       textarea {
-        min-height: 98px;
+        min-height: 70px;
         resize: vertical;
       }
 
@@ -143,13 +143,13 @@
       }
 
       button {
-        min-height: 46px;
+        min-height: 42px;
         border: 1px solid var(--line);
         border-radius: 8px;
         background: #fdfefd;
         color: var(--ink);
         font-weight: 850;
-        padding: 0 14px;
+        padding: 0 12px;
       }
 
       button.primary {
@@ -168,9 +168,34 @@
 
       .receipt-actions {
         display: grid;
-        grid-template-columns: 1fr auto;
+        grid-template-columns: minmax(0, 1fr) minmax(130px, auto);
         gap: 10px;
         align-items: end;
+      }
+
+      .file-input input {
+        padding: 7px;
+      }
+
+      .receipt-summary {
+        display: grid;
+        gap: 6px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 10px;
+        background: #fbfdfb;
+      }
+
+      .receipt-summary div {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        font-weight: 850;
+      }
+
+      .receipt-summary span {
+        color: var(--muted);
+        font-weight: 750;
       }
 
       .status {
@@ -204,7 +229,28 @@
         }
 
         h1 {
-          font-size: 30px;
+          font-size: 28px;
+        }
+
+        body {
+          font-size: 15px;
+        }
+
+        .mark {
+          width: 36px;
+          height: 36px;
+        }
+
+        button.primary {
+          width: 100%;
+        }
+
+        .card {
+          padding: 12px;
+        }
+
+        label {
+          gap: 5px;
         }
       }
     </style>
@@ -237,10 +283,13 @@
         </div>
 
         <div class="receipt-actions">
-          <label>Fota kvitto <input id="receipt" type="file" accept="image/*" capture="environment" /></label>
+          <label class="file-input">Fota kvitto <input id="receipt" type="file" accept="image/*" capture="environment" /></label>
           <button id="ocrButton" type="button">Läs kvitto</button>
         </div>
-        <textarea id="receiptText" placeholder="OCR-text visas här efter läsning. Du kan rätta den innan du registrerar."></textarea>
+        <div class="receipt-summary" id="receiptSummary">
+          <div><span>Butik</span><strong id="receiptStore">Inte läst</strong></div>
+          <div><span>Totalsumma</span><strong id="receiptTotal">0 kr</strong></div>
+        </div>
         <button class="primary" id="saveButton" type="button">Registrera köp</button>
         <div class="status" id="saveStatus">Välj kategori innan köpet registreras.</div>
       </section>
@@ -263,8 +312,10 @@
       const amount = document.getElementById("amount");
       const description = document.getElementById("description");
       const receipt = document.getElementById("receipt");
-      const receiptText = document.getElementById("receiptText");
+      const receiptStore = document.getElementById("receiptStore");
+      const receiptTotal = document.getElementById("receiptTotal");
       const saveStatus = document.getElementById("saveStatus");
+      let receiptOcrText = "";
 
       monthKey.innerHTML = monthKeys.map((key, index) => `<option value="${key}">${monthLabels[index]}</option>`).join("");
       purchaseDate.value = new Date().toISOString().slice(0, 10);
@@ -283,24 +334,37 @@
         return String(value || "").replace(".", ",");
       }
 
+      function storeCandidate(lines) {
+        const blocked = /^(org|datum|date|tid|time|kvitto|receipt|terminal|kort|visa|mastercard|summa|total|moms|vat|att betala|belopp|change|cash|kontant)/i;
+        return lines.find((line) => /[A-Za-zÅÄÖåäö]{3}/.test(line) && !blocked.test(line) && line.length <= 42) || "";
+      }
+
+      function totalCandidate(lines, text) {
+        const totalKeywords = /(att betala|summa|total|totalt|belopp)/i;
+        const totalLineIndex = lines.findIndex((line) => totalKeywords.test(line));
+        const candidates = [];
+        const collect = (source, weight) => {
+          for (const match of source.matchAll(/\b\d{1,5}(?:[ .]\d{3})*(?:[,:.]\d{2})\b|\b\d{2,5}\b/g)) {
+            const value = parseAmount(match[0]);
+            if (value > 0 && value < 100000) candidates.push({ value, weight });
+          }
+        };
+        if (totalLineIndex >= 0) {
+          collect(lines.slice(totalLineIndex, totalLineIndex + 3).join(" "), 10);
+        }
+        collect(text, 1);
+        candidates.sort((a, b) => (b.weight - a.weight) || (b.value - a.value));
+        return candidates[0]?.value || 0;
+      }
+
       function parseReceipt(text) {
         const lines = text.split(/\n+/).map((line) => line.trim()).filter(Boolean);
-        const dateMatch = text.match(/\b(20\d{2})[-/.](\d{1,2})[-/.](\d{1,2})\b/) || text.match(/\b(\d{1,2})[-/.](\d{1,2})[-/.](20\d{2})\b/);
-        if (dateMatch) {
-          const date = dateMatch[1].length === 4
-            ? `${dateMatch[1]}-${dateMatch[2].padStart(2, "0")}-${dateMatch[3].padStart(2, "0")}`
-            : `${dateMatch[3]}-${dateMatch[2].padStart(2, "0")}-${dateMatch[1].padStart(2, "0")}`;
-          purchaseDate.value = date;
-        }
-        const totalLine = lines.find((line) => /summa|total|att betala|belopp/i.test(line)) || "";
-        const amountSource = totalLine || text;
-        const values = [...amountSource.matchAll(/\b\d{1,5}(?:[ .]\d{3})*(?:[,:.]\d{2})\b|\b\d{2,5}\b/g)]
-          .map((match) => parseAmount(match[0]))
-          .filter((value) => value > 0 && value < 100000);
-        if (values.length) amount.value = formatAmount(Math.max(...values));
-        if (!description.value && lines.length) {
-          description.value = lines.find((line) => /[A-Za-zÅÄÖåäö]{3}/.test(line))?.slice(0, 70) || "";
-        }
+        const store = storeCandidate(lines);
+        const total = totalCandidate(lines, text);
+        if (total) amount.value = formatAmount(total);
+        if (store) description.value = store.slice(0, 70);
+        receiptStore.textContent = store || "Hittades inte";
+        receiptTotal.textContent = total ? `${formatAmount(total)} kr` : "Hittades inte";
       }
 
       async function loadCategories() {
@@ -333,9 +397,9 @@
         }
         setStatus(saveStatus, "Läser kvittot i mobilen...");
         const result = await Tesseract.recognize(file, "swe+eng");
-        receiptText.value = result.data.text.trim();
-        parseReceipt(receiptText.value);
-        setStatus(saveStatus, "Kvittot är läst. Kontrollera belopp och kategori innan du registrerar.", "ok");
+        receiptOcrText = result.data.text.trim();
+        parseReceipt(receiptOcrText);
+        setStatus(saveStatus, "Butik och totalsumma är hämtade. Välj kategori innan du registrerar.", "ok");
       }
 
       async function savePurchase() {
@@ -357,7 +421,7 @@
           p_purchase_date: purchaseDate.value,
           p_description: description.value.trim() || "Snabbköp",
           p_amount: value,
-          p_receipt_text: receiptText.value.trim(),
+          p_receipt_text: receiptOcrText,
         });
         if (error) {
           setStatus(saveStatus, error.message || "Köpet kunde inte registreras.", "bad");
@@ -366,7 +430,9 @@
         amount.value = "";
         description.value = "";
         receipt.value = "";
-        receiptText.value = "";
+        receiptOcrText = "";
+        receiptStore.textContent = "Inte läst";
+        receiptTotal.textContent = "0 kr";
         setStatus(saveStatus, "Köpet är registrerat i budgeten.", "ok");
       }
 
