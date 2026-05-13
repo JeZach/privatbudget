@@ -367,9 +367,9 @@
 
       async function parseWithAi(payload) {
         const { data, error } = await client.functions.invoke("ai-parse-purchase", {
-          body: { ...payload, categories: categoriesForAi() },
+          body: { ...payload, pin: pinInput.value.trim(), categories: categoriesForAi() },
         });
-        if (error || data?.error) throw new Error(data?.error || error?.message || "AI-tolkningen misslyckades.");
+        if (error || data?.error) throw new Error(data?.error || error?.message || "AI-funktionen saknas eller svarar inte.");
         applyAiPurchase(data);
         return data;
       }

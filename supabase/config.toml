@@ -1,0 +1,2 @@
+[functions.ai-parse-purchase]
+verify_jwt = false

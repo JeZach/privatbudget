@@ -16,6 +16,23 @@ Deno.serve(async (req) => {
     const categories = Array.isArray(body.categories) ? body.categories : [];
     const inputText = String(body.text || "");
     const imageDataUrl = String(body.imageDataUrl || "");
+    const pin = String(body.pin || "");
+
+    const supabaseUrl = Deno.env.get("SUPABASE_URL");
+    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY");
+    if (!supabaseUrl || !supabaseAnonKey) throw new Error("Supabase-miljön saknar URL eller anon key.");
+
+    const pinResponse = await fetch(`${supabaseUrl}/rest/v1/rpc/quick_pin_ok`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "apikey": supabaseAnonKey,
+        "Authorization": `Bearer ${supabaseAnonKey}`,
+      },
+      body: JSON.stringify({ p_pin: pin }),
+    });
+    const pinOk = pinResponse.ok ? await pinResponse.json() : false;
+    if (!pinOk) throw new Error("Fel PIN-kod.");
 
     const content: unknown[] = [
       {
