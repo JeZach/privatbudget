@@ -553,6 +553,11 @@
         grid-template-columns: minmax(140px, 1fr) minmax(90px, 120px) minmax(90px, 120px) minmax(100px, 130px) minmax(130px, 150px) minmax(100px, 130px) 38px;
       }
 
+      [data-page="savings"] .entry-heading {
+        grid-template-columns: minmax(140px, 1fr) minmax(90px, 120px) minmax(90px, 120px) minmax(100px, 130px) minmax(130px, 150px) minmax(100px, 130px) 38px;
+        padding-right: 0;
+      }
+
       .entry-row.sortable-row {
         grid-template-columns: 34px minmax(140px, 1fr) minmax(100px, 140px) minmax(100px, 140px) minmax(100px, 140px);
       }
@@ -1399,10 +1404,11 @@
           <article class="panel editor">
             <div class="panel-title">
               <h3>Sparande</h3>
-              <span>egen plan och eget utfall</span>
+              <span>plan, mål och faktiskt sparande</span>
             </div>
             <section>
               <div class="section-head"><h4>Sparmål</h4><button class="add-button" data-add-template="savings" type="button">+ Lägg till</button></div>
+              <div class="entry-heading"><span>Sparmål</span><span>Plan/mån</span><span>Målbelopp</span><span>Utfall</span><span>Måldatum</span><span>Avvikelse</span><span></span></div>
               <div class="entry-list" id="savingsRows"></div>
             </section>
           </article>
