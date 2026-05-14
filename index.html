@@ -278,6 +278,20 @@
         color: var(--rose);
       }
 
+      .metric-breakdown {
+        display: grid;
+        gap: 4px;
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 750;
+      }
+
+      .metric-breakdown div {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+      }
+
       .page {
         display: grid;
         gap: 18px;
@@ -493,6 +507,36 @@
         gap: 8px;
       }
 
+      .expense-tabs {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        grid-column: 1 / -1;
+      }
+
+      .expense-tab {
+        min-height: 44px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #fbfdfb;
+        color: var(--muted);
+        font-weight: 850;
+      }
+
+      .expense-tab.active {
+        background: var(--ink);
+        border-color: var(--ink);
+        color: #fff;
+      }
+
+      .expense-tab-panel {
+        grid-column: 1 / -1;
+      }
+
+      .expense-tab-panel[hidden] {
+        display: none;
+      }
+
       .entry-heading,
       .entry-row {
         display: grid;
@@ -505,11 +549,61 @@
         grid-template-columns: minmax(140px, 1fr) minmax(90px, 120px) minmax(90px, 120px) minmax(100px, 130px) minmax(130px, 150px) minmax(100px, 130px) 38px;
       }
 
+      .entry-row.sortable-row {
+        grid-template-columns: 34px minmax(140px, 1fr) minmax(100px, 140px) minmax(100px, 140px) minmax(100px, 140px);
+      }
+
+      .entry-row.dragging {
+        opacity: 0.45;
+      }
+
+      .entry-row.drag-over {
+        box-shadow: inset 0 2px 0 var(--green);
+      }
+
+      .drag-handle {
+        width: 34px;
+        min-height: 42px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--soft);
+        color: var(--muted);
+        cursor: grab;
+        font-weight: 900;
+      }
+
+      .drag-handle:active {
+        cursor: grabbing;
+      }
+
+      .section-total {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto auto auto;
+        gap: 14px;
+        align-items: center;
+        margin-top: 12px;
+        padding-top: 12px;
+        border-top: 1px solid var(--line);
+        color: var(--muted);
+        font-size: 13px;
+        font-weight: 800;
+      }
+
+      .section-total strong {
+        color: var(--ink);
+        font-size: 15px;
+      }
+
       .entry-heading {
         color: var(--muted);
         font-size: 12px;
         font-weight: 800;
         padding: 0 46px 0 2px;
+      }
+
+      .entry-heading.sortable-heading {
+        grid-template-columns: 34px minmax(140px, 1fr) minmax(100px, 140px) minmax(100px, 140px) minmax(100px, 140px);
+        padding-right: 0;
       }
 
       input,
@@ -995,6 +1089,20 @@
           padding: 10px;
         }
 
+        .entry-row.sortable-row {
+          grid-template-columns: 34px 1fr;
+        }
+
+        .entry-row.sortable-row .variance,
+        .entry-row.sortable-row .line-field {
+          grid-column: 2;
+        }
+
+        .drag-handle {
+          grid-row: 1 / span 4;
+          align-self: stretch;
+        }
+
         .entry-heading {
           display: none;
         }
@@ -1034,6 +1142,11 @@
 
         .status-grid {
           grid-template-columns: 1fr;
+        }
+
+        .section-total {
+          grid-template-columns: 1fr;
+          gap: 4px;
         }
       }
     </style>
@@ -1095,7 +1208,11 @@
             <article class="metric">
               <span>Budgeterade utgifter</span>
               <strong id="budgetedOutgoValue">0 kr</strong>
-              <small class="trend warn">utgifter och sparande</small>
+              <div class="metric-breakdown">
+                <div><span>Fast</span><b id="budgetedFixedValue">0 kr</b></div>
+                <div><span>Rörlig</span><b id="budgetedVariableValue">0 kr</b></div>
+                <div><span>Sparande</span><b id="budgetedSavingsValue">0 kr</b></div>
+              </div>
             </article>
             <article class="metric">
               <span>Faktiskt kvar</span>
@@ -1254,15 +1371,21 @@
               <h3>Utgifter</h3>
               <span>utfall för vald månad</span>
             </div>
-            <section>
+            <div class="expense-tabs" role="tablist" aria-label="Välj utgiftstyp">
+              <button class="expense-tab" data-expense-tab="fixedCosts" type="button">Fasta utgifter</button>
+              <button class="expense-tab" data-expense-tab="variableCosts" type="button">Rörliga utgifter</button>
+            </div>
+            <section class="expense-tab-panel" data-expense-panel="fixedCosts">
               <div class="section-head"><h4>Fasta utgifter</h4><span class="small">från budgetmallen</span></div>
-              <div class="entry-heading"><span>Post</span><span>Budget</span><span>Utfall</span><span>Avvikelse</span></div>
+              <div class="entry-heading sortable-heading"><span></span><span>Post</span><span>Budget</span><span>Utfall</span><span>Avvikelse</span></div>
               <div class="entry-list" id="fixedActualRows"></div>
+              <div class="section-total" id="fixedActualTotal"></div>
             </section>
-            <section>
+            <section class="expense-tab-panel" data-expense-panel="variableCosts">
               <div class="section-head"><h4>Rörliga utgifter</h4><span class="small">från budgetmallen</span></div>
-              <div class="entry-heading"><span>Post</span><span>Budget</span><span>Utfall</span><span>Avvikelse</span></div>
+              <div class="entry-heading sortable-heading"><span></span><span>Post</span><span>Budget</span><span>Utfall</span><span>Avvikelse</span></div>
               <div class="entry-list" id="variableActualRows"></div>
+              <div class="section-total" id="variableActualTotal"></div>
             </section>
           </article>
         </section>
@@ -1385,6 +1508,7 @@
       let currentMonth = 0;
       let currentPage = location.hash.replace("#", "") || "overview";
       if (!pages[currentPage]) currentPage = "overview";
+      let activeExpenseTab = "fixedCosts";
       let authMode = "login";
       let currentUser = null;
       let currentProfile = null;
@@ -1642,9 +1766,14 @@
 
       function renderSummary() {
         const total = totals();
+        const fixedBudget = sumBudget(state.budgetTemplate.fixedCosts);
+        const variableBudget = sumBudget(state.budgetTemplate.variableCosts);
         document.getElementById("availableValue").textContent = money(total.available);
         document.getElementById("availableSourceText").textContent = currentMonth === 0 ? "startmånaden använder egna inkomster" : `från ${monthLabels[incomeSourceIndex()]}`;
         document.getElementById("budgetedOutgoValue").textContent = money(total.budgetedOutgo);
+        document.getElementById("budgetedFixedValue").textContent = money(fixedBudget);
+        document.getElementById("budgetedVariableValue").textContent = money(variableBudget);
+        document.getElementById("budgetedSavingsValue").textContent = money(total.budgetedSavings);
         document.getElementById("actualLeftValue").textContent = money(total.actualLeft);
         document.getElementById("varianceValue").textContent = money(total.variance);
         document.getElementById("actualStatus").textContent = total.actualLeft >= 0 ? "plus" : "minus";
@@ -1716,8 +1845,36 @@
       }
 
       function renderExpenseRows() {
+        renderExpenseTabs();
         renderActualGroup("fixedCosts", "fixedActualRows", "expense");
         renderActualGroup("variableCosts", "variableActualRows", "expense");
+        renderExpenseTotals();
+      }
+
+      function renderExpenseTabs() {
+        document.querySelectorAll("[data-expense-tab]").forEach((button) => {
+          button.classList.toggle("active", button.dataset.expenseTab === activeExpenseTab);
+        });
+        document.querySelectorAll("[data-expense-panel]").forEach((panel) => {
+          panel.hidden = panel.dataset.expensePanel !== activeExpenseTab;
+        });
+      }
+
+      function renderExpenseTotals() {
+        renderExpenseTotal("fixedCosts", "fixedActualTotal", "Summa fasta");
+        renderExpenseTotal("variableCosts", "variableActualTotal", "Summa rörliga");
+      }
+
+      function renderExpenseTotal(type, containerId, label) {
+        const rows = state.budgetTemplate[type];
+        const budget = sumBudget(rows);
+        const actual = rows.reduce((total, row) => total + actualFor(row, "expense"), 0);
+        const variance = budget - actual;
+        document.getElementById(containerId).innerHTML = `
+          <span>${label}</span>
+          <strong>Budget ${money(budget)}</strong>
+          <strong>Utfall ${money(actual)}</strong>
+          <strong class="${variance < 0 ? "trend risk" : "trend"}">${money(variance)}</strong>`;
       }
 
       function renderSavingsRows() {
@@ -1735,7 +1892,8 @@
         const hasPurchase = actualType === "expense" && purchaseTotal(row.id) > 0;
         const variance = (Number(row.amount) || 0) - actual;
         return `
-          <div class="entry-row" data-actual-type="${actualType}" data-group-type="${groupType}" data-actual-id="${row.id}"${isSavings ? ` data-template-type="${groupType}" data-template-id="${row.id}"` : ""}>
+          <div class="entry-row ${isSavings ? "" : "sortable-row"}" ${isSavings ? "" : `draggable="true" data-sortable-type="${groupType}"`} data-actual-type="${actualType}" data-group-type="${groupType}" data-actual-id="${row.id}"${isSavings ? ` data-template-type="${groupType}" data-template-id="${row.id}"` : ""}>
+            ${isSavings ? "" : `<button class="drag-handle" type="button" aria-label="Flytta rad">↕</button>`}
             <label class="line-field"><span>Post</span><input value="${escapeHtml(row.name)}" ${isSavings ? `data-template-field="name" placeholder="Namn"` : "disabled"} /></label>
             <label class="line-field"><span>${isSavings ? "Plan" : "Budget"}</span><input class="money" value="${row.amount || ""}" ${isSavings ? `data-template-field="amount" inputmode="numeric" placeholder="0"` : "disabled"} /></label>
             <label class="line-field"><span>Utfall</span><input class="money" value="${isSavings ? activeMonth().savingActuals[row.id] ?? "" : activeMonth().expenseActuals[row.id] ?? ""}" data-actual-field="actual" inputmode="numeric" placeholder="${hasPurchase ? `Köp: ${money(purchaseTotal(row.id))}` : "0"}" /></label>
@@ -1977,6 +2135,11 @@
         if (actualRow && target.dataset.actualField) {
           const map = actualRow.dataset.actualType === "savings" ? activeMonth().savingActuals : activeMonth().expenseActuals;
           map[actualRow.dataset.actualId] = target.value.trim() === "" ? "" : parseAmount(target.value);
+          if (actualRow.dataset.actualType === "expense") {
+            renderExpenseTotals();
+            renderSummary();
+            renderExpenseHealth();
+          }
         }
         saveState();
       });
@@ -1995,11 +2158,16 @@
         const rejectPurchase = event.target.closest("[data-reject-purchase]")?.dataset.rejectPurchase;
         const removeRule = event.target.closest("[data-remove-rule]")?.dataset.removeRule;
         const restoreHistory = event.target.closest("[data-restore-history]")?.dataset.restoreHistory;
+        const expenseTab = event.target.closest("[data-expense-tab]")?.dataset.expenseTab;
         if (pageTarget && pages[pageTarget]) {
           currentPage = pageTarget;
           history.replaceState(null, "", `#${currentPage}`);
           renderPage();
           window.scrollTo({ top: 0, behavior: "smooth" });
+        }
+        if (expenseTab) {
+          activeExpenseTab = expenseTab;
+          renderExpenseTabs();
         }
         if (event.target.closest("[data-add-income]")) {
           activeMonth().incomes.push(incomeEntry());
@@ -2054,6 +2222,52 @@
           render();
         }
       });
+
+      document.addEventListener("dragstart", (event) => {
+        const row = event.target.closest("[data-sortable-type]");
+        if (!row) return;
+        event.dataTransfer.effectAllowed = "move";
+        event.dataTransfer.setData("text/plain", `${row.dataset.sortableType}:${row.dataset.actualId}`);
+        row.classList.add("dragging");
+      });
+
+      document.addEventListener("dragover", (event) => {
+        const row = event.target.closest("[data-sortable-type]");
+        if (!row) return;
+        const active = document.querySelector(".entry-row.dragging");
+        if (!active || active.dataset.sortableType !== row.dataset.sortableType || active.dataset.actualId === row.dataset.actualId) return;
+        event.preventDefault();
+        row.classList.add("drag-over");
+      });
+
+      document.addEventListener("dragleave", (event) => {
+        event.target.closest("[data-sortable-type]")?.classList.remove("drag-over");
+      });
+
+      document.addEventListener("drop", (event) => {
+        const targetRow = event.target.closest("[data-sortable-type]");
+        if (!targetRow) return;
+        const [type, draggedId] = String(event.dataTransfer.getData("text/plain")).split(":");
+        if (!type || type !== targetRow.dataset.sortableType || draggedId === targetRow.dataset.actualId) return;
+        event.preventDefault();
+        moveTemplateRow(type, draggedId, targetRow.dataset.actualId);
+        document.querySelectorAll(".drag-over, .dragging").forEach((row) => row.classList.remove("drag-over", "dragging"));
+        saveState();
+        render();
+      });
+
+      document.addEventListener("dragend", () => {
+        document.querySelectorAll(".drag-over, .dragging").forEach((row) => row.classList.remove("drag-over", "dragging"));
+      });
+
+      function moveTemplateRow(type, draggedId, targetId) {
+        const rows = state.budgetTemplate[type];
+        const from = rows.findIndex((row) => row.id === draggedId);
+        const to = rows.findIndex((row) => row.id === targetId);
+        if (from < 0 || to < 0 || from === to) return;
+        const [moved] = rows.splice(from, 1);
+        rows.splice(to, 0, moved);
+      }
 
       document.getElementById("previousMonth").addEventListener("click", () => {
         currentMonth = (currentMonth + monthKeys.length - 1) % monthKeys.length;
