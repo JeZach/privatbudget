@@ -583,29 +583,20 @@
         align-items: center;
       }
 
-      [data-page="savings"] .entry-row {
-        grid-template-columns: minmax(140px, 1fr) minmax(90px, 120px) minmax(90px, 120px) minmax(100px, 130px) minmax(130px, 150px) minmax(100px, 130px) 38px;
-      }
-
-      [data-page="savings"] .entry-heading {
-        grid-template-columns: minmax(140px, 1fr) minmax(90px, 120px) minmax(90px, 120px) minmax(100px, 130px) minmax(130px, 150px) minmax(100px, 130px) 38px;
-        padding-right: 0;
-      }
-
-      [data-page="savings"] .savings-plan-row {
+      [data-page="savings-plan"] .savings-plan-row {
         grid-template-columns: minmax(160px, 1fr) minmax(100px, 140px) minmax(100px, 140px) minmax(130px, 150px) 38px;
       }
 
-      [data-page="savings"] .savings-plan-heading {
+      [data-page="savings-plan"] .savings-plan-heading {
         grid-template-columns: minmax(160px, 1fr) minmax(100px, 140px) minmax(100px, 140px) minmax(130px, 150px) 38px;
         padding-right: 0;
       }
 
-      [data-page="savings"] .savings-actual-row {
+      [data-page="savings-actual"] .savings-actual-row {
         grid-template-columns: minmax(160px, 1fr) minmax(100px, 140px) minmax(100px, 140px) minmax(100px, 140px);
       }
 
-      [data-page="savings"] .savings-actual-heading {
+      [data-page="savings-actual"] .savings-actual-heading {
         grid-template-columns: minmax(160px, 1fr) minmax(100px, 140px) minmax(100px, 140px) minmax(100px, 140px);
         padding-right: 0;
       }
@@ -1172,10 +1163,7 @@
         .entry-row.sortable-row .variance,
         .entry-row.sortable-row .line-field,
         .entry-row.budget-template-row .line-field,
-        .entry-row.budget-template-row .icon-button,
-        [data-page="savings"] .entry-row .line-field,
-        [data-page="savings"] .entry-row .variance,
-        [data-page="savings"] .entry-row .icon-button {
+        .entry-row.budget-template-row .icon-button {
           grid-column: 2;
         }
 
@@ -1250,7 +1238,8 @@
           <button class="nav-item" data-page-target="income" type="button"><span class="icon">＋</span>Inkomster</button>
           <button class="nav-item" data-page-target="budget" type="button"><span class="icon">✎</span>Budgetmall</button>
           <button class="nav-item" data-page-target="expenses" type="button"><span class="icon">−</span>Utgifter</button>
-          <button class="nav-item" data-page-target="savings" type="button"><span class="icon">◇</span>Sparande</button>
+          <button class="nav-item" data-page-target="savings-plan" type="button"><span class="icon">◇</span>Sparplan</button>
+          <button class="nav-item" data-page-target="savings-actual" type="button"><span class="icon">＋</span>Månadssparande</button>
           <button class="nav-item" data-page-target="users" type="button"><span class="icon">☉</span>Användare</button>
           <button class="nav-item" data-page-target="trend" type="button"><span class="icon">↗</span>Trend</button>
           <button class="nav-item" data-page-target="insights" type="button"><span class="icon">▣</span>Rapport</button>
@@ -1475,17 +1464,26 @@
           </article>
         </section>
 
-        <section class="page" data-page="savings" hidden>
+        <section class="page" data-page="savings-plan" hidden>
           <article class="panel editor">
             <div class="panel-title">
-              <h3>Sparande</h3>
-              <span>plan, mål och faktiskt sparande</span>
+              <h3>Sparplan</h3>
+              <span>mål, plan och slutdatum</span>
             </div>
             <section>
               <div class="section-head"><h4>Sparplan</h4><button class="add-button" data-add-template="savings" type="button">+ Lägg till</button></div>
               <div class="entry-heading savings-plan-heading"><span>Sparmål</span><span>Plan/mån</span><span>Slutmål</span><span>Nås senast</span><span></span></div>
               <div class="entry-list" id="savingsPlanRows"></div>
             </section>
+          </article>
+        </section>
+
+        <section class="page" data-page="savings-actual" hidden>
+          <article class="panel editor">
+            <div class="panel-title">
+              <h3>Månadssparande</h3>
+              <span>faktiskt sparande för vald månad</span>
+            </div>
             <section>
               <div class="section-head"><h4>Månadens sparande</h4><span class="small">registreras för vald månad</span></div>
               <div class="entry-heading savings-actual-heading"><span>Sparmål</span><span>Plan/mån</span><span>Utfall</span><span>Avvikelse</span></div>
@@ -1589,7 +1587,8 @@
         income: { title: "Inkomster", intro: "Registrera faktisk lön och andra intäkter per månad. De blir tillgång för nästa månad." },
         budget: { title: "Budgetmall", intro: "Sätt standardbudget en gång. Den ligger sedan som grund för varje månads uppföljning." },
         expenses: { title: "Utgifter", intro: "Fyll i månadens faktiska utgifter mot budgetmallen." },
-        savings: { title: "Sparande", intro: "Planera sparandet separat från kostnader och följ faktiskt sparande per månad." },
+        "savings-plan": { title: "Sparplan", intro: "Planera sparmål, månadsplan och slutmål." },
+        "savings-actual": { title: "Månadssparande", intro: "Registrera faktiskt sparande för vald månad." },
         users: { title: "Användare", intro: "Lägg till vilka som får använda budgeten och se vem som registrerat utlägg." },
         trend: { title: "Trend", intro: "Följ faktiskt kvar per månad och vilka områden som väger tyngst." },
         insights: { title: "Rapport", intro: "Månadens sammanfattning, varningssignaler och sparprognos." },
@@ -1598,6 +1597,7 @@
 
       let currentMonth = 0;
       let currentPage = location.hash.replace("#", "") || "overview";
+      if (currentPage === "savings") currentPage = "savings-plan";
       if (!pages[currentPage]) currentPage = "overview";
       let activeExpenseTab = "fixedCosts";
       let activeBudgetTab = "fixedCosts";
