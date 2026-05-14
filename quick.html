@@ -101,6 +101,29 @@
         gap: 10px;
       }
 
+      .mode-picker {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 8px;
+      }
+
+      .mode-button {
+        min-height: 52px;
+        display: grid;
+        place-items: center;
+      }
+
+      .mode-button.active {
+        background: var(--deep);
+        border-color: var(--deep);
+        color: #eef8f2;
+      }
+
+      .mode-panel {
+        display: grid;
+        gap: 12px;
+      }
+
       label {
         display: grid;
         gap: 6px;
@@ -168,7 +191,7 @@
 
       .receipt-actions {
         display: grid;
-        grid-template-columns: minmax(0, 1fr) minmax(120px, auto) minmax(120px, auto);
+        grid-template-columns: minmax(0, 1fr) minmax(120px, auto);
         gap: 10px;
         align-items: end;
       }
@@ -224,7 +247,8 @@
 
       @media (max-width: 560px) {
         .grid,
-        .receipt-actions {
+        .receipt-actions,
+        .mode-picker {
           grid-template-columns: 1fr;
         }
 
@@ -268,31 +292,59 @@
       <section class="card" id="pinCard">
         <h2>Öppna snabbregistrering</h2>
         <label>PIN <input id="pinInput" inputmode="numeric" autocomplete="one-time-code" placeholder="Till exempel 1234" /></label>
-        <button class="primary" id="pinButton" type="button">Hämta kategorier</button>
+        <button class="primary" id="pinButton" type="button">Logga in</button>
         <div class="status" id="pinStatus">PIN krävs för att lägga in köp utan vanlig inloggning.</div>
       </section>
 
       <section class="card hidden" id="purchaseCard">
         <h2>Nytt köp</h2>
-        <div class="grid">
-          <label>Budgetmånad <select id="monthKey"></select></label>
-          <label>Kategori <select id="category"></select></label>
-          <label>Datum <input id="purchaseDate" type="date" /></label>
-          <label>Belopp <input class="money" id="amount" inputmode="decimal" placeholder="0" /></label>
-          <label class="full">Butik/beskrivning <input id="description" placeholder="Till exempel ICA, apotek, SL" /></label>
+        <div class="mode-picker" aria-label="Välj registreringssätt">
+          <button class="mode-button" data-mode="photo" type="button">Foto</button>
+          <button class="mode-button" data-mode="voice" type="button">Röst</button>
+          <button class="mode-button" data-mode="manual" type="button">Manuellt</button>
         </div>
 
-        <div class="receipt-actions">
-          <label class="file-input">Fota kvitto <input id="receipt" type="file" accept="image/*" capture="environment" /></label>
-          <button id="ocrButton" type="button">Läs kvitto</button>
+        <section class="mode-panel hidden" data-mode-panel="photo">
+          <div class="grid">
+            <label>Budgetmånad <select id="monthKey"></select></label>
+            <label>Kategori <select id="category"></select></label>
+            <label>Datum <input id="purchaseDate" type="date" /></label>
+            <label>Belopp <input class="money" id="amount" inputmode="decimal" placeholder="0" /></label>
+            <label class="full">Butik/beskrivning <input id="description" placeholder="Till exempel ICA, apotek, SL" /></label>
+          </div>
+          <div class="receipt-actions">
+            <label class="file-input">Fota kvitto <input id="receipt" type="file" accept="image/*" capture="environment" /></label>
+            <button id="ocrButton" type="button">Läs kvitto</button>
+          </div>
+        </section>
+
+        <section class="mode-panel hidden" data-mode-panel="voice">
+          <div class="grid">
+            <label>Budgetmånad <select id="voiceMonthKey"></select></label>
+            <label>Kategori <select id="voiceCategory"></select></label>
+            <label>Datum <input id="voicePurchaseDate" type="date" /></label>
+            <label>Belopp <input class="money" id="voiceAmount" inputmode="decimal" placeholder="0" /></label>
+            <label class="full">Butik/beskrivning <input id="voiceDescription" placeholder="Till exempel ICA, apotek, SL" /></label>
+          </div>
           <button id="voiceButton" type="button">Tala in köp</button>
-        </div>
-        <div class="receipt-summary" id="receiptSummary">
+        </section>
+
+        <section class="mode-panel hidden" data-mode-panel="manual">
+          <div class="grid">
+            <label>Budgetmånad <select id="manualMonthKey"></select></label>
+            <label>Kategori <select id="manualCategory"></select></label>
+            <label>Datum <input id="manualPurchaseDate" type="date" /></label>
+            <label>Belopp <input class="money" id="manualAmount" inputmode="decimal" placeholder="0" /></label>
+            <label class="full">Butik/beskrivning <input id="manualDescription" placeholder="Till exempel ICA, apotek, SL" /></label>
+          </div>
+        </section>
+
+        <div class="receipt-summary hidden" id="receiptSummary">
           <div><span>Butik</span><strong id="receiptStore">Inte läst</strong></div>
           <div><span>Totalsumma</span><strong id="receiptTotal">0 kr</strong></div>
         </div>
-        <button class="primary" id="saveButton" type="button">Registrera köp</button>
-        <div class="status" id="saveStatus">Välj kategori innan köpet registreras.</div>
+        <button class="primary hidden" id="saveButton" type="button">Registrera köp</button>
+        <div class="status" id="saveStatus">Välj Foto, Röst eller Manuellt för att börja.</div>
       </section>
     </main>
 
@@ -306,22 +358,45 @@
       const client = window.supabase && supabaseConfig.url && supabaseConfig.anonKey ? window.supabase.createClient(supabaseConfig.url, supabaseConfig.anonKey) : null;
       const pinInput = document.getElementById("pinInput");
       const pinStatus = document.getElementById("pinStatus");
+      const pinCard = document.getElementById("pinCard");
       const purchaseCard = document.getElementById("purchaseCard");
       const category = document.getElementById("category");
       const monthKey = document.getElementById("monthKey");
       const purchaseDate = document.getElementById("purchaseDate");
       const amount = document.getElementById("amount");
       const description = document.getElementById("description");
+      const voiceCategory = document.getElementById("voiceCategory");
+      const voiceMonthKey = document.getElementById("voiceMonthKey");
+      const voicePurchaseDate = document.getElementById("voicePurchaseDate");
+      const voiceAmount = document.getElementById("voiceAmount");
+      const voiceDescription = document.getElementById("voiceDescription");
+      const manualCategory = document.getElementById("manualCategory");
+      const manualMonthKey = document.getElementById("manualMonthKey");
+      const manualPurchaseDate = document.getElementById("manualPurchaseDate");
+      const manualAmount = document.getElementById("manualAmount");
+      const manualDescription = document.getElementById("manualDescription");
       const receipt = document.getElementById("receipt");
       const receiptStore = document.getElementById("receiptStore");
       const receiptTotal = document.getElementById("receiptTotal");
+      const receiptSummary = document.getElementById("receiptSummary");
+      const saveButton = document.getElementById("saveButton");
       const saveStatus = document.getElementById("saveStatus");
       let receiptOcrText = "";
       let categoryRows = [];
       let categoryRules = [];
+      let activeMode = "";
+      let activeRecognition = null;
 
-      monthKey.innerHTML = monthKeys.map((key, index) => `<option value="${key}">${monthLabels[index]}</option>`).join("");
-      purchaseDate.value = new Date().toISOString().slice(0, 10);
+      const fieldSets = {
+        photo: { monthKey, category, purchaseDate, amount, description },
+        voice: { monthKey: voiceMonthKey, category: voiceCategory, purchaseDate: voicePurchaseDate, amount: voiceAmount, description: voiceDescription },
+        manual: { monthKey: manualMonthKey, category: manualCategory, purchaseDate: manualPurchaseDate, amount: manualAmount, description: manualDescription },
+      };
+
+      Object.values(fieldSets).forEach((fields) => {
+        fields.monthKey.innerHTML = monthKeys.map((key, index) => `<option value="${key}">${monthLabels[index]}</option>`).join("");
+        fields.purchaseDate.value = new Date().toISOString().slice(0, 10);
+      });
       pinInput.value = localStorage.getItem("quickPurchasePin") || "";
 
       function setStatus(node, text, type = "") {
@@ -335,6 +410,59 @@
 
       function formatAmount(value) {
         return String(value || "").replace(".", ",");
+      }
+
+      function activeFields() {
+        return fieldSets[activeMode] || fieldSets.manual;
+      }
+
+      function stopVoiceRecognition() {
+        if (!activeRecognition) return;
+        try {
+          activeRecognition.onresult = null;
+          activeRecognition.onerror = null;
+          activeRecognition.onend = null;
+          activeRecognition.stop();
+        } catch {
+          // SpeechRecognition kan redan vara stoppad.
+        }
+        activeRecognition = null;
+      }
+
+      function setMode(mode) {
+        activeMode = mode;
+        stopVoiceRecognition();
+        document.querySelectorAll("[data-mode]").forEach((button) => {
+          button.classList.toggle("active", button.dataset.mode === mode);
+        });
+        document.querySelectorAll("[data-mode-panel]").forEach((panel) => {
+          panel.classList.toggle("hidden", panel.dataset.modePanel !== mode);
+        });
+        receiptSummary.classList.toggle("hidden", mode === "manual");
+        saveButton.classList.remove("hidden");
+        receiptStore.textContent = "Inte läst";
+        receiptTotal.textContent = "0 kr";
+        receiptOcrText = "";
+        setStatus(saveStatus, mode === "photo" ? "Fota kvittot och läs in butik och totalsumma." : mode === "voice" ? "Tryck Tala in köp och säg butik, belopp och gärna kategori." : "Fyll i köpet manuellt och registrera.", "");
+      }
+
+      function closePurchaseMode() {
+        stopVoiceRecognition();
+        activeMode = "";
+        document.querySelectorAll("[data-mode]").forEach((button) => button.classList.remove("active"));
+        document.querySelectorAll("[data-mode-panel]").forEach((panel) => panel.classList.add("hidden"));
+        receiptSummary.classList.add("hidden");
+        saveButton.classList.add("hidden");
+        receiptOcrText = "";
+        receipt.value = "";
+        receiptStore.textContent = "Inte läst";
+        receiptTotal.textContent = "0 kr";
+        Object.values(fieldSets).forEach((fields) => {
+          fields.amount.value = "";
+          fields.description.value = "";
+          fields.purchaseDate.value = new Date().toISOString().slice(0, 10);
+        });
+        setStatus(saveStatus, "Köpet är skickat till Godkänn köp. Välj nästa metod när du vill registrera mer.", "ok");
       }
 
       function categoriesForAi() {
@@ -355,11 +483,12 @@
       }
 
       function applyAiPurchase(parsed) {
-        if (parsed.store) description.value = parsed.store;
-        if (parsed.amount) amount.value = formatAmount(parsed.amount);
-        if (parsed.date) purchaseDate.value = parsed.date;
-        if (parsed.categoryId && [...category.options].some((option) => option.value === parsed.categoryId)) {
-          category.value = parsed.categoryId;
+        const fields = activeFields();
+        if (parsed.store) fields.description.value = parsed.store;
+        if (parsed.amount) fields.amount.value = formatAmount(parsed.amount);
+        if (parsed.date) fields.purchaseDate.value = parsed.date;
+        if (parsed.categoryId && [...fields.category.options].some((option) => option.value === parsed.categoryId)) {
+          fields.category.value = parsed.categoryId;
         }
         receiptStore.textContent = parsed.store || "Hittades inte";
         receiptTotal.textContent = parsed.amount ? `${formatAmount(parsed.amount)} kr` : "Hittades inte";
@@ -401,8 +530,9 @@
         const lines = text.split(/\n+/).map((line) => line.trim()).filter(Boolean);
         const store = storeCandidate(lines);
         const total = totalCandidate(lines, text);
-        if (total) amount.value = formatAmount(total);
-        if (store) description.value = store.slice(0, 70);
+        const fields = activeFields();
+        if (total) fields.amount.value = formatAmount(total);
+        if (store) fields.description.value = store.slice(0, 70);
         receiptStore.textContent = store || "Hittades inte";
         receiptTotal.textContent = total ? `${formatAmount(total)} kr` : "Hittades inte";
       }
@@ -427,9 +557,13 @@
         categoryRows = data;
         const rulesResult = await client.rpc("quick_category_rules", { p_pin: pin });
         categoryRules = rulesResult.data || [];
-        category.innerHTML = categoryRows.map((row) => `<option value="${row.id}">${row.name}</option>`).join("");
+        const categoryOptions = categoryRows.map((row) => `<option value="${row.id}">${row.name}</option>`).join("");
+        [category, voiceCategory, manualCategory].forEach((select) => {
+          select.innerHTML = categoryOptions;
+        });
+        pinCard.classList.add("hidden");
         purchaseCard.classList.remove("hidden");
-        setStatus(pinStatus, "Snabbregistrering är öppen.", "ok");
+        setStatus(saveStatus, "Välj Foto, Röst eller Manuellt för att börja.", "");
       }
 
       async function readReceipt() {
@@ -454,12 +588,15 @@
       }
 
       async function voicePurchase() {
+        activeMode = "voice";
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         if (!SpeechRecognition) {
           setStatus(saveStatus, "Taligenkänning stöds inte i den här webbläsaren.", "bad");
           return;
         }
+        stopVoiceRecognition();
         const recognition = new SpeechRecognition();
+        activeRecognition = recognition;
         recognition.lang = "sv-SE";
         recognition.interimResults = false;
         recognition.maxAlternatives = 1;
@@ -469,6 +606,11 @@
           receiptOcrText = text;
           setStatus(saveStatus, `Tolkar: ${text}`);
           try {
+            recognition.stop();
+          } catch {
+            // Lyssningen är redan klar.
+          }
+          try {
             await parseWithAi({ text });
             setStatus(saveStatus, "Köpet är tolkat från röst. Kontrollera kategori och belopp.", "ok");
           } catch (error) {
@@ -476,13 +618,21 @@
           }
         };
         recognition.onerror = () => setStatus(saveStatus, "Kunde inte lyssna klart. Försök igen.", "bad");
+        recognition.onend = () => {
+          if (activeRecognition === recognition) activeRecognition = null;
+        };
         recognition.start();
       }
 
       async function savePurchase() {
         const pin = pinInput.value.trim();
-        const value = parseAmount(amount.value);
-        if (!category.value) {
+        if (!activeMode) {
+          setStatus(saveStatus, "Välj Foto, Röst eller Manuellt först.", "bad");
+          return;
+        }
+        const fields = activeFields();
+        const value = parseAmount(fields.amount.value);
+        if (!fields.category.value) {
           setStatus(saveStatus, "Välj kategori innan köpet registreras.", "bad");
           return;
         }
@@ -491,12 +641,13 @@
           return;
         }
         setStatus(saveStatus, "Registrerar köp...");
+        stopVoiceRecognition();
         const { error } = await client.rpc("quick_add_purchase", {
           p_pin: pin,
-          p_month_key: monthKey.value,
-          p_target_id: category.value,
-          p_purchase_date: purchaseDate.value,
-          p_description: description.value.trim() || "Snabbköp",
+          p_month_key: fields.monthKey.value,
+          p_target_id: fields.category.value,
+          p_purchase_date: fields.purchaseDate.value,
+          p_description: fields.description.value.trim() || "Snabbköp",
           p_amount: value,
           p_receipt_text: receiptOcrText,
         });
@@ -504,20 +655,16 @@
           setStatus(saveStatus, error.message || "Köpet kunde inte registreras.", "bad");
           return;
         }
-        amount.value = "";
-        description.value = "";
-        receipt.value = "";
-        receiptOcrText = "";
-        receiptStore.textContent = "Inte läst";
-        receiptTotal.textContent = "0 kr";
-        setStatus(saveStatus, "Köpet är skickat till Godkänn köp i budgeten.", "ok");
+        closePurchaseMode();
       }
 
       document.getElementById("pinButton").addEventListener("click", loadCategories);
+      document.querySelectorAll("[data-mode]").forEach((button) => {
+        button.addEventListener("click", () => setMode(button.dataset.mode));
+      });
       document.getElementById("ocrButton").addEventListener("click", readReceipt);
       document.getElementById("voiceButton").addEventListener("click", voicePurchase);
       document.getElementById("saveButton").addEventListener("click", savePurchase);
-      if (pinInput.value) loadCategories();
     </script>
   </body>
 </html>

@@ -1306,7 +1306,7 @@
             </div>
             <div class="status-grid">
               <div class="status-tile"><span>Ackumulerat</span><strong id="savingsAccumulatedValue">0 kr</strong></div>
-              <div class="status-tile"><span>Mål totalt</span><strong id="savingsYearGoalValue">0 kr</strong></div>
+              <div class="status-tile"><span>Slutmål/årsplan</span><strong id="savingsYearGoalValue">0 kr</strong></div>
               <div class="status-tile"><span>Uppnått</span><strong id="savingsGoalPercentValue">0%</strong></div>
             </div>
             <div class="recent-list" id="savingsGoalRows"></div>
@@ -1462,7 +1462,7 @@
             </div>
             <section>
               <div class="section-head"><h4>Sparmål</h4><button class="add-button" data-add-template="savings" type="button">+ Lägg till</button></div>
-              <div class="entry-heading"><span>Sparmål</span><span>Plan/mån</span><span>Målbelopp</span><span>Utfall</span><span>Måldatum</span><span>Avvikelse</span><span></span></div>
+              <div class="entry-heading"><span>Sparmål</span><span>Plan/mån</span><span>Slutmål</span><span>Utfall</span><span>Nås senast</span><span>Avvikelse</span><span></span></div>
               <div class="entry-list" id="savingsRows"></div>
             </section>
           </article>
@@ -1795,6 +1795,24 @@
         return new Date().toISOString().slice(0, 10);
       }
 
+      function monthEndDateFromIndex(index) {
+        const [monthName, yearText] = monthLabels[Math.min(Math.max(index, 0), monthLabels.length - 1)].split(" ");
+        const monthIndex = ["januari", "februari", "mars", "april", "maj", "juni", "juli", "augusti", "september", "oktober", "november", "december"].indexOf(monthName.toLowerCase());
+        const year = Number(yearText);
+        if (monthIndex < 0 || !year) return today();
+        return new Date(year, monthIndex + 1, 0).toISOString().slice(0, 10);
+      }
+
+      function automaticSavingsTargetDate(row, index = currentMonth) {
+        const monthlyPlan = Number(row.monthlyPlan ?? row.amount) || 0;
+        if (monthlyPlan <= 0) return "";
+        const actual = row.actual ?? monthKeys.slice(0, index + 1).reduce((total, key) => total + actualFor(row, "savings", state.months[key]), 0);
+        const target = Number(row.targetAmount) > 0 ? Number(row.targetAmount) : monthlyPlan * monthKeys.length;
+        const remaining = Math.max(0, target - actual);
+        const monthsNeeded = Math.max(1, Math.ceil(remaining / monthlyPlan));
+        return monthEndDateFromIndex(index + monthsNeeded - 1);
+      }
+
       function render() {
         document.getElementById("periodLabel").textContent = monthLabels[currentMonth];
         document.getElementById("incomeHelperText").textContent = `${monthLabels[currentMonth]}s inkomster blir tillgång för ${monthLabels[Math.min(currentMonth + 1, monthLabels.length - 1)]}.`;
@@ -1991,13 +2009,14 @@
         const actual = actualFor(row, "savings");
         const hasManual = activeMonth().savingActuals[row.id] !== undefined && activeMonth().savingActuals[row.id] !== "";
         const variance = (Number(row.amount) || 0) - actual;
+        const displayTargetDate = row.targetDate || automaticSavingsTargetDate(row);
         return `
           <div class="entry-row" data-actual-type="savings" data-group-type="savings" data-actual-id="${row.id}" data-template-type="savings" data-template-id="${row.id}">
             <label class="line-field"><span>Post</span><input value="${escapeHtml(row.name)}" data-template-field="name" placeholder="Namn" /></label>
             <label class="line-field"><span>Plan/mån</span><input class="money" value="${row.amount || ""}" data-template-field="amount" inputmode="numeric" placeholder="0" /></label>
-            <label class="line-field"><span>Målbelopp</span><input class="money" value="${row.targetAmount || ""}" data-template-field="targetAmount" inputmode="numeric" placeholder="0" /></label>
+            <label class="line-field"><span>Slutmål</span><input class="money" value="${row.targetAmount || ""}" data-template-field="targetAmount" inputmode="numeric" placeholder="årsplan om tomt" /></label>
             <label class="line-field"><span>Utfall</span><input class="money" value="${activeMonth().savingActuals[row.id] ?? ""}" data-actual-field="actual" inputmode="numeric" placeholder="0" /></label>
-            <label class="line-field"><span>Måldatum</span><input value="${escapeHtml(row.targetDate || "")}" data-template-field="targetDate" type="date" /></label>
+            <label class="line-field"><span>Nås senast</span><input value="${escapeHtml(displayTargetDate)}" data-template-field="targetDate" type="date" /></label>
             <output class="variance ${hasManual ? varianceClass(variance) : "missing"}">${hasManual ? money(variance) : "Ej ifyllt"}</output>
             <button class="icon-button" type="button" data-remove-template="savings:${row.id}" aria-label="Ta bort">×</button>
           </div>`;
@@ -2109,7 +2128,7 @@
 
       function projectedSavingsLabel(row) {
         const remaining = Math.max(0, row.targetAmount - row.actual);
-        if (!row.targetAmount) return "Lägg till målbelopp för prognos.";
+        if (!row.targetAmount) return `Årsplan, beräknas till ${targetMonthLabel(automaticSavingsTargetDate(row))}.`;
         if (remaining <= 0) return "Målet är uppnått.";
         const monthlyPace = row.actual / Math.max(1, currentMonth + 1);
         if (monthlyPace <= 0) return "Prognos saknas tills utfall finns.";
