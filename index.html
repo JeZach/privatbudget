@@ -469,6 +469,10 @@
         grid-column: 1 / -1;
       }
 
+      [data-page="budget"] .budget-tab-panel {
+        grid-column: 1 / -1;
+      }
+
       [data-page="expenses"] .expense-tab-panel {
         grid-column: 1 / -1;
       }
@@ -518,6 +522,13 @@
         grid-column: 1 / -1;
       }
 
+      .budget-tabs {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        grid-column: 1 / -1;
+      }
+
       .expense-tab {
         min-height: 44px;
         border: 1px solid var(--line);
@@ -533,11 +544,34 @@
         color: #fff;
       }
 
+      .budget-tab {
+        min-height: 44px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #fbfdfb;
+        color: var(--muted);
+        font-weight: 850;
+      }
+
+      .budget-tab.active {
+        background: var(--ink);
+        border-color: var(--ink);
+        color: #fff;
+      }
+
       .expense-tab-panel {
         grid-column: 1 / -1;
       }
 
       .expense-tab-panel[hidden] {
+        display: none;
+      }
+
+      .budget-tab-panel {
+        grid-column: 1 / -1;
+      }
+
+      .budget-tab-panel[hidden] {
         display: none;
       }
 
@@ -560,6 +594,15 @@
 
       .entry-row.sortable-row {
         grid-template-columns: 34px minmax(140px, 1fr) minmax(100px, 140px) minmax(100px, 140px) minmax(100px, 140px);
+      }
+
+      .entry-row.budget-template-row {
+        grid-template-columns: 34px minmax(140px, 1fr) minmax(100px, 140px) 38px;
+      }
+
+      .entry-heading.budget-template-heading {
+        grid-template-columns: 34px minmax(140px, 1fr) minmax(100px, 140px) 38px;
+        padding-right: 0;
       }
 
       .entry-row.dragging {
@@ -1104,8 +1147,14 @@
           grid-template-columns: 34px 1fr;
         }
 
+        .entry-row.budget-template-row {
+          grid-template-columns: 34px 1fr;
+        }
+
         .entry-row.sortable-row .variance,
-        .entry-row.sortable-row .line-field {
+        .entry-row.sortable-row .line-field,
+        .entry-row.budget-template-row .line-field,
+        .entry-row.budget-template-row .icon-button {
           grid-column: 2;
         }
 
@@ -1363,14 +1412,19 @@
               <h3>Budgetmall</h3>
               <span>sätts en gång och används varje månad</span>
             </div>
-            <section>
+            <div class="budget-tabs" role="tablist" aria-label="Välj budgettyp">
+              <button class="budget-tab" data-budget-tab="fixedCosts" type="button">Fasta utgifter</button>
+              <button class="budget-tab" data-budget-tab="variableCosts" type="button">Rörliga utgifter</button>
+            </div>
+            <div class="section-total" id="budgetActiveTotal"></div>
+            <section class="budget-tab-panel" data-budget-panel="fixedCosts">
               <div class="section-head"><h4>Fasta utgifter</h4><button class="add-button" data-add-template="fixedCosts" type="button">+ Lägg till</button></div>
-              <div class="entry-heading"><span>Post</span><span>Budget</span><span></span><span></span></div>
+              <div class="entry-heading budget-template-heading"><span></span><span>Post</span><span>Budget</span><span></span></div>
               <div class="entry-list" id="fixedBudgetRows"></div>
             </section>
-            <section>
+            <section class="budget-tab-panel" data-budget-panel="variableCosts">
               <div class="section-head"><h4>Rörliga utgifter</h4><button class="add-button" data-add-template="variableCosts" type="button">+ Lägg till</button></div>
-              <div class="entry-heading"><span>Post</span><span>Budget</span><span></span><span></span></div>
+              <div class="entry-heading budget-template-heading"><span></span><span>Post</span><span>Budget</span><span></span></div>
               <div class="entry-list" id="variableBudgetRows"></div>
             </section>
           </article>
@@ -1520,6 +1574,7 @@
       let currentPage = location.hash.replace("#", "") || "overview";
       if (!pages[currentPage]) currentPage = "overview";
       let activeExpenseTab = "fixedCosts";
+      let activeBudgetTab = "fixedCosts";
       let authMode = "login";
       let currentUser = null;
       let currentProfile = null;
@@ -1841,16 +1896,37 @@
       }
 
       function renderBudgetRows() {
+        renderBudgetTabs();
         renderTemplateGroup("fixedCosts", "fixedBudgetRows");
         renderTemplateGroup("variableCosts", "variableBudgetRows");
+        renderBudgetTotal();
+      }
+
+      function renderBudgetTabs() {
+        document.querySelectorAll("[data-budget-tab]").forEach((button) => {
+          button.classList.toggle("active", button.dataset.budgetTab === activeBudgetTab);
+        });
+        document.querySelectorAll("[data-budget-panel]").forEach((panel) => {
+          panel.hidden = panel.dataset.budgetPanel !== activeBudgetTab;
+        });
+      }
+
+      function renderBudgetTotal() {
+        const label = activeBudgetTab === "fixedCosts" ? "Summa fasta" : "Summa rörliga";
+        const budget = sumBudget(state.budgetTemplate[activeBudgetTab]);
+        document.getElementById("budgetActiveTotal").innerHTML = `
+          <span>${label}</span>
+          <strong>Budget ${money(budget)}</strong>
+          <span></span>
+          <span></span>`;
       }
 
       function renderTemplateGroup(type, containerId) {
         document.getElementById(containerId).innerHTML = state.budgetTemplate[type].map((row) => `
-          <div class="entry-row" data-template-type="${type}" data-template-id="${row.id}">
+          <div class="entry-row budget-template-row" draggable="true" data-sortable-type="${type}" data-sort-id="${row.id}" data-template-type="${type}" data-template-id="${row.id}">
+            <button class="drag-handle" type="button" aria-label="Flytta rad">↕</button>
             <label class="line-field"><span>Post</span><input value="${escapeHtml(row.name)}" data-template-field="name" placeholder="Namn" /></label>
             <label class="line-field"><span>Budget</span><input class="money" value="${row.amount || ""}" data-template-field="amount" inputmode="numeric" placeholder="0" /></label>
-            <span></span>
             <button class="icon-button" type="button" data-remove-template="${type}:${row.id}" aria-label="Ta bort">×</button>
           </div>`).join("");
       }
@@ -2141,6 +2217,9 @@
           if (row) {
             const field = target.dataset.templateField;
             row[field] = ["amount", "targetAmount"].includes(field) ? parseAmount(target.value) : target.value;
+            if (templateRow.dataset.templateType === activeBudgetTab) {
+              renderBudgetTotal();
+            }
           }
         }
         if (actualRow && target.dataset.actualField) {
@@ -2170,6 +2249,7 @@
         const removeRule = event.target.closest("[data-remove-rule]")?.dataset.removeRule;
         const restoreHistory = event.target.closest("[data-restore-history]")?.dataset.restoreHistory;
         const expenseTab = event.target.closest("[data-expense-tab]")?.dataset.expenseTab;
+        const budgetTab = event.target.closest("[data-budget-tab]")?.dataset.budgetTab;
         if (pageTarget && pages[pageTarget]) {
           currentPage = pageTarget;
           history.replaceState(null, "", `#${currentPage}`);
@@ -2180,6 +2260,11 @@
           activeExpenseTab = expenseTab;
           renderExpenseTabs();
           renderExpenseTotals();
+        }
+        if (budgetTab) {
+          activeBudgetTab = budgetTab;
+          renderBudgetTabs();
+          renderBudgetTotal();
         }
         if (event.target.closest("[data-add-income]")) {
           activeMonth().incomes.push(incomeEntry());
@@ -2239,7 +2324,7 @@
         const row = event.target.closest("[data-sortable-type]");
         if (!row) return;
         event.dataTransfer.effectAllowed = "move";
-        event.dataTransfer.setData("text/plain", `${row.dataset.sortableType}:${row.dataset.actualId}`);
+        event.dataTransfer.setData("text/plain", `${row.dataset.sortableType}:${row.dataset.sortId || row.dataset.actualId}`);
         row.classList.add("dragging");
       });
 
@@ -2247,7 +2332,9 @@
         const row = event.target.closest("[data-sortable-type]");
         if (!row) return;
         const active = document.querySelector(".entry-row.dragging");
-        if (!active || active.dataset.sortableType !== row.dataset.sortableType || active.dataset.actualId === row.dataset.actualId) return;
+        const activeId = active.dataset.sortId || active.dataset.actualId;
+        const rowId = row.dataset.sortId || row.dataset.actualId;
+        if (!active || active.dataset.sortableType !== row.dataset.sortableType || activeId === rowId) return;
         event.preventDefault();
         row.classList.add("drag-over");
       });
@@ -2260,9 +2347,10 @@
         const targetRow = event.target.closest("[data-sortable-type]");
         if (!targetRow) return;
         const [type, draggedId] = String(event.dataTransfer.getData("text/plain")).split(":");
-        if (!type || type !== targetRow.dataset.sortableType || draggedId === targetRow.dataset.actualId) return;
+        const targetId = targetRow.dataset.sortId || targetRow.dataset.actualId;
+        if (!type || type !== targetRow.dataset.sortableType || draggedId === targetId) return;
         event.preventDefault();
-        moveTemplateRow(type, draggedId, targetRow.dataset.actualId);
+        moveTemplateRow(type, draggedId, targetId);
         document.querySelectorAll(".drag-over, .dragging").forEach((row) => row.classList.remove("drag-over", "dragging"));
         saveState();
         render();
