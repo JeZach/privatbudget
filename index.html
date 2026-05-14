@@ -469,6 +469,10 @@
         grid-column: 1 / -1;
       }
 
+      [data-page="expenses"] .expense-tab-panel {
+        grid-column: 1 / -1;
+      }
+
       .section-head {
         display: flex;
         align-items: center;
@@ -578,12 +582,14 @@
 
       .section-total {
         display: grid;
-        grid-template-columns: minmax(0, 1fr) auto auto auto;
+        grid-template-columns: minmax(0, 1fr) repeat(3, minmax(140px, auto));
         gap: 14px;
         align-items: center;
-        margin-top: 12px;
-        padding-top: 12px;
-        border-top: 1px solid var(--line);
+        grid-column: 1 / -1;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #fbfdfb;
+        padding: 12px 16px;
         color: var(--muted);
         font-size: 13px;
         font-weight: 800;
@@ -1375,17 +1381,16 @@
               <button class="expense-tab" data-expense-tab="fixedCosts" type="button">Fasta utgifter</button>
               <button class="expense-tab" data-expense-tab="variableCosts" type="button">Rörliga utgifter</button>
             </div>
+            <div class="section-total" id="expenseActiveTotal"></div>
             <section class="expense-tab-panel" data-expense-panel="fixedCosts">
               <div class="section-head"><h4>Fasta utgifter</h4><span class="small">från budgetmallen</span></div>
               <div class="entry-heading sortable-heading"><span></span><span>Post</span><span>Budget</span><span>Utfall</span><span>Avvikelse</span></div>
               <div class="entry-list" id="fixedActualRows"></div>
-              <div class="section-total" id="fixedActualTotal"></div>
             </section>
             <section class="expense-tab-panel" data-expense-panel="variableCosts">
               <div class="section-head"><h4>Rörliga utgifter</h4><span class="small">från budgetmallen</span></div>
               <div class="entry-heading sortable-heading"><span></span><span>Post</span><span>Budget</span><span>Utfall</span><span>Avvikelse</span></div>
               <div class="entry-list" id="variableActualRows"></div>
-              <div class="section-total" id="variableActualTotal"></div>
             </section>
           </article>
         </section>
@@ -1861,8 +1866,8 @@
       }
 
       function renderExpenseTotals() {
-        renderExpenseTotal("fixedCosts", "fixedActualTotal", "Summa fasta");
-        renderExpenseTotal("variableCosts", "variableActualTotal", "Summa rörliga");
+        const label = activeExpenseTab === "fixedCosts" ? "Summa fasta" : "Summa rörliga";
+        renderExpenseTotal(activeExpenseTab, "expenseActiveTotal", label);
       }
 
       function renderExpenseTotal(type, containerId, label) {
@@ -2168,6 +2173,7 @@
         if (expenseTab) {
           activeExpenseTab = expenseTab;
           renderExpenseTabs();
+          renderExpenseTotals();
         }
         if (event.target.closest("[data-add-income]")) {
           activeMonth().incomes.push(incomeEntry());
