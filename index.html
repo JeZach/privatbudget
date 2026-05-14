@@ -602,15 +602,15 @@
       }
 
       .entry-row.sortable-row {
-        grid-template-columns: 34px minmax(140px, 1fr) minmax(100px, 140px) minmax(100px, 140px) minmax(100px, 140px);
+        grid-template-columns: 34px minmax(140px, 1fr) minmax(100px, 140px) minmax(100px, 140px) minmax(120px, 170px) minmax(100px, 140px);
       }
 
       .entry-row.budget-template-row {
-        grid-template-columns: 34px minmax(140px, 1fr) minmax(100px, 140px) 38px;
+        grid-template-columns: 34px minmax(140px, 1fr) minmax(100px, 140px) minmax(100px, 140px) 38px;
       }
 
       .entry-heading.budget-template-heading {
-        grid-template-columns: 34px minmax(140px, 1fr) minmax(100px, 140px) 38px;
+        grid-template-columns: 34px minmax(140px, 1fr) minmax(100px, 140px) minmax(100px, 140px) 38px;
         padding-right: 0;
       }
 
@@ -665,7 +665,7 @@
       }
 
       .entry-heading.sortable-heading {
-        grid-template-columns: 34px minmax(140px, 1fr) minmax(100px, 140px) minmax(100px, 140px) minmax(100px, 140px);
+        grid-template-columns: 34px minmax(140px, 1fr) minmax(100px, 140px) minmax(100px, 140px) minmax(120px, 170px) minmax(100px, 140px);
         padding-right: 0;
       }
 
@@ -1370,6 +1370,7 @@
               <label>Beskrivning <input id="purchaseDescription" placeholder="Till exempel ICA, apotek, SL" /></label>
               <label>Belopp <input class="money" id="purchaseAmount" inputmode="numeric" placeholder="0" /></label>
               <label>Budgetpost <select id="purchaseCategory"></select></label>
+              <label>Betalas från <select id="purchaseSource"></select></label>
               <button class="add-button" type="submit">+ Lägg till köp</button>
             </form>
             <div class="recent-list" id="recentPurchases"></div>
@@ -1429,12 +1430,12 @@
             <div class="section-total" id="budgetActiveTotal"></div>
             <section class="budget-tab-panel" data-budget-panel="fixedCosts">
               <div class="section-head"><h4>Fasta utgifter</h4><button class="add-button" data-add-template="fixedCosts" type="button">+ Lägg till</button></div>
-              <div class="entry-heading budget-template-heading"><span></span><span>Post</span><span>Budget</span><span></span></div>
+              <div class="entry-heading budget-template-heading"><span></span><span>Post</span><span>Budget/mån</span><span>Budget/år</span><span></span></div>
               <div class="entry-list" id="fixedBudgetRows"></div>
             </section>
             <section class="budget-tab-panel" data-budget-panel="variableCosts">
               <div class="section-head"><h4>Rörliga utgifter</h4><button class="add-button" data-add-template="variableCosts" type="button">+ Lägg till</button></div>
-              <div class="entry-heading budget-template-heading"><span></span><span>Post</span><span>Budget</span><span></span></div>
+              <div class="entry-heading budget-template-heading"><span></span><span>Post</span><span>Budget/mån</span><span>Budget/år</span><span></span></div>
               <div class="entry-list" id="variableBudgetRows"></div>
             </section>
           </article>
@@ -1453,12 +1454,12 @@
             <div class="section-total" id="expenseActiveTotal"></div>
             <section class="expense-tab-panel" data-expense-panel="fixedCosts">
               <div class="section-head"><h4>Fasta utgifter</h4><span class="small">från budgetmallen</span></div>
-              <div class="entry-heading sortable-heading"><span></span><span>Post</span><span>Budget</span><span>Utfall</span><span>Avvikelse</span></div>
+              <div class="entry-heading sortable-heading"><span></span><span>Post</span><span>Budget/mån</span><span>Utfall</span><span>Betalas från</span><span>Avvikelse</span></div>
               <div class="entry-list" id="fixedActualRows"></div>
             </section>
             <section class="expense-tab-panel" data-expense-panel="variableCosts">
               <div class="section-head"><h4>Rörliga utgifter</h4><span class="small">från budgetmallen</span></div>
-              <div class="entry-heading sortable-heading"><span></span><span>Post</span><span>Budget</span><span>Utfall</span><span>Avvikelse</span></div>
+              <div class="entry-heading sortable-heading"><span></span><span>Post</span><span>Budget/mån</span><span>Utfall</span><span>Betalas från</span><span>Avvikelse</span></div>
               <div class="entry-list" id="variableActualRows"></div>
             </section>
           </article>
@@ -1620,8 +1621,9 @@
         return crypto.randomUUID();
       }
 
-      function templateEntry(name = "", amount = 0, targetAmount = 0, targetDate = "") {
-        return { id: newId(), name, amount: Number(amount) || 0, targetAmount: Number(targetAmount) || 0, targetDate: targetDate || "" };
+      function templateEntry(name = "", amount = 0, targetAmount = 0, targetDate = "", annualAmount = null) {
+        const monthlyAmount = Number(amount) || 0;
+        return { id: newId(), name, amount: monthlyAmount, annualAmount: annualAmount === null ? monthlyAmount * 12 : Number(annualAmount) || 0, targetAmount: Number(targetAmount) || 0, targetDate: targetDate || "" };
       }
 
       function incomeEntry(name = "", actual = "") {
@@ -1632,6 +1634,7 @@
         return {
           incomes: [incomeEntry("Lön Jens"), incomeEntry("Lön Lena"), incomeEntry("Övrig intäkt")],
           expenseActuals: {},
+          expenseSources: {},
           savingActuals: {},
           purchases: [],
         };
@@ -1681,13 +1684,17 @@
 
       function normalizeTemplate(rows, fallback) {
         const source = rows?.length ? rows : fallback;
-        return source.map((row) => ({ id: row.id || newId(), name: row.name || "", amount: Number(row.amount) || 0, targetAmount: Number(row.targetAmount) || 0, targetDate: row.targetDate || "" }));
+        return source.map((row) => {
+          const amount = Number(row.amount) || 0;
+          return { id: row.id || newId(), name: row.name || "", amount, annualAmount: row.annualAmount === "" || row.annualAmount === undefined ? amount * 12 : Number(row.annualAmount) || 0, targetAmount: Number(row.targetAmount) || 0, targetDate: row.targetDate || "" };
+        });
       }
 
       function normalizeMonth(month = {}) {
         return {
           incomes: (month.incomes?.length ? month.incomes : blankMonth().incomes).map((row) => ({ id: row.id || newId(), name: row.name || "", actual: row.actual === "" || row.actual === undefined ? "" : Number(row.actual) || 0 })),
           expenseActuals: normalizeActualMap(month.expenseActuals),
+          expenseSources: normalizeSourceMap(month.expenseSources),
           savingActuals: normalizeActualMap(month.savingActuals),
           purchases: normalizePurchases(month.purchases || []),
         };
@@ -1695,6 +1702,10 @@
 
       function normalizeActualMap(map = {}) {
         return Object.fromEntries(Object.entries(map || {}).map(([key, value]) => [key, value === "" || value === undefined ? "" : Number(value) || 0]));
+      }
+
+      function normalizeSourceMap(map = {}) {
+        return Object.fromEntries(Object.entries(map || {}).map(([key, value]) => [key, String(value || "monthly")]));
       }
 
       function normalizePurchases(purchases) {
@@ -1707,6 +1718,7 @@
           userId: purchase.userId || null,
           userName: purchase.userName || "",
           userEmail: purchase.userEmail || "",
+          sourceId: purchase.sourceId || "monthly",
         }));
       }
 
@@ -1768,6 +1780,10 @@
         return rows.reduce((total, row) => total + (Number(row.amount) || 0), 0);
       }
 
+      function sumAnnualBudget(rows) {
+        return rows.reduce((total, row) => total + (Number(row.annualAmount) || (Number(row.amount) || 0) * 12), 0);
+      }
+
       function sumActuals(rows) {
         return rows.reduce((total, row) => total + (row.actual === "" || row.actual === undefined ? 0 : Number(row.actual) || 0), 0);
       }
@@ -1776,10 +1792,39 @@
         return month.purchases.reduce((total, purchase) => purchase.targetId === targetId ? total + (Number(purchase.amount) || 0) : total, 0);
       }
 
+      function expenseFromMonthlyCash(row, month = activeMonth()) {
+        const manual = month.expenseActuals[row.id] === "" || month.expenseActuals[row.id] === undefined ? 0 : Number(month.expenseActuals[row.id]) || 0;
+        const manualSource = month.expenseSources?.[row.id] || "monthly";
+        const manualCash = manualSource === "monthly" ? manual : 0;
+        const purchaseCash = month.purchases.reduce((total, purchase) => {
+          if (purchase.targetId !== row.id) return total;
+          return (purchase.sourceId || "monthly") === "monthly" ? total + (Number(purchase.amount) || 0) : total;
+        }, 0);
+        return manualCash + purchaseCash;
+      }
+
       function actualFor(row, type, month = activeMonth()) {
         const map = type === "savings" ? month.savingActuals : month.expenseActuals;
         const manual = map[row.id] === "" || map[row.id] === undefined ? 0 : Number(map[row.id]) || 0;
         return type === "expense" ? manual + purchaseTotal(row.id, month) : manual;
+      }
+
+      function paymentAccounts() {
+        const incomeAccounts = activeMonth().incomes
+          .filter((row) => String(row.name || "").trim())
+          .map((row) => ({ id: `income:${row.id}`, name: row.name.trim() }));
+        const savingsAccounts = savingsRows()
+          .filter((row) => String(row.name || "").trim())
+          .map((row) => ({ id: `savings:${row.id}`, name: row.name.trim() }));
+        return [{ id: "monthly", name: "Månadskassa" }, ...incomeAccounts, ...savingsAccounts];
+      }
+
+      function accountOptions(selected = "monthly") {
+        const value = selected || "monthly";
+        const accounts = paymentAccounts();
+        const hasSelected = accounts.some((account) => account.id === value);
+        const rows = hasSelected ? accounts : [...accounts, { id: value, name: "Tidigare konto" }];
+        return rows.map((account) => `<option value="${escapeHtml(account.id)}"${account.id === value ? " selected" : ""}>${escapeHtml(account.name)}</option>`).join("");
       }
 
       function totals(index = currentMonth) {
@@ -1957,10 +2002,11 @@
       function renderBudgetTotal() {
         const label = activeBudgetTab === "fixedCosts" ? "Summa fasta" : "Summa rörliga";
         const budget = sumBudget(state.budgetTemplate[activeBudgetTab]);
+        const annualBudget = sumAnnualBudget(state.budgetTemplate[activeBudgetTab]);
         document.getElementById("budgetActiveTotal").innerHTML = `
           <span>${label}</span>
-          <strong>Budget ${money(budget)}</strong>
-          <span></span>
+          <strong>Budget/mån ${money(budget)}</strong>
+          <strong>Budget/år ${money(annualBudget)}</strong>
           <span></span>`;
       }
 
@@ -1969,7 +2015,8 @@
           <div class="entry-row budget-template-row" draggable="true" data-sortable-type="${type}" data-sort-id="${row.id}" data-template-type="${type}" data-template-id="${row.id}">
             <button class="drag-handle" type="button" aria-label="Flytta rad">↕</button>
             <label class="line-field"><span>Post</span><input value="${escapeHtml(row.name)}" data-template-field="name" placeholder="Namn" /></label>
-            <label class="line-field"><span>Budget</span><input class="money" value="${row.amount || ""}" data-template-field="amount" inputmode="numeric" placeholder="0" /></label>
+            <label class="line-field"><span>Budget/mån</span><input class="money" value="${row.amount || ""}" data-template-field="amount" inputmode="numeric" placeholder="0" /></label>
+            <label class="line-field"><span>Budget/år</span><input class="money" value="${row.annualAmount || ""}" data-template-field="annualAmount" inputmode="numeric" placeholder="0" /></label>
             <button class="icon-button" type="button" data-remove-template="${type}:${row.id}" aria-label="Ta bort">×</button>
           </div>`).join("");
       }
@@ -1999,11 +2046,13 @@
         const rows = state.budgetTemplate[type];
         const budget = sumBudget(rows);
         const actual = rows.reduce((total, row) => total + actualFor(row, "expense"), 0);
+        const monthlyCash = rows.reduce((total, row) => total + expenseFromMonthlyCash(row), 0);
         const variance = budget - actual;
         document.getElementById(containerId).innerHTML = `
           <span>${label}</span>
           <strong>Budget ${money(budget)}</strong>
           <strong>Utfall ${money(actual)}</strong>
+          <strong>Månadskassa ${money(monthlyCash)}</strong>
           <strong class="${variance < 0 ? "trend risk" : "trend"}">${money(variance)}</strong>`;
       }
 
@@ -2022,12 +2071,14 @@
         const hasManual = isSavings ? activeMonth().savingActuals[row.id] !== undefined && activeMonth().savingActuals[row.id] !== "" : activeMonth().expenseActuals[row.id] !== undefined && activeMonth().expenseActuals[row.id] !== "";
         const hasPurchase = actualType === "expense" && purchaseTotal(row.id) > 0;
         const variance = (Number(row.amount) || 0) - actual;
+        const selectedSource = activeMonth().expenseSources?.[row.id] || "monthly";
         return `
           <div class="entry-row ${isSavings ? "" : "sortable-row"}" ${isSavings ? "" : `draggable="true" data-sortable-type="${groupType}"`} data-actual-type="${actualType}" data-group-type="${groupType}" data-actual-id="${row.id}"${isSavings ? ` data-template-type="${groupType}" data-template-id="${row.id}"` : ""}>
             ${isSavings ? "" : `<button class="drag-handle" type="button" aria-label="Flytta rad">↕</button>`}
             <label class="line-field"><span>Post</span><input value="${escapeHtml(row.name)}" ${isSavings ? `data-template-field="name" placeholder="Namn"` : "disabled"} /></label>
-            <label class="line-field"><span>${isSavings ? "Plan" : "Budget"}</span><input class="money" value="${row.amount || ""}" ${isSavings ? `data-template-field="amount" inputmode="numeric" placeholder="0"` : "disabled"} /></label>
+            <label class="line-field"><span>${isSavings ? "Plan" : "Budget/mån"}</span><input class="money" value="${row.amount || ""}" ${isSavings ? `data-template-field="amount" inputmode="numeric" placeholder="0"` : "disabled"} /></label>
             <label class="line-field"><span>Utfall</span><input class="money" value="${isSavings ? activeMonth().savingActuals[row.id] ?? "" : activeMonth().expenseActuals[row.id] ?? ""}" data-actual-field="actual" inputmode="numeric" placeholder="${hasPurchase ? `Köp: ${money(purchaseTotal(row.id))}` : "0"}" /></label>
+            ${isSavings ? "" : `<label class="line-field"><span>Betalas från</span><select data-actual-field="source">${accountOptions(selectedSource)}</select></label>`}
             <output class="variance ${hasManual || hasPurchase ? varianceClass(variance) : "missing"}">${hasManual || hasPurchase ? money(variance) : "Ej ifyllt"}</output>
           </div>`;
       }
@@ -2071,6 +2122,10 @@
         const selected = categorySelect.value;
         categorySelect.innerHTML = options.length ? options.map((row) => `<option value="${row.id}">${escapeHtml(row.name || "Namnlös post")}</option>`).join("") : `<option value="">Lägg till budgetpost först</option>`;
         if (options.some((row) => row.id === selected)) categorySelect.value = selected;
+        const sourceSelect = document.getElementById("purchaseSource");
+        const sourceSelected = sourceSelect.value || "monthly";
+        sourceSelect.innerHTML = accountOptions(sourceSelected);
+        if (paymentAccounts().some((account) => account.id === sourceSelected)) sourceSelect.value = sourceSelected;
         const recent = [...activeMonth().purchases].slice(-5).reverse();
         document.getElementById("recentPurchases").innerHTML = recent.length
           ? recent.map((purchase) => {
@@ -2273,7 +2328,11 @@
           const row = state.budgetTemplate[templateRow.dataset.templateType].find((item) => item.id === templateRow.dataset.templateId);
           if (row) {
             const field = target.dataset.templateField;
-            row[field] = ["amount", "targetAmount"].includes(field) ? parseAmount(target.value) : target.value;
+            row[field] = ["amount", "annualAmount", "targetAmount"].includes(field) ? parseAmount(target.value) : target.value;
+            if (["fixedCosts", "variableCosts"].includes(templateRow.dataset.templateType)) {
+              if (field === "amount") row.annualAmount = (Number(row.amount) || 0) * 12;
+              if (field === "annualAmount") row.amount = Math.round((Number(row.annualAmount) || 0) / 12);
+            }
             if (templateRow.dataset.templateType === activeBudgetTab) {
               renderBudgetTotal();
             }
@@ -2281,7 +2340,9 @@
         }
         if (actualRow && target.dataset.actualField) {
           const map = actualRow.dataset.actualType === "savings" ? activeMonth().savingActuals : activeMonth().expenseActuals;
-          map[actualRow.dataset.actualId] = target.value.trim() === "" ? "" : parseAmount(target.value);
+          if (target.dataset.actualField === "actual") {
+            map[actualRow.dataset.actualId] = target.value.trim() === "" ? "" : parseAmount(target.value);
+          }
           if (actualRow.dataset.actualType === "expense") {
             renderExpenseTotals();
             renderSummary();
@@ -2292,6 +2353,11 @@
       });
 
       document.addEventListener("change", (event) => {
+        const actualRow = event.target.closest("[data-actual-id]");
+        if (actualRow && event.target.dataset.actualField === "source") {
+          activeMonth().expenseSources[actualRow.dataset.actualId] = event.target.value || "monthly";
+          saveState();
+        }
         if (!event.target.closest("[data-income-id], [data-template-id], [data-actual-id]")) return;
         render();
       });
@@ -2338,6 +2404,7 @@
           state.budgetTemplate[type] = state.budgetTemplate[type].filter((row) => row.id !== id);
           for (const month of Object.values(state.months)) {
             delete month.expenseActuals[id];
+            delete month.expenseSources[id];
             delete month.savingActuals[id];
             month.purchases = month.purchases.filter((purchase) => purchase.targetId !== id);
           }
@@ -2449,6 +2516,7 @@
           description: document.getElementById("purchaseDescription").value.trim(),
           amount,
           targetId,
+          sourceId: document.getElementById("purchaseSource").value || "monthly",
           userId: currentUser?.id || null,
           userName: currentUser?.user_metadata?.name || currentUser?.email || "",
           userEmail: currentUser?.email || "",
