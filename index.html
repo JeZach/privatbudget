@@ -1302,11 +1302,11 @@
           <section class="panel savings-target-panel">
             <div class="panel-title">
               <h3>Sparande mot mål</h3>
-              <span>ackumulerat jämfört med årsmål</span>
+              <span>ackumulerat jämfört med mål</span>
             </div>
             <div class="status-grid">
               <div class="status-tile"><span>Ackumulerat</span><strong id="savingsAccumulatedValue">0 kr</strong></div>
-              <div class="status-tile"><span>Årsmål</span><strong id="savingsYearGoalValue">0 kr</strong></div>
+              <div class="status-tile"><span>Mål totalt</span><strong id="savingsYearGoalValue">0 kr</strong></div>
               <div class="status-tile"><span>Uppnått</span><strong id="savingsGoalPercentValue">0%</strong></div>
             </div>
             <div class="recent-list" id="savingsGoalRows"></div>
@@ -1870,15 +1870,14 @@
       function renderSavingsGoals() {
         const rows = accumulatedSavingsRows().filter((row) => row.name.trim());
         const actual = rows.reduce((sum, row) => sum + Math.max(0, row.actual), 0);
-        const explicitGoal = rows.reduce((sum, row) => sum + (Number(row.targetAmount) || 0), 0);
-        const yearGoal = explicitGoal || savingsRows().reduce((sum, row) => sum + (Number(row.amount) || 0) * monthKeys.length, 0);
-        const percent = yearGoal > 0 ? Math.round((actual / yearGoal) * 100) : 0;
+        const totalGoal = rows.reduce((sum, row) => sum + savingsGoalForRow(row), 0);
+        const percent = totalGoal > 0 ? Math.round((actual / totalGoal) * 100) : 0;
         document.getElementById("savingsAccumulatedValue").textContent = money(actual);
-        document.getElementById("savingsYearGoalValue").textContent = money(yearGoal);
+        document.getElementById("savingsYearGoalValue").textContent = money(totalGoal);
         document.getElementById("savingsGoalPercentValue").textContent = `${percent}%`;
         document.getElementById("savingsGoalRows").innerHTML = rows.length
           ? rows.map((row) => {
-              const goal = row.targetAmount || row.monthlyPlan * monthKeys.length;
+              const goal = savingsGoalForRow(row);
               const rowPercent = goal > 0 ? Math.min(100, Math.round((row.actual / goal) * 100)) : 0;
               return `<div class="progress-row"><strong>${escapeHtml(row.name)}</strong><span>${money(row.actual)} / ${money(goal)}</span><div class="progress-bar"><i style="--progress:${rowPercent}%"></i></div></div>`;
             }).join("")
@@ -1996,8 +1995,8 @@
           <div class="entry-row" data-actual-type="savings" data-group-type="savings" data-actual-id="${row.id}" data-template-type="savings" data-template-id="${row.id}">
             <label class="line-field"><span>Post</span><input value="${escapeHtml(row.name)}" data-template-field="name" placeholder="Namn" /></label>
             <label class="line-field"><span>Plan/mån</span><input class="money" value="${row.amount || ""}" data-template-field="amount" inputmode="numeric" placeholder="0" /></label>
-            <label class="line-field"><span>Utfall</span><input class="money" value="${activeMonth().savingActuals[row.id] ?? ""}" data-actual-field="actual" inputmode="numeric" placeholder="0" /></label>
             <label class="line-field"><span>Målbelopp</span><input class="money" value="${row.targetAmount || ""}" data-template-field="targetAmount" inputmode="numeric" placeholder="0" /></label>
+            <label class="line-field"><span>Utfall</span><input class="money" value="${activeMonth().savingActuals[row.id] ?? ""}" data-actual-field="actual" inputmode="numeric" placeholder="0" /></label>
             <label class="line-field"><span>Måldatum</span><input value="${escapeHtml(row.targetDate || "")}" data-template-field="targetDate" type="date" /></label>
             <output class="variance ${hasManual ? varianceClass(variance) : "missing"}">${hasManual ? money(variance) : "Ej ifyllt"}</output>
             <button class="icon-button" type="button" data-remove-template="savings:${row.id}" aria-label="Ta bort">×</button>
@@ -2040,6 +2039,10 @@
           const planned = (Number(row.amount) || 0) * (index + 1);
           return { id: row.id, name: row.name || "Namnlös post", planned, actual, variance: actual - planned, targetAmount: Number(row.targetAmount) || 0, targetDate: row.targetDate || "", monthlyPlan: Number(row.amount) || 0 };
         });
+      }
+
+      function savingsGoalForRow(row) {
+        return Number(row.targetAmount) > 0 ? Number(row.targetAmount) : (Number(row.monthlyPlan) || 0) * monthKeys.length;
       }
 
       function renderFocus() {
