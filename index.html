@@ -592,6 +592,24 @@
         padding-right: 0;
       }
 
+      [data-page="savings"] .savings-plan-row {
+        grid-template-columns: minmax(160px, 1fr) minmax(100px, 140px) minmax(100px, 140px) minmax(130px, 150px) 38px;
+      }
+
+      [data-page="savings"] .savings-plan-heading {
+        grid-template-columns: minmax(160px, 1fr) minmax(100px, 140px) minmax(100px, 140px) minmax(130px, 150px) 38px;
+        padding-right: 0;
+      }
+
+      [data-page="savings"] .savings-actual-row {
+        grid-template-columns: minmax(160px, 1fr) minmax(100px, 140px) minmax(100px, 140px) minmax(100px, 140px);
+      }
+
+      [data-page="savings"] .savings-actual-heading {
+        grid-template-columns: minmax(160px, 1fr) minmax(100px, 140px) minmax(100px, 140px) minmax(100px, 140px);
+        padding-right: 0;
+      }
+
       .entry-row.sortable-row {
         grid-template-columns: 34px minmax(140px, 1fr) minmax(100px, 140px) minmax(100px, 140px) minmax(100px, 140px);
       }
@@ -1154,7 +1172,10 @@
         .entry-row.sortable-row .variance,
         .entry-row.sortable-row .line-field,
         .entry-row.budget-template-row .line-field,
-        .entry-row.budget-template-row .icon-button {
+        .entry-row.budget-template-row .icon-button,
+        [data-page="savings"] .entry-row .line-field,
+        [data-page="savings"] .entry-row .variance,
+        [data-page="savings"] .entry-row .icon-button {
           grid-column: 2;
         }
 
@@ -1461,9 +1482,14 @@
               <span>plan, mål och faktiskt sparande</span>
             </div>
             <section>
-              <div class="section-head"><h4>Sparmål</h4><button class="add-button" data-add-template="savings" type="button">+ Lägg till</button></div>
-              <div class="entry-heading"><span>Sparmål</span><span>Plan/mån</span><span>Slutmål</span><span>Utfall</span><span>Nås senast</span><span>Avvikelse</span><span></span></div>
-              <div class="entry-list" id="savingsRows"></div>
+              <div class="section-head"><h4>Sparplan</h4><button class="add-button" data-add-template="savings" type="button">+ Lägg till</button></div>
+              <div class="entry-heading savings-plan-heading"><span>Sparmål</span><span>Plan/mån</span><span>Slutmål</span><span>Nås senast</span><span></span></div>
+              <div class="entry-list" id="savingsPlanRows"></div>
+            </section>
+            <section>
+              <div class="section-head"><h4>Månadens sparande</h4><span class="small">registreras för vald månad</span></div>
+              <div class="entry-heading savings-actual-heading"><span>Sparmål</span><span>Plan/mån</span><span>Utfall</span><span>Avvikelse</span></div>
+              <div class="entry-list" id="savingsActualRows"></div>
             </section>
           </article>
         </section>
@@ -1982,7 +2008,8 @@
       }
 
       function renderSavingsRows() {
-        document.getElementById("savingsRows").innerHTML = state.budgetTemplate.savings.map((row) => savingsRowHtml(row)).join("");
+        document.getElementById("savingsPlanRows").innerHTML = state.budgetTemplate.savings.map((row) => savingsPlanRowHtml(row)).join("");
+        document.getElementById("savingsActualRows").innerHTML = state.budgetTemplate.savings.map((row) => savingsActualRowHtml(row)).join("");
       }
 
       function renderActualGroup(type, containerId, actualType) {
@@ -2005,20 +2032,28 @@
           </div>`;
       }
 
-      function savingsRowHtml(row) {
+      function savingsPlanRowHtml(row) {
+        const displayTargetDate = row.targetDate || automaticSavingsTargetDate(row);
+        return `
+          <div class="entry-row savings-plan-row" data-template-type="savings" data-template-id="${row.id}">
+            <label class="line-field"><span>Sparmål</span><input value="${escapeHtml(row.name)}" data-template-field="name" placeholder="Namn" /></label>
+            <label class="line-field"><span>Plan/mån</span><input class="money" value="${row.amount || ""}" data-template-field="amount" inputmode="numeric" placeholder="0" /></label>
+            <label class="line-field"><span>Slutmål</span><input class="money" value="${row.targetAmount || ""}" data-template-field="targetAmount" inputmode="numeric" placeholder="årsplan om tomt" /></label>
+            <label class="line-field"><span>Nås senast</span><input value="${escapeHtml(displayTargetDate)}" data-template-field="targetDate" type="date" /></label>
+            <button class="icon-button" type="button" data-remove-template="savings:${row.id}" aria-label="Ta bort">×</button>
+          </div>`;
+      }
+
+      function savingsActualRowHtml(row) {
         const actual = actualFor(row, "savings");
         const hasManual = activeMonth().savingActuals[row.id] !== undefined && activeMonth().savingActuals[row.id] !== "";
         const variance = (Number(row.amount) || 0) - actual;
-        const displayTargetDate = row.targetDate || automaticSavingsTargetDate(row);
         return `
-          <div class="entry-row" data-actual-type="savings" data-group-type="savings" data-actual-id="${row.id}" data-template-type="savings" data-template-id="${row.id}">
-            <label class="line-field"><span>Post</span><input value="${escapeHtml(row.name)}" data-template-field="name" placeholder="Namn" /></label>
-            <label class="line-field"><span>Plan/mån</span><input class="money" value="${row.amount || ""}" data-template-field="amount" inputmode="numeric" placeholder="0" /></label>
-            <label class="line-field"><span>Slutmål</span><input class="money" value="${row.targetAmount || ""}" data-template-field="targetAmount" inputmode="numeric" placeholder="årsplan om tomt" /></label>
+          <div class="entry-row savings-actual-row" data-actual-type="savings" data-group-type="savings" data-actual-id="${row.id}">
+            <label class="line-field"><span>Sparmål</span><input value="${escapeHtml(row.name)}" disabled /></label>
+            <label class="line-field"><span>Plan/mån</span><input class="money" value="${row.amount || ""}" disabled /></label>
             <label class="line-field"><span>Utfall</span><input class="money" value="${activeMonth().savingActuals[row.id] ?? ""}" data-actual-field="actual" inputmode="numeric" placeholder="0" /></label>
-            <label class="line-field"><span>Nås senast</span><input value="${escapeHtml(displayTargetDate)}" data-template-field="targetDate" type="date" /></label>
             <output class="variance ${hasManual ? varianceClass(variance) : "missing"}">${hasManual ? money(variance) : "Ej ifyllt"}</output>
-            <button class="icon-button" type="button" data-remove-template="savings:${row.id}" aria-label="Ta bort">×</button>
           </div>`;
       }
 
