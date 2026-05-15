@@ -584,11 +584,11 @@
       }
 
       [data-page="savings-plan"] .savings-plan-row {
-        grid-template-columns: minmax(160px, 1fr) minmax(100px, 140px) minmax(100px, 140px) minmax(130px, 150px) 38px;
+        grid-template-columns: minmax(160px, 1fr) minmax(100px, 140px) minmax(100px, 140px) minmax(130px, 150px) minmax(120px, 170px) 38px;
       }
 
       [data-page="savings-plan"] .savings-plan-heading {
-        grid-template-columns: minmax(160px, 1fr) minmax(100px, 140px) minmax(100px, 140px) minmax(130px, 150px) 38px;
+        grid-template-columns: minmax(160px, 1fr) minmax(100px, 140px) minmax(100px, 140px) minmax(130px, 150px) minmax(120px, 170px) 38px;
         padding-right: 0;
       }
 
@@ -598,6 +598,17 @@
 
       [data-page="savings-actual"] .savings-actual-heading {
         grid-template-columns: minmax(160px, 1fr) minmax(100px, 140px) minmax(100px, 140px) minmax(100px, 140px);
+        padding-right: 0;
+      }
+
+      [data-page="accounts"] .account-row,
+      [data-page="income"] .account-allocation-row {
+        grid-template-columns: minmax(160px, 1fr) minmax(100px, 140px) minmax(100px, 140px) 38px;
+      }
+
+      [data-page="accounts"] .account-heading,
+      [data-page="income"] .account-allocation-heading {
+        grid-template-columns: minmax(160px, 1fr) minmax(100px, 140px) minmax(100px, 140px) 38px;
         padding-right: 0;
       }
 
@@ -1236,6 +1247,7 @@
           <button class="nav-item" data-page-target="purchases" type="button"><span class="icon">＋</span>Köp</button>
           <button class="nav-item" data-page-target="inbox" type="button"><span class="icon">✓</span>Godkänn</button>
           <button class="nav-item" data-page-target="income" type="button"><span class="icon">＋</span>Inkomster</button>
+          <button class="nav-item" data-page-target="accounts" type="button"><span class="icon">▤</span>Konton</button>
           <button class="nav-item" data-page-target="budget" type="button"><span class="icon">✎</span>Budgetmall</button>
           <button class="nav-item" data-page-target="expenses" type="button"><span class="icon">−</span>Utgifter</button>
           <button class="nav-item" data-page-target="savings-plan" type="button"><span class="icon">◇</span>Sparplan</button>
@@ -1403,7 +1415,7 @@
           <article class="panel editor">
             <div class="panel-title">
               <h3>Inkomster</h3>
-              <span id="incomeContext">Registreras per månad</span>
+              <span id="incomeContext">registreras och fördelas per månad</span>
             </div>
             <section>
               <div class="section-head">
@@ -1413,6 +1425,29 @@
               <p class="helper-text" id="incomeHelperText">Maj 2027s inkomster används som tillgång för Juni 2027.</p>
               <div class="entry-heading"><span>Post</span><span></span><span>Utfall</span><span></span></div>
               <div class="entry-list" id="incomeRows"></div>
+            </section>
+            <section>
+              <div class="section-head"><h4>Fördela inkomster till konton</h4><span class="small" id="incomeAllocationSummary">0 kr kvar att fördela</span></div>
+              <div class="entry-heading account-allocation-heading"><span>Konto</span><span>Typ</span><span>Belopp</span><span></span></div>
+              <div class="entry-list" id="incomeAllocationRows"></div>
+            </section>
+          </article>
+        </section>
+
+        <section class="page" data-page="accounts" hidden>
+          <article class="panel editor">
+            <div class="panel-title">
+              <h3>Konton</h3>
+              <span>kassa, buffert och sparkonton</span>
+            </div>
+            <section>
+              <div class="section-head"><h4>Kontoplan</h4><button class="add-button" data-add-account type="button">+ Lägg till</button></div>
+              <div class="entry-heading account-heading"><span>Konto</span><span>Typ</span><span>Startsaldo</span><span></span></div>
+              <div class="entry-list" id="accountRows"></div>
+            </section>
+            <section>
+              <div class="section-head"><h4>Kontoläge</h4><span class="small">vald månad</span></div>
+              <div class="recent-list" id="accountOverviewRows"></div>
             </section>
           </article>
         </section>
@@ -1473,7 +1508,7 @@
             </div>
             <section>
               <div class="section-head"><h4>Sparplan</h4><button class="add-button" data-add-template="savings" type="button">+ Lägg till</button></div>
-              <div class="entry-heading savings-plan-heading"><span>Sparmål</span><span>Plan/mån</span><span>Slutmål</span><span>Nås senast</span><span></span></div>
+              <div class="entry-heading savings-plan-heading"><span>Sparmål</span><span>Plan/mån</span><span>Slutmål</span><span>Nås senast</span><span>Konto</span><span></span></div>
               <div class="entry-list" id="savingsPlanRows"></div>
             </section>
           </article>
@@ -1586,6 +1621,7 @@
         purchases: { title: "Köp", intro: "Registrera löpande köp direkt mot rätt budgetpost för vald månad." },
         inbox: { title: "Godkänn köp", intro: "Kontrollera snabbköp innan de förs in i budgeten." },
         income: { title: "Inkomster", intro: "Registrera faktisk lön och andra intäkter per månad. De blir tillgång för nästa månad." },
+        accounts: { title: "Konton", intro: "Skapa konton och följ hur inkomster, utgifter och sparande rör sig mellan dem." },
         budget: { title: "Budgetmall", intro: "Sätt standardbudget en gång. Den ligger sedan som grund för varje månads uppföljning." },
         expenses: { title: "Utgifter", intro: "Fyll i månadens faktiska utgifter mot budgetmallen." },
         "savings-plan": { title: "Sparplan", intro: "Planera sparmål, månadsplan och slutmål." },
@@ -1623,16 +1659,21 @@
 
       function templateEntry(name = "", amount = 0, targetAmount = 0, targetDate = "", annualAmount = null) {
         const monthlyAmount = Number(amount) || 0;
-        return { id: newId(), name, amount: monthlyAmount, annualAmount: annualAmount === null ? monthlyAmount * 12 : Number(annualAmount) || 0, targetAmount: Number(targetAmount) || 0, targetDate: targetDate || "" };
+        return { id: newId(), name, amount: monthlyAmount, annualAmount: annualAmount === null ? monthlyAmount * 12 : Number(annualAmount) || 0, targetAmount: Number(targetAmount) || 0, targetDate: targetDate || "", accountId: "" };
       }
 
       function incomeEntry(name = "", actual = "") {
         return { id: newId(), name, actual };
       }
 
+      function accountEntry(name = "", type = "kassa", openingBalance = 0) {
+        return { id: newId(), name, type, openingBalance: Number(openingBalance) || 0 };
+      }
+
       function blankMonth() {
         return {
           incomes: [incomeEntry("Lön Jens"), incomeEntry("Lön Lena"), incomeEntry("Övrig intäkt")],
+          accountAllocations: {},
           expenseActuals: {},
           expenseSources: {},
           savingActuals: {},
@@ -1648,6 +1689,15 @@
             variableCosts: [templateEntry("Mat"), templateEntry("Resor"), templateEntry("Hälsa"), templateEntry("Nöje")],
             savings: [templateEntry("Buffert"), templateEntry("Långsiktigt sparande")],
           },
+          accounts: [
+            accountEntry("Lönekonto Jens", "kassa"),
+            accountEntry("Lönekonto Lena", "kassa"),
+            accountEntry("Betala räkningar", "kassa"),
+            accountEntry("Buffertkonto löpande", "buffert"),
+            accountEntry("Kortsiktigt sparande", "sparande"),
+            accountEntry("Långsiktigt sparande", "sparande"),
+            accountEntry("Buffert sparande", "sparande"),
+          ],
           months: Object.fromEntries(monthKeys.map((key) => [key, blankMonth()])),
         };
       }
@@ -1678,6 +1728,7 @@
         next.budgetTemplate.fixedCosts = normalizeTemplate(value.budgetTemplate.fixedCosts, next.budgetTemplate.fixedCosts);
         next.budgetTemplate.variableCosts = normalizeTemplate(value.budgetTemplate.variableCosts, next.budgetTemplate.variableCosts);
         next.budgetTemplate.savings = normalizeTemplate(value.budgetTemplate.savings, next.budgetTemplate.savings);
+        next.accounts = normalizeAccounts(value.accounts, next.accounts, next.budgetTemplate.savings);
         next.months = Object.fromEntries(monthKeys.map((key) => [key, normalizeMonth(value.months?.[key])]));
         return next;
       }
@@ -1686,13 +1737,25 @@
         const source = rows?.length ? rows : fallback;
         return source.map((row) => {
           const amount = Number(row.amount) || 0;
-          return { id: row.id || newId(), name: row.name || "", amount, annualAmount: row.annualAmount === "" || row.annualAmount === undefined ? amount * 12 : Number(row.annualAmount) || 0, targetAmount: Number(row.targetAmount) || 0, targetDate: row.targetDate || "" };
+          return { id: row.id || newId(), name: row.name || "", amount, annualAmount: row.annualAmount === "" || row.annualAmount === undefined ? amount * 12 : Number(row.annualAmount) || 0, targetAmount: Number(row.targetAmount) || 0, targetDate: row.targetDate || "", accountId: row.accountId || "" };
         });
+      }
+
+      function normalizeAccounts(rows, fallback, savings = []) {
+        const source = rows?.length ? rows : fallback;
+        const accounts = source.map((row) => ({ id: row.id || newId(), name: row.name || "", type: row.type || "kassa", openingBalance: Number(row.openingBalance) || 0 }));
+        for (const saving of savings) {
+          if (saving.accountId || !saving.name) continue;
+          const match = accounts.find((account) => account.name.toLowerCase() === saving.name.toLowerCase());
+          if (match) saving.accountId = match.id;
+        }
+        return accounts;
       }
 
       function normalizeMonth(month = {}) {
         return {
           incomes: (month.incomes?.length ? month.incomes : blankMonth().incomes).map((row) => ({ id: row.id || newId(), name: row.name || "", actual: row.actual === "" || row.actual === undefined ? "" : Number(row.actual) || 0 })),
+          accountAllocations: normalizeActualMap(month.accountAllocations),
           expenseActuals: normalizeActualMap(month.expenseActuals),
           expenseSources: normalizeSourceMap(month.expenseSources),
           savingActuals: normalizeActualMap(month.savingActuals),
@@ -1776,6 +1839,10 @@
         return state.budgetTemplate.savings;
       }
 
+      function accountRows() {
+        return state.accounts || [];
+      }
+
       function sumBudget(rows) {
         return rows.reduce((total, row) => total + (Number(row.amount) || 0), 0);
       }
@@ -1790,6 +1857,10 @@
 
       function purchaseTotal(targetId, month = activeMonth()) {
         return month.purchases.reduce((total, purchase) => purchase.targetId === targetId ? total + (Number(purchase.amount) || 0) : total, 0);
+      }
+
+      function unbudgetedPurchaseTotal(month = activeMonth()) {
+        return month.purchases.reduce((total, purchase) => purchase.targetId ? total : total + (Number(purchase.amount) || 0), 0);
       }
 
       function expenseFromMonthlyCash(row, month = activeMonth()) {
@@ -1810,13 +1881,7 @@
       }
 
       function paymentAccounts() {
-        const incomeAccounts = activeMonth().incomes
-          .filter((row) => String(row.name || "").trim())
-          .map((row) => ({ id: `income:${row.id}`, name: row.name.trim() }));
-        const savingsAccounts = savingsRows()
-          .filter((row) => String(row.name || "").trim())
-          .map((row) => ({ id: `savings:${row.id}`, name: row.name.trim() }));
-        return [{ id: "monthly", name: "Månadskassa" }, ...incomeAccounts, ...savingsAccounts];
+        return [{ id: "monthly", name: "Månadskassa" }, ...accountRows().filter((row) => String(row.name || "").trim()).map((row) => ({ id: row.id, name: row.name.trim() }))];
       }
 
       function accountOptions(selected = "monthly") {
@@ -1827,11 +1892,37 @@
         return rows.map((account) => `<option value="${escapeHtml(account.id)}"${account.id === value ? " selected" : ""}>${escapeHtml(account.name)}</option>`).join("");
       }
 
+      function accountName(accountId) {
+        if (!accountId || accountId === "monthly") return "Månadskassa";
+        return accountRows().find((account) => account.id === accountId)?.name || "Okänt konto";
+      }
+
+      function accountTypeName(type) {
+        return ({ kassa: "Kassa", buffert: "Buffert", sparande: "Sparande" })[type] || "Kassa";
+      }
+
+      function accountSummary(index = currentMonth) {
+        const month = state.months[monthKeys[index]];
+        return accountRows().map((account) => {
+          const allocated = Number(month.accountAllocations?.[account.id]) || 0;
+          const budgetedExpenses = templateRows().reduce((sum, row) => {
+            const manual = month.expenseSources?.[row.id] === account.id ? Number(month.expenseActuals?.[row.id]) || 0 : 0;
+            const purchases = month.purchases.reduce((total, purchase) => purchase.targetId === row.id && purchase.sourceId === account.id ? total + (Number(purchase.amount) || 0) : total, 0);
+            return sum + manual + purchases;
+          }, 0);
+          const unbudgetedExpenses = month.purchases.reduce((sum, purchase) => !purchase.targetId && purchase.sourceId === account.id ? sum + (Number(purchase.amount) || 0) : sum, 0);
+          const expenses = budgetedExpenses + unbudgetedExpenses;
+          const savingsIn = savingsRows().reduce((sum, row) => row.accountId === account.id ? sum + actualFor(row, "savings", month) : sum, 0);
+          const balance = (Number(account.openingBalance) || 0) + allocated + savingsIn - expenses;
+          return { ...account, allocated, expenses, savingsIn, balance };
+        });
+      }
+
       function totals(index = currentMonth) {
         const month = state.months[monthKeys[index]];
         const budgetedExpenses = sumBudget(templateRows());
         const budgetedSavings = sumBudget(savingsRows());
-        const actualExpenses = templateRows().reduce((total, row) => total + actualFor(row, "expense", month), 0);
+        const actualExpenses = templateRows().reduce((total, row) => total + actualFor(row, "expense", month), 0) + unbudgetedPurchaseTotal(month);
         const actualSavings = savingsRows().reduce((total, row) => total + actualFor(row, "savings", month), 0);
         const available = sourceIncome(index);
         const budgetedOutgo = budgetedExpenses + budgetedSavings;
@@ -1892,6 +1983,8 @@
         renderExpenseHealth();
         renderSavingsGoals();
         renderIncomeRows();
+        renderAccountRows();
+        renderIncomeAllocations();
         renderBudgetRows();
         renderExpenseRows();
         renderSavingsRows();
@@ -1981,6 +2074,43 @@
             <label class="line-field"><span>Utfall</span><input class="money" value="${row.actual === "" ? "" : row.actual}" data-income-field="actual" inputmode="numeric" placeholder="0" /></label>
             <button class="icon-button" type="button" data-remove-income="${row.id}" aria-label="Ta bort">×</button>
           </div>`).join("");
+      }
+
+      function renderIncomeAllocations() {
+        const totalIncome = sumActuals(activeMonth().incomes);
+        const allocated = accountRows().reduce((sum, account) => sum + (Number(activeMonth().accountAllocations?.[account.id]) || 0), 0);
+        const remaining = totalIncome - allocated;
+        document.getElementById("incomeAllocationSummary").textContent = `${money(remaining)} kvar att fördela`;
+        document.getElementById("incomeAllocationRows").innerHTML = accountRows().length
+          ? accountRows().map((account) => `
+            <div class="entry-row account-allocation-row" data-allocation-account-id="${account.id}">
+              <label class="line-field"><span>Konto</span><input value="${escapeHtml(account.name)}" disabled /></label>
+              <label class="line-field"><span>Typ</span><input value="${accountTypeName(account.type)}" disabled /></label>
+              <label class="line-field"><span>Belopp</span><input class="money" value="${activeMonth().accountAllocations?.[account.id] ?? ""}" data-allocation-field="amount" inputmode="numeric" placeholder="0" /></label>
+              <span></span>
+            </div>`).join("")
+          : `<div class="recent-item"><div><strong>Inga konton ännu</strong><small>Lägg till konton på Konton-sidan först.</small></div></div>`;
+      }
+
+      function renderAccountRows() {
+        const rowsNode = document.getElementById("accountRows");
+        const overviewNode = document.getElementById("accountOverviewRows");
+        if (!rowsNode || !overviewNode) return;
+        rowsNode.innerHTML = accountRows().map((account) => `
+          <div class="entry-row account-row" data-account-id="${account.id}">
+            <label class="line-field"><span>Konto</span><input value="${escapeHtml(account.name)}" data-account-field="name" placeholder="Konto" /></label>
+            <label class="line-field"><span>Typ</span><select data-account-field="type">
+              <option value="kassa"${account.type === "kassa" ? " selected" : ""}>Kassa</option>
+              <option value="buffert"${account.type === "buffert" ? " selected" : ""}>Buffert</option>
+              <option value="sparande"${account.type === "sparande" ? " selected" : ""}>Sparande</option>
+            </select></label>
+            <label class="line-field"><span>Startsaldo</span><input class="money" value="${account.openingBalance || ""}" data-account-field="openingBalance" inputmode="numeric" placeholder="0" /></label>
+            <button class="icon-button" type="button" data-remove-account="${account.id}" aria-label="Ta bort">×</button>
+          </div>`).join("");
+        const summaries = accountSummary();
+        overviewNode.innerHTML = summaries.length
+          ? summaries.map((row) => `<div class="recent-item"><div><strong>${escapeHtml(row.name)}</strong><small>${accountTypeName(row.type)} · in ${money(row.allocated)} · sparande ${money(row.savingsIn)} · ut ${money(row.expenses)}</small></div><strong>${money(row.balance)}</strong></div>`).join("")
+          : `<div class="recent-item"><div><strong>Inga konton ännu</strong><small>Lägg till era konton för att följa likviditeten.</small></div></div>`;
       }
 
       function renderBudgetRows() {
@@ -2091,6 +2221,7 @@
             <label class="line-field"><span>Plan/mån</span><input class="money" value="${row.amount || ""}" data-template-field="amount" inputmode="numeric" placeholder="0" /></label>
             <label class="line-field"><span>Slutmål</span><input class="money" value="${row.targetAmount || ""}" data-template-field="targetAmount" inputmode="numeric" placeholder="årsplan om tomt" /></label>
             <label class="line-field"><span>Nås senast</span><input value="${escapeHtml(displayTargetDate)}" data-template-field="targetDate" type="date" /></label>
+            <label class="line-field"><span>Konto</span><select data-template-field="accountId">${accountOptions(row.accountId)}</select></label>
             <button class="icon-button" type="button" data-remove-template="savings:${row.id}" aria-label="Ta bort">×</button>
           </div>`;
       }
@@ -2120,7 +2251,7 @@
         const options = templateRows().filter((row) => row.name.trim());
         const categorySelect = document.getElementById("purchaseCategory");
         const selected = categorySelect.value;
-        categorySelect.innerHTML = options.length ? options.map((row) => `<option value="${row.id}">${escapeHtml(row.name || "Namnlös post")}</option>`).join("") : `<option value="">Lägg till budgetpost först</option>`;
+        categorySelect.innerHTML = `<option value="">Ingen budgetpost</option>${options.map((row) => `<option value="${row.id}">${escapeHtml(row.name || "Namnlös post")}</option>`).join("")}`;
         if (options.some((row) => row.id === selected)) categorySelect.value = selected;
         const sourceSelect = document.getElementById("purchaseSource");
         const sourceSelected = sourceSelect.value || "monthly";
@@ -2131,7 +2262,7 @@
           ? recent.map((purchase) => {
               const target = options.find((row) => row.id === purchase.targetId);
               const user = purchase.userName || purchase.userEmail ? ` · ${escapeHtml(purchase.userName || purchase.userEmail)}` : "";
-              return `<div class="recent-item"><div><strong>${escapeHtml(purchase.description || "Köp")}</strong><small>${purchase.date} · ${escapeHtml(target?.name || "Okänd post")}${user}</small></div><strong>${money(purchase.amount)}</strong></div>`;
+              return `<div class="recent-item"><div><strong>${escapeHtml(purchase.description || "Köp")}</strong><small>${purchase.date} · ${escapeHtml(target?.name || "Ingen budgetpost")} · ${escapeHtml(accountName(purchase.sourceId))}${user}</small></div><strong>${money(purchase.amount)}</strong></div>`;
             }).join("")
           : `<div class="recent-item"><div><strong>Inga köp registrerade ännu</strong><small>Registrera första köpet ovan.</small></div><strong>0 kr</strong></div>`;
       }
@@ -2318,11 +2449,22 @@
       document.addEventListener("input", (event) => {
         const target = event.target;
         const incomeRow = target.closest("[data-income-id]");
+        const accountRow = target.closest("[data-account-id]");
+        const allocationRow = target.closest("[data-allocation-account-id]");
         const templateRow = target.closest("[data-template-id]");
         const actualRow = target.closest("[data-actual-id]");
         if (incomeRow && target.dataset.incomeField) {
           const row = activeMonth().incomes.find((item) => item.id === incomeRow.dataset.incomeId);
           if (row) row[target.dataset.incomeField] = target.dataset.incomeField === "actual" ? (target.value.trim() === "" ? "" : parseAmount(target.value)) : target.value;
+        }
+        if (accountRow && target.dataset.accountField) {
+          const row = accountRows().find((item) => item.id === accountRow.dataset.accountId);
+          if (row) row[target.dataset.accountField] = target.dataset.accountField === "openingBalance" ? (target.value.trim() === "" ? 0 : parseAmount(target.value)) : target.value;
+        }
+        if (allocationRow && target.dataset.allocationField) {
+          activeMonth().accountAllocations[allocationRow.dataset.allocationAccountId] = target.value.trim() === "" ? "" : parseAmount(target.value);
+          renderIncomeAllocations();
+          renderAccountRows();
         }
         if (templateRow && target.dataset.templateField) {
           const row = state.budgetTemplate[templateRow.dataset.templateType].find((item) => item.id === templateRow.dataset.templateId);
@@ -2333,6 +2475,7 @@
               if (field === "amount") row.annualAmount = (Number(row.amount) || 0) * 12;
               if (field === "annualAmount") row.amount = Math.round((Number(row.annualAmount) || 0) / 12);
             }
+            if (field === "accountId") renderAccountRows();
             if (templateRow.dataset.templateType === activeBudgetTab) {
               renderBudgetTotal();
             }
@@ -2353,18 +2496,32 @@
       });
 
       document.addEventListener("change", (event) => {
+        const accountRow = event.target.closest("[data-account-id]");
+        const templateRow = event.target.closest("[data-template-id]");
         const actualRow = event.target.closest("[data-actual-id]");
+        if (accountRow && event.target.dataset.accountField) {
+          const row = accountRows().find((item) => item.id === accountRow.dataset.accountId);
+          if (row) row[event.target.dataset.accountField] = event.target.dataset.accountField === "openingBalance" ? (event.target.value.trim() === "" ? 0 : parseAmount(event.target.value)) : event.target.value;
+          saveState();
+        }
+        if (templateRow && event.target.dataset.templateField === "accountId") {
+          const row = state.budgetTemplate[templateRow.dataset.templateType].find((item) => item.id === templateRow.dataset.templateId);
+          if (row) row[event.target.dataset.templateField] = event.target.value;
+          saveState();
+        }
         if (actualRow && event.target.dataset.actualField === "source") {
           activeMonth().expenseSources[actualRow.dataset.actualId] = event.target.value || "monthly";
           saveState();
         }
-        if (!event.target.closest("[data-income-id], [data-template-id], [data-actual-id]")) return;
+        if (!event.target.closest("[data-income-id], [data-account-id], [data-allocation-account-id], [data-template-id], [data-actual-id]")) return;
         render();
       });
 
       document.addEventListener("click", async (event) => {
         const pageTarget = event.target.closest("[data-page-target]")?.dataset.pageTarget;
         const addTemplate = event.target.closest("[data-add-template]")?.dataset.addTemplate;
+        const addAccount = event.target.closest("[data-add-account]");
+        const removeAccount = event.target.closest("[data-remove-account]")?.dataset.removeAccount;
         const removeTemplate = event.target.closest("[data-remove-template]")?.dataset.removeTemplate;
         const removeIncome = event.target.closest("[data-remove-income]")?.dataset.removeIncome;
         const approvePurchase = event.target.closest("[data-approve-purchase]")?.dataset.approvePurchase;
@@ -2396,6 +2553,26 @@
         }
         if (addTemplate) {
           state.budgetTemplate[addTemplate].push(templateEntry());
+          saveState();
+          render();
+        }
+        if (addAccount) {
+          state.accounts.push(accountEntry());
+          saveState();
+          render();
+        }
+        if (removeAccount) {
+          state.accounts = state.accounts.filter((row) => row.id !== removeAccount);
+          for (const month of Object.values(state.months)) {
+            delete month.accountAllocations[removeAccount];
+            for (const [key, value] of Object.entries(month.expenseSources || {})) {
+              if (value === removeAccount) month.expenseSources[key] = "monthly";
+            }
+            month.purchases = month.purchases.map((purchase) => purchase.sourceId === removeAccount ? { ...purchase, sourceId: "monthly" } : purchase);
+          }
+          state.budgetTemplate.savings.forEach((row) => {
+            if (row.accountId === removeAccount) row.accountId = "";
+          });
           saveState();
           render();
         }
@@ -2509,7 +2686,7 @@
         event.preventDefault();
         const amount = parseAmount(document.getElementById("purchaseAmount").value);
         const targetId = document.getElementById("purchaseCategory").value;
-        if (!amount || !targetId) return;
+        if (!amount) return;
         activeMonth().purchases.push({
           id: newId(),
           date: document.getElementById("purchaseDate").value || today(),
