@@ -1247,7 +1247,7 @@
           <button class="nav-item" data-page-target="purchases" type="button"><span class="icon">＋</span>Köp</button>
           <button class="nav-item" data-page-target="inbox" type="button"><span class="icon">✓</span>Godkänn</button>
           <button class="nav-item" data-page-target="income" type="button"><span class="icon">＋</span>Inkomster</button>
-          <button class="nav-item" data-page-target="accounts" type="button"><span class="icon">▤</span>Konton</button>
+          <button class="nav-item" data-page-target="accounts" type="button"><span class="icon">▤</span>Fördelning</button>
           <button class="nav-item" data-page-target="budget" type="button"><span class="icon">✎</span>Budgetmall</button>
           <button class="nav-item" data-page-target="expenses" type="button"><span class="icon">−</span>Utgifter</button>
           <button class="nav-item" data-page-target="savings-plan" type="button"><span class="icon">◇</span>Sparplan</button>
@@ -1427,8 +1427,8 @@
               <div class="entry-list" id="incomeRows"></div>
             </section>
             <section>
-              <div class="section-head"><h4>Fördela inkomster till konton</h4><span class="small" id="incomeAllocationSummary">0 kr kvar att fördela</span></div>
-              <div class="entry-heading account-allocation-heading"><span>Konto</span><span>Typ</span><span>Belopp</span><span></span></div>
+              <div class="section-head"><h4>Fördela inkomsten</h4><span class="small" id="incomeAllocationSummary">0 kr kvar att fördela</span></div>
+              <div class="entry-heading account-allocation-heading"><span>Pengapåse</span><span>Typ</span><span>Belopp</span><span></span></div>
               <div class="entry-list" id="incomeAllocationRows"></div>
             </section>
           </article>
@@ -1437,16 +1437,16 @@
         <section class="page" data-page="accounts" hidden>
           <article class="panel editor">
             <div class="panel-title">
-              <h3>Konton</h3>
-              <span>kassa, buffert och sparkonton</span>
+              <h3>Fördelning</h3>
+              <span>räkningar, kassabuffert och sparande</span>
             </div>
             <section>
-              <div class="section-head"><h4>Kontoplan</h4><button class="add-button" data-add-account type="button">+ Lägg till</button></div>
-              <div class="entry-heading account-heading"><span>Konto</span><span>Typ</span><span>Startsaldo</span><span></span></div>
+              <div class="section-head"><h4>Pengapåsar</h4><button class="add-button" data-add-account type="button">+ Lägg till</button></div>
+              <div class="entry-heading account-heading"><span>Pengapåse</span><span>Typ</span><span>Startsaldo</span><span></span></div>
               <div class="entry-list" id="accountRows"></div>
             </section>
             <section>
-              <div class="section-head"><h4>Kontoläge</h4><span class="small">vald månad</span></div>
+              <div class="section-head"><h4>Fördelningsläge</h4><span class="small">vald månad</span></div>
               <div class="recent-list" id="accountOverviewRows"></div>
             </section>
           </article>
@@ -1508,7 +1508,7 @@
             </div>
             <section>
               <div class="section-head"><h4>Sparplan</h4><button class="add-button" data-add-template="savings" type="button">+ Lägg till</button></div>
-              <div class="entry-heading savings-plan-heading"><span>Sparmål</span><span>Plan/mån</span><span>Slutmål</span><span>Nås senast</span><span>Konto</span><span></span></div>
+              <div class="entry-heading savings-plan-heading"><span>Sparmål</span><span>Plan/mån</span><span>Slutmål</span><span>Nås senast</span><span>Pengapåse</span><span></span></div>
               <div class="entry-list" id="savingsPlanRows"></div>
             </section>
           </article>
@@ -1621,7 +1621,7 @@
         purchases: { title: "Köp", intro: "Registrera löpande köp direkt mot rätt budgetpost för vald månad." },
         inbox: { title: "Godkänn köp", intro: "Kontrollera snabbköp innan de förs in i budgeten." },
         income: { title: "Inkomster", intro: "Registrera faktisk lön och andra intäkter per månad. De blir tillgång för nästa månad." },
-        accounts: { title: "Konton", intro: "Skapa konton och följ hur inkomster, utgifter och sparande rör sig mellan dem." },
+        accounts: { title: "Fördelning", intro: "Fördela inkomsten till räkningar, kassabuffert och sparande." },
         budget: { title: "Budgetmall", intro: "Sätt standardbudget en gång. Den ligger sedan som grund för varje månads uppföljning." },
         expenses: { title: "Utgifter", intro: "Fyll i månadens faktiska utgifter mot budgetmallen." },
         "savings-plan": { title: "Sparplan", intro: "Planera sparmål, månadsplan och slutmål." },
@@ -1690,10 +1690,8 @@
             savings: [templateEntry("Buffert"), templateEntry("Långsiktigt sparande")],
           },
           accounts: [
-            accountEntry("Lönekonto Jens", "kassa"),
-            accountEntry("Lönekonto Lena", "kassa"),
             accountEntry("Betala räkningar", "kassa"),
-            accountEntry("Buffertkonto löpande", "buffert"),
+            accountEntry("Kassabuffert", "buffert"),
             accountEntry("Kortsiktigt sparande", "sparande"),
             accountEntry("Långsiktigt sparande", "sparande"),
             accountEntry("Buffert sparande", "sparande"),
@@ -1743,7 +1741,14 @@
 
       function normalizeAccounts(rows, fallback, savings = []) {
         const source = rows?.length ? rows : fallback;
-        const accounts = source.map((row) => ({ id: row.id || newId(), name: row.name || "", type: row.type || "kassa", openingBalance: Number(row.openingBalance) || 0 }));
+        let accounts = source.map((row) => ({ id: row.id || newId(), name: row.name || "", type: row.type || "kassa", openingBalance: Number(row.openingBalance) || 0 }));
+        accounts = accounts.filter((account) => !/^lönekonto\b/i.test(account.name.trim()));
+        accounts.forEach((account) => {
+          if (account.name === "Buffertkonto löpande") account.name = "Kassabuffert";
+        });
+        for (const required of fallback) {
+          if (!accounts.some((account) => account.name.toLowerCase() === required.name.toLowerCase())) accounts.push(required);
+        }
         for (const saving of savings) {
           if (saving.accountId || !saving.name) continue;
           const match = accounts.find((account) => account.name.toLowerCase() === saving.name.toLowerCase());
@@ -1881,7 +1886,7 @@
       }
 
       function paymentAccounts() {
-        return [{ id: "monthly", name: "Månadskassa" }, ...accountRows().filter((row) => String(row.name || "").trim()).map((row) => ({ id: row.id, name: row.name.trim() }))];
+        return [{ id: "monthly", name: "Kassabuffert" }, ...accountRows().filter((row) => String(row.name || "").trim()).map((row) => ({ id: row.id, name: row.name.trim() }))];
       }
 
       function accountOptions(selected = "monthly") {
@@ -1893,8 +1898,8 @@
       }
 
       function accountName(accountId) {
-        if (!accountId || accountId === "monthly") return "Månadskassa";
-        return accountRows().find((account) => account.id === accountId)?.name || "Okänt konto";
+        if (!accountId || accountId === "monthly") return "Kassabuffert";
+        return accountRows().find((account) => account.id === accountId)?.name || "Okänd pengapåse";
       }
 
       function accountTypeName(type) {
@@ -2081,12 +2086,12 @@
         document.getElementById("incomeAllocationRows").innerHTML = accountRows().length
           ? accountRows().map((account) => `
             <div class="entry-row account-allocation-row" data-allocation-account-id="${account.id}">
-              <label class="line-field"><span>Konto</span><input value="${escapeHtml(account.name)}" disabled /></label>
+              <label class="line-field"><span>Pengapåse</span><input value="${escapeHtml(account.name)}" disabled /></label>
               <label class="line-field"><span>Typ</span><input value="${accountTypeName(account.type)}" disabled /></label>
               <label class="line-field"><span>Belopp</span><input class="money" value="${activeMonth().accountAllocations?.[account.id] ?? ""}" data-allocation-field="amount" inputmode="numeric" placeholder="0" /></label>
               <span></span>
             </div>`).join("")
-          : `<div class="recent-item"><div><strong>Inga konton ännu</strong><small>Lägg till konton på Konton-sidan först.</small></div></div>`;
+          : `<div class="recent-item"><div><strong>Inga pengapåsar ännu</strong><small>Lägg till dem på Fördelning-sidan först.</small></div></div>`;
       }
 
       function renderIncomeAllocationSummary() {
@@ -2102,7 +2107,7 @@
         if (!rowsNode || !overviewNode) return;
         rowsNode.innerHTML = accountRows().map((account) => `
           <div class="entry-row account-row" data-account-id="${account.id}">
-            <label class="line-field"><span>Konto</span><input value="${escapeHtml(account.name)}" data-account-field="name" placeholder="Konto" /></label>
+            <label class="line-field"><span>Pengapåse</span><input value="${escapeHtml(account.name)}" data-account-field="name" placeholder="Pengapåse" /></label>
             <label class="line-field"><span>Typ</span><select data-account-field="type">
               <option value="kassa"${account.type === "kassa" ? " selected" : ""}>Kassa</option>
               <option value="buffert"${account.type === "buffert" ? " selected" : ""}>Buffert</option>
@@ -2114,7 +2119,7 @@
         const summaries = accountSummary();
         overviewNode.innerHTML = summaries.length
           ? summaries.map((row) => `<div class="recent-item"><div><strong>${escapeHtml(row.name)}</strong><small>${accountTypeName(row.type)} · in ${money(row.allocated)} · sparande ${money(row.savingsIn)} · ut ${money(row.expenses)}</small></div><strong>${money(row.balance)}</strong></div>`).join("")
-          : `<div class="recent-item"><div><strong>Inga konton ännu</strong><small>Lägg till era konton för att följa likviditeten.</small></div></div>`;
+          : `<div class="recent-item"><div><strong>Inga pengapåsar ännu</strong><small>Lägg till räkningar, kassabuffert och sparande för att följa likviditeten.</small></div></div>`;
       }
 
       function renderBudgetRows() {
@@ -2186,7 +2191,7 @@
           <span>${label}</span>
           <strong>Budget ${money(budget)}</strong>
           <strong>Utfall ${money(actual)}</strong>
-          <strong>Månadskassa ${money(monthlyCash)}</strong>
+          <strong>Kassabuffert ${money(monthlyCash)}</strong>
           <strong class="${variance < 0 ? "trend risk" : "trend"}">${money(variance)}</strong>`;
       }
 
@@ -2225,7 +2230,7 @@
             <label class="line-field"><span>Plan/mån</span><input class="money" value="${row.amount || ""}" data-template-field="amount" inputmode="numeric" placeholder="0" /></label>
             <label class="line-field"><span>Slutmål</span><input class="money" value="${row.targetAmount || ""}" data-template-field="targetAmount" inputmode="numeric" placeholder="årsplan om tomt" /></label>
             <label class="line-field"><span>Nås senast</span><input value="${escapeHtml(displayTargetDate)}" data-template-field="targetDate" type="date" /></label>
-            <label class="line-field"><span>Konto</span><select data-template-field="accountId">${accountOptions(row.accountId)}</select></label>
+            <label class="line-field"><span>Pengapåse</span><select data-template-field="accountId">${accountOptions(row.accountId)}</select></label>
             <button class="icon-button" type="button" data-remove-template="savings:${row.id}" aria-label="Ta bort">×</button>
           </div>`;
       }
