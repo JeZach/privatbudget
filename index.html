@@ -1921,8 +1921,19 @@
 
       function actualFor(row, type, month = activeMonth()) {
         const map = type === "savings" ? month.savingActuals : month.expenseActuals;
+        if (type === "savings") {
+          const allocation = savingsAllocationFor(row, month);
+          if (allocation !== null) return allocation;
+        }
         const manual = map[row.id] === "" || map[row.id] === undefined ? 0 : Number(map[row.id]) || 0;
         return type === "expense" ? manual + purchaseTotal(row.id, month) : manual;
+      }
+
+      function savingsAllocationFor(row, month = activeMonth()) {
+        if (!row.accountId) return null;
+        const value = month.accountAllocations?.[row.accountId];
+        if (value === "" || value === undefined) return null;
+        return Number(value) || 0;
       }
 
       function paymentAccounts() {
@@ -1958,7 +1969,8 @@
           const unbudgetedExpenses = month.purchases.reduce((sum, purchase) => !purchase.targetId && purchase.sourceId === account.id ? sum + (Number(purchase.amount) || 0) : sum, 0);
           const expenses = budgetedExpenses + unbudgetedExpenses;
           const savingsIn = savingsRows().reduce((sum, row) => row.accountId === account.id ? sum + actualFor(row, "savings", month) : sum, 0);
-          const balance = (Number(account.openingBalance) || 0) + allocated + savingsIn - expenses;
+          const extraSavingsIn = Math.max(0, savingsIn - allocated);
+          const balance = (Number(account.openingBalance) || 0) + allocated + extraSavingsIn - expenses;
           return { ...account, allocated, expenses, savingsIn, balance };
         });
       }
@@ -2336,14 +2348,17 @@
 
       function savingsActualRowHtml(row) {
         const actual = actualFor(row, "savings");
+        const allocation = savingsAllocationFor(row);
+        const isFromAllocation = allocation !== null;
         const hasManual = activeMonth().savingActuals[row.id] !== undefined && activeMonth().savingActuals[row.id] !== "";
+        const hasActual = isFromAllocation || hasManual;
         const variance = (Number(row.amount) || 0) - actual;
         return `
           <div class="entry-row savings-actual-row" data-actual-type="savings" data-group-type="savings" data-actual-id="${row.id}">
             <label class="line-field"><span>Sparmål</span><input value="${escapeHtml(row.name)}" disabled /></label>
             <label class="line-field"><span>Plan/mån</span><input class="money" value="${row.amount || ""}" disabled /></label>
-            <label class="line-field"><span>Utfall</span><input class="money" value="${activeMonth().savingActuals[row.id] ?? ""}" data-actual-field="actual" inputmode="numeric" placeholder="0" /></label>
-            <output class="variance ${hasManual ? varianceClass(variance) : "missing"}">${hasManual ? money(variance) : "Ej ifyllt"}</output>
+            <label class="line-field"><span>${isFromAllocation ? "Från fördelning" : "Utfall"}</span><input class="money" value="${isFromAllocation ? allocation : activeMonth().savingActuals[row.id] ?? ""}" data-actual-field="actual" inputmode="numeric" placeholder="0" ${isFromAllocation ? "disabled" : ""} /></label>
+            <output class="variance ${hasActual ? varianceClass(variance) : "missing"}">${hasActual ? money(variance) : "Ej ifyllt"}</output>
           </div>`;
       }
 
@@ -2572,6 +2587,10 @@
         if (allocationRow && target.dataset.allocationField) {
           activeMonth().accountAllocations[allocationRow.dataset.allocationAccountId] = target.value.trim() === "" ? "" : parseAmount(target.value);
           renderIncomeAllocationSummary();
+          renderSummary();
+          renderBagOverview();
+          renderSavingsGoals();
+          renderSavingsPie();
         }
         if (templateRow && target.dataset.templateField) {
           const row = state.budgetTemplate[templateRow.dataset.templateType].find((item) => item.id === templateRow.dataset.templateId);
