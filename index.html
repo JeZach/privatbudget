@@ -1310,29 +1310,37 @@
         <section class="page active" data-page="overview">
           <section class="summary" aria-label="Sammanfattning">
             <article class="metric">
-              <span>Tillgång</span>
+              <span>Inkomst att fördela</span>
               <strong id="availableValue">0 kr</strong>
-              <small class="trend" id="availableSourceText">från föregående månads inkomster</small>
+              <small class="trend" id="availableSourceText">månadens registrerade inkomster</small>
             </article>
             <article class="metric">
-              <span>Budgeterade utgifter</span>
+              <span>Kvar i pengapåsar</span>
               <strong id="budgetedOutgoValue">0 kr</strong>
               <div class="metric-breakdown">
-                <div><span>Fast</span><b id="budgetedFixedValue">0 kr</b></div>
-                <div><span>Rörlig</span><b id="budgetedVariableValue">0 kr</b></div>
-                <div><span>Sparande</span><b id="budgetedSavingsValue">0 kr</b></div>
+                <div><span>Fördelat</span><b id="budgetedFixedValue">0 kr</b></div>
+                <div><span>Använt</span><b id="budgetedVariableValue">0 kr</b></div>
+                <div><span>Sparat</span><b id="budgetedSavingsValue">0 kr</b></div>
               </div>
             </article>
             <article class="metric">
-              <span>Faktiskt kvar</span>
+              <span>Budgetläge</span>
               <strong id="actualLeftValue">0 kr</strong>
-              <small class="trend" id="actualStatus">mot utfall</small>
+              <small class="trend" id="actualStatus">kvar mot utgiftsbudget</small>
             </article>
             <article class="metric">
-              <span>Avvikelse</span>
+              <span>Sparande denna månad</span>
               <strong id="varianceValue">0 kr</strong>
-              <small class="trend" id="varianceStatus">mot budgetmall</small>
+              <small class="trend" id="varianceStatus">registrerat sparande</small>
             </article>
+          </section>
+
+          <section class="panel bags-panel">
+            <div class="panel-title">
+              <h3>Pengapåsar</h3>
+              <span>fördelat, använt, sparat och kvar</span>
+            </div>
+            <div class="recent-list" id="bagOverviewRows"></div>
           </section>
 
           <section class="panel expense-health-panel">
@@ -1955,6 +1963,37 @@
         });
       }
 
+      function bagSummary(index = currentMonth) {
+        const month = state.months[monthKeys[index]];
+        const rows = accountSummary(index).map((row) => ({ ...row }));
+        const monthlyManualExpenses = templateRows().reduce((sum, row) => {
+          const source = month.expenseSources?.[row.id] || "monthly";
+          if (source !== "monthly") return sum;
+          return sum + (month.expenseActuals?.[row.id] === "" || month.expenseActuals?.[row.id] === undefined ? 0 : Number(month.expenseActuals?.[row.id]) || 0);
+        }, 0);
+        const monthlyPurchaseExpenses = month.purchases.reduce((sum, purchase) => {
+          return (purchase.sourceId || "monthly") === "monthly" ? sum + (Number(purchase.amount) || 0) : sum;
+        }, 0);
+        const monthlyExpenses = monthlyManualExpenses + monthlyPurchaseExpenses;
+        const kassabuffert = rows.find((row) => row.name.trim().toLowerCase() === "kassabuffert");
+        if (kassabuffert) {
+          kassabuffert.expenses += monthlyExpenses;
+          kassabuffert.balance -= monthlyExpenses;
+        } else if (monthlyExpenses > 0) {
+          rows.unshift({
+            id: "monthly",
+            name: "Kassabuffert",
+            type: "buffert",
+            openingBalance: 0,
+            allocated: 0,
+            expenses: monthlyExpenses,
+            savingsIn: 0,
+            balance: -monthlyExpenses,
+          });
+        }
+        return rows;
+      }
+
       function totals(index = currentMonth) {
         const month = state.months[monthKeys[index]];
         const budgetedExpenses = sumBudget(templateRows());
@@ -2017,6 +2056,7 @@
         document.getElementById("incomeHelperText").textContent = `${monthLabels[currentMonth]}s inkomster blir tillgång för ${monthLabels[Math.min(currentMonth + 1, monthLabels.length - 1)]}.`;
         renderPage();
         renderSummary();
+        renderBagOverview();
         renderExpenseHealth();
         renderSavingsGoals();
         renderIncomeRows();
@@ -2051,20 +2091,44 @@
 
       function renderSummary() {
         const total = totals();
-        const fixedBudget = sumBudget(state.budgetTemplate.fixedCosts);
-        const variableBudget = sumBudget(state.budgetTemplate.variableCosts);
-        document.getElementById("availableValue").textContent = money(total.available);
-        document.getElementById("availableSourceText").textContent = currentMonth === 0 ? "startmånaden använder egna inkomster" : `från ${monthLabels[incomeSourceIndex()]}`;
-        document.getElementById("budgetedOutgoValue").textContent = money(total.budgetedOutgo);
-        document.getElementById("budgetedFixedValue").textContent = money(fixedBudget);
-        document.getElementById("budgetedVariableValue").textContent = money(variableBudget);
-        document.getElementById("budgetedSavingsValue").textContent = money(total.budgetedSavings);
-        document.getElementById("actualLeftValue").textContent = money(total.actualLeft);
-        document.getElementById("varianceValue").textContent = money(total.variance);
-        document.getElementById("actualStatus").textContent = total.actualLeft >= 0 ? "plus" : "minus";
-        document.getElementById("actualStatus").className = total.actualLeft >= 0 ? "trend" : "trend risk";
-        document.getElementById("varianceStatus").textContent = total.variance >= 0 ? "bättre än budget" : "sämre än budget";
-        document.getElementById("varianceStatus").className = total.variance >= 0 ? "trend" : "trend risk";
+        const bags = bagSummary();
+        const incomeToDistribute = sumActuals(activeMonth().incomes);
+        const allocated = bags.reduce((sum, row) => sum + (Number(row.allocated) || 0), 0);
+        const used = bags.reduce((sum, row) => sum + (Number(row.expenses) || 0), 0);
+        const saved = bags.reduce((sum, row) => sum + (Number(row.savingsIn) || 0), 0);
+        const remaining = bags.reduce((sum, row) => sum + (Number(row.balance) || 0), 0);
+        const expenseLeft = total.budgetedExpenses - total.actualExpenses;
+        document.getElementById("availableValue").textContent = money(incomeToDistribute);
+        document.getElementById("availableSourceText").textContent = "månadens registrerade inkomster";
+        document.getElementById("budgetedOutgoValue").textContent = money(remaining);
+        document.getElementById("budgetedFixedValue").textContent = money(allocated);
+        document.getElementById("budgetedVariableValue").textContent = money(used);
+        document.getElementById("budgetedSavingsValue").textContent = money(saved);
+        document.getElementById("actualLeftValue").textContent = money(expenseLeft);
+        document.getElementById("varianceValue").textContent = money(total.actualSavings);
+        document.getElementById("actualStatus").textContent = expenseLeft >= 0 ? "kvar mot utgiftsbudget" : "över utgiftsbudget";
+        document.getElementById("actualStatus").className = expenseLeft >= 0 ? "trend" : "trend risk";
+        document.getElementById("varianceStatus").textContent = total.actualSavings > 0 ? "registrerat sparande" : "inget sparande registrerat";
+        document.getElementById("varianceStatus").className = total.actualSavings > 0 ? "trend" : "trend risk";
+      }
+
+      function renderBagOverview() {
+        const node = document.getElementById("bagOverviewRows");
+        if (!node) return;
+        const rows = bagSummary().filter((row) => String(row.name || "").trim());
+        node.innerHTML = rows.length
+          ? rows.map((row) => {
+            const balance = Number(row.balance) || 0;
+            const balanceClass = balance >= 0 ? "trend" : "trend risk";
+            return `<div class="recent-item">
+              <div>
+                <strong>${escapeHtml(row.name)}</strong>
+                <small>${accountTypeName(row.type)} · fördelat ${money(row.allocated)} · använt ${money(row.expenses)} · sparat ${money(row.savingsIn)}</small>
+              </div>
+              <strong class="${balanceClass}">${money(balance)}</strong>
+            </div>`;
+          }).join("")
+          : `<div class="recent-item"><div><strong>Inga pengapåsar ännu</strong><small>Lägg upp Betala räkningar, Kassabuffert och sparpåsar på Fördelning-sidan.</small></div></div>`;
       }
 
       function expenseOnlyRows() {
