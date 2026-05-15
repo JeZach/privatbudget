@@ -2077,10 +2077,7 @@
       }
 
       function renderIncomeAllocations() {
-        const totalIncome = sumActuals(activeMonth().incomes);
-        const allocated = accountRows().reduce((sum, account) => sum + (Number(activeMonth().accountAllocations?.[account.id]) || 0), 0);
-        const remaining = totalIncome - allocated;
-        document.getElementById("incomeAllocationSummary").textContent = `${money(remaining)} kvar att fördela`;
+        renderIncomeAllocationSummary();
         document.getElementById("incomeAllocationRows").innerHTML = accountRows().length
           ? accountRows().map((account) => `
             <div class="entry-row account-allocation-row" data-allocation-account-id="${account.id}">
@@ -2090,6 +2087,13 @@
               <span></span>
             </div>`).join("")
           : `<div class="recent-item"><div><strong>Inga konton ännu</strong><small>Lägg till konton på Konton-sidan först.</small></div></div>`;
+      }
+
+      function renderIncomeAllocationSummary() {
+        const totalIncome = sumActuals(activeMonth().incomes);
+        const allocated = accountRows().reduce((sum, account) => sum + (Number(activeMonth().accountAllocations?.[account.id]) || 0), 0);
+        const remaining = totalIncome - allocated;
+        document.getElementById("incomeAllocationSummary").textContent = `${money(remaining)} kvar att fördela`;
       }
 
       function renderAccountRows() {
@@ -2463,8 +2467,7 @@
         }
         if (allocationRow && target.dataset.allocationField) {
           activeMonth().accountAllocations[allocationRow.dataset.allocationAccountId] = target.value.trim() === "" ? "" : parseAmount(target.value);
-          renderIncomeAllocations();
-          renderAccountRows();
+          renderIncomeAllocationSummary();
         }
         if (templateRow && target.dataset.templateField) {
           const row = state.budgetTemplate[templateRow.dataset.templateType].find((item) => item.id === templateRow.dataset.templateId);
