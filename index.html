@@ -754,6 +754,33 @@
         white-space: nowrap;
       }
 
+      .allocation-summary {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 8px;
+        margin: 8px 0 14px;
+      }
+
+      .allocation-summary div {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #fbfdfb;
+        padding: 12px;
+      }
+
+      .allocation-summary span {
+        display: block;
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 800;
+      }
+
+      .allocation-summary strong {
+        display: block;
+        margin-top: 5px;
+        font-size: 18px;
+      }
+
       .recent-list {
         display: grid;
         gap: 8px;
@@ -1427,7 +1454,12 @@
               <div class="entry-list" id="incomeRows"></div>
             </section>
             <section>
-              <div class="section-head"><h4>Fördela inkomsten</h4><span class="small" id="incomeAllocationSummary">0 kr kvar att fördela</span></div>
+              <div class="section-head"><h4>Fördela inkomsten</h4><span class="small">räknas ned medan du fyller i</span></div>
+              <div class="allocation-summary">
+                <div><span>Inkomst att fördela</span><strong id="incomeAllocationTotal">0 kr</strong></div>
+                <div><span>Fördelat</span><strong id="incomeAllocationAllocated">0 kr</strong></div>
+                <div><span>Kvar att fördela</span><strong id="incomeAllocationRemaining">0 kr</strong></div>
+              </div>
               <div class="entry-heading account-allocation-heading"><span>Pengapåse</span><span>Typ</span><span>Belopp</span><span></span></div>
               <div class="entry-list" id="incomeAllocationRows"></div>
             </section>
@@ -2098,7 +2130,10 @@
         const totalIncome = sumActuals(activeMonth().incomes);
         const allocated = accountRows().reduce((sum, account) => sum + (Number(activeMonth().accountAllocations?.[account.id]) || 0), 0);
         const remaining = totalIncome - allocated;
-        document.getElementById("incomeAllocationSummary").textContent = `${money(remaining)} kvar att fördela`;
+        document.getElementById("incomeAllocationTotal").textContent = money(totalIncome);
+        document.getElementById("incomeAllocationAllocated").textContent = money(allocated);
+        document.getElementById("incomeAllocationRemaining").textContent = money(remaining);
+        document.getElementById("incomeAllocationRemaining").style.color = remaining < 0 ? "var(--rose)" : "var(--green)";
       }
 
       function renderAccountRows() {
