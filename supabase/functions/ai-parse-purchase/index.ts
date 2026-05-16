@@ -1,11 +1,42 @@
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
+const allowedOrigins = new Set([
+  "https://jezach.github.io",
+]);
+
+const baseCorsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-budget-action-key",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+  "Access-Control-Max-Age": "86400",
+  "Vary": "Origin",
 };
+
+const securityHeaders = {
+  "Cache-Control": "no-store",
+  "Cross-Origin-Resource-Policy": "cross-origin",
+  "Referrer-Policy": "no-referrer",
+  "X-Content-Type-Options": "nosniff",
+};
+
+function responseHeaders(req: Request, contentType = "application/json") {
+  const origin = req.headers.get("Origin") || "";
+  const allowOrigin = allowedOrigins.has(origin) ? origin : "https://jezach.github.io";
+  return {
+    ...baseCorsHeaders,
+    ...securityHeaders,
+    "Access-Control-Allow-Origin": allowOrigin,
+    "Content-Type": contentType,
+  };
+}
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
+    return new Response("ok", { headers: responseHeaders(req, "text/plain") });
+  }
+
+  if (req.method !== "POST") {
+    return new Response(JSON.stringify({ error: "Metoden är inte tillåten." }), {
+      status: 200,
+      headers: responseHeaders(req),
+    });
   }
 
   try {
@@ -18,6 +49,9 @@ Deno.serve(async (req) => {
     const imageDataUrl = String(body.imageDataUrl || "");
     const pin = String(body.pin || "");
     const mode = String(body.mode || "");
+    if (inputText.length > 4000) throw new Error("Texten är för lång.");
+    if (imageDataUrl.length > 6500000) throw new Error("Bilden är för stor.");
+    if (categories.length > 250) throw new Error("För många kategorier skickades.");
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL");
     const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY");
@@ -130,7 +164,7 @@ Deno.serve(async (req) => {
         status: "pending",
         message: "Köpet är skickat till Godkänn köp.",
       }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: responseHeaders(req),
       });
     }
 
@@ -198,7 +232,7 @@ Deno.serve(async (req) => {
       const reportResult = await reportResponse.json();
       const reportText = reportResult.output_text || reportResult.output?.flatMap((item: { content?: Array<{ text?: string }> }) => item.content || []).map((item: { text?: string }) => item.text || "").join("");
       return new Response(JSON.stringify(JSON.parse(reportText)), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: responseHeaders(req),
       });
     }
 
@@ -277,13 +311,13 @@ Deno.serve(async (req) => {
     const parsed = JSON.parse(text);
 
     return new Response(JSON.stringify(parsed), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: responseHeaders(req),
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "AI-tolkningen misslyckades.";
     return new Response(JSON.stringify({ error: message }), {
       status: 200,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: responseHeaders(req),
     });
   }
 });

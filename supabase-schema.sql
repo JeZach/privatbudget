@@ -17,12 +17,12 @@ create table if not exists public.app_users (
 
 create table if not exists public.app_settings (
   id text primary key,
-  quick_pin text not null default '1234',
+  quick_pin text not null default left(replace(gen_random_uuid()::text, '-', ''), 10),
   updated_at timestamptz not null default now()
 );
 
 insert into public.app_settings (id, quick_pin)
-values ('main', '1234')
+values ('main', left(replace(gen_random_uuid()::text, '-', ''), 10))
 on conflict (id) do nothing;
 
 create table if not exists public.purchase_inbox (

@@ -62,7 +62,7 @@ En tillagd användare behöver skapa konto/logga in med samma e-postadress.
 
 ## 5. Snabbköp i mobilen
 
-Öppna `quick.html` från mobilen och lägg till den på hemskärmen om ni vill ha en separat webbapp för köp. Sidan använder PIN och kan lägga in köp utan vanlig inloggning. Standard-PIN efter att `supabase-schema.sql` körts är `1234`.
+Öppna `quick.html` från mobilen och lägg till den på hemskärmen om ni vill ha en separat webbapp för köp. Sidan använder PIN och kan lägga in köp utan vanlig inloggning. Nya installationer får ingen känd standard-PIN, så sätt en egen PIN direkt efter att `supabase-schema.sql` har körts.
 
 Byt PIN i Supabase SQL Editor med:
 
