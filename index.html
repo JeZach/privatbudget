@@ -1505,7 +1505,8 @@
             </div>
             <section>
               <div class="section-head"><h4>Pengapåsar</h4><button class="add-button" data-add-account type="button">+ Lägg till</button></div>
-              <div class="entry-heading account-heading"><span>Pengapåse</span><span>Typ</span><span>Startsaldo</span><span></span></div>
+              <p class="helper-text">Ingående saldo är pengarna som redan finns i påsen när ni börjar använda PrivEk eller när ni vill starta om en ny period.</p>
+              <div class="entry-heading account-heading"><span>Pengapåse</span><span>Typ</span><span>Ingående saldo</span><span></span></div>
               <div class="entry-list" id="accountRows"></div>
             </section>
             <section>
@@ -1689,7 +1690,7 @@
         purchases: { title: "Köp", intro: "Registrera löpande köp direkt mot rätt budgetpost för vald månad." },
         inbox: { title: "Godkänn köp", intro: "Kontrollera snabbköp innan de förs in i budgeten." },
         income: { title: "Inkomster", intro: "Registrera faktisk lön och andra intäkter per månad. De blir tillgång för nästa månad." },
-        accounts: { title: "Fördelning", intro: "Fördela inkomsten till räkningar, kassabuffert och sparande." },
+        accounts: { title: "Fördelning", intro: "Fördela inkomsten till räkningar, kassabuffert och sparande. Lägg ingående saldo på pengapåsar som redan har pengar när ni börjar." },
         budget: { title: "Budgetmall", intro: "Sätt standardbudget en gång. Den ligger sedan som grund för varje månads uppföljning." },
         expenses: { title: "Utgifter", intro: "Fyll i månadens faktiska utgifter mot budgetmallen." },
         "savings-plan": { title: "Sparplan", intro: "Planera sparmål, månadsplan och slutmål." },
@@ -2213,7 +2214,7 @@
             return `<div class="recent-item">
               <div>
                 <strong>${escapeHtml(row.name)}</strong>
-                <small>${accountTypeName(row.type)} · fördelat ${money(row.allocated)} · använt ${money(row.expenses)} · sparat ${money(row.savingsIn)}</small>
+                <small>${accountTypeName(row.type)} · ingående ${money(row.openingBalance)} · fördelat ${money(row.allocated)} · använt ${money(row.expenses)} · sparat ${money(row.savingsIn)}</small>
               </div>
               <strong class="${balanceClass}">${money(balance)}</strong>
             </div>`;
@@ -2302,12 +2303,12 @@
               <option value="buffert"${account.type === "buffert" ? " selected" : ""}>Buffert</option>
               <option value="sparande"${account.type === "sparande" ? " selected" : ""}>Sparande</option>
             </select></label>
-            <label class="line-field"><span>Startsaldo</span><input class="money" value="${account.openingBalance || ""}" data-account-field="openingBalance" inputmode="numeric" placeholder="0" /></label>
+            <label class="line-field"><span>Ingående saldo</span><input class="money" value="${account.openingBalance || ""}" data-account-field="openingBalance" inputmode="numeric" placeholder="0" /></label>
             <button class="icon-button" type="button" data-remove-account="${account.id}" aria-label="Ta bort">×</button>
           </div>`).join("");
         const summaries = accountSummary();
         overviewNode.innerHTML = summaries.length
-          ? summaries.map((row) => `<div class="recent-item"><div><strong>${escapeHtml(row.name)}</strong><small>${accountTypeName(row.type)} · in ${money(row.allocated)} · sparande ${money(row.savingsIn)} · ut ${money(row.expenses)}</small></div><strong>${money(row.balance)}</strong></div>`).join("")
+          ? summaries.map((row) => `<div class="recent-item"><div><strong>${escapeHtml(row.name)}</strong><small>${accountTypeName(row.type)} · ingående ${money(row.openingBalance)} · in ${money(row.allocated)} · sparande ${money(row.savingsIn)} · ut ${money(row.expenses)}</small></div><strong>${money(row.balance)}</strong></div>`).join("")
           : `<div class="recent-item"><div><strong>Inga pengapåsar ännu</strong><small>Lägg till räkningar, kassabuffert och sparande för att följa likviditeten.</small></div></div>`;
       }
 

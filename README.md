@@ -17,6 +17,7 @@ Den här versionen av PrivEk är gjord för att publiceras på GitHub Pages och 
 - Sparmål med målbelopp, måldatum och prognos
 - Historik med återställning av tidigare budgetversioner
 - Tydligare översikt med utgiftsläge, sparande mot årsmål och AI-kommentar
+- Pengapåsar med ingående saldo, fördelning, sparande och kvarvarande utrymme
 
 ## 1. Skapa Supabase-projekt
 
