@@ -1505,7 +1505,7 @@
             </div>
             <section>
               <div class="section-head"><h4>Pengapåsar</h4><button class="add-button" data-add-account type="button">+ Lägg till</button></div>
-              <p class="helper-text">Ingående saldo är pengarna som redan finns i påsen när ni börjar använda PrivEk eller när ni vill starta om en ny period.</p>
+              <p class="helper-text">Ingående saldo är pengarna som redan finns i påsen när ni börjar använda PrivEk. När en månad stängs förs kvarvarande saldo vidare till nästa månads ingående saldo.</p>
               <div class="entry-heading account-heading"><span>Pengapåse</span><span>Typ</span><span>Ingående saldo</span><span></span></div>
               <div class="entry-list" id="accountRows"></div>
             </section>
@@ -1742,6 +1742,7 @@
       function blankMonth() {
         return {
           incomes: [incomeEntry("Lön Jens"), incomeEntry("Lön Lena"), incomeEntry("Övrig intäkt")],
+          accountOpeningBalances: {},
           accountAllocations: {},
           expenseActuals: {},
           expenseSources: {},
@@ -1832,6 +1833,7 @@
       function normalizeMonth(month = {}) {
         return {
           incomes: (month.incomes?.length ? month.incomes : blankMonth().incomes).map((row) => ({ id: row.id || newId(), name: row.name || "", actual: row.actual === "" || row.actual === undefined ? "" : Number(row.actual) || 0 })),
+          accountOpeningBalances: normalizeActualMap(month.accountOpeningBalances),
           accountAllocations: normalizeActualMap(month.accountAllocations),
           expenseActuals: normalizeActualMap(month.expenseActuals),
           expenseSources: normalizeSourceMap(month.expenseSources),
@@ -1992,9 +1994,27 @@
         return ({ kassa: "Kassa", buffert: "Buffert", sparande: "Sparande" })[type] || "Kassa";
       }
 
+      function openingBalanceFor(account, index = currentMonth) {
+        const month = state.months[monthKeys[index]];
+        const value = month?.accountOpeningBalances?.[account.id];
+        if (value !== "" && value !== undefined) return Number(value) || 0;
+        return Number(account.openingBalance) || 0;
+      }
+
+      function setOpeningBalance(accountId, value) {
+        const amount = value.trim() === "" ? "" : parseAmount(value);
+        activeMonth().accountOpeningBalances = activeMonth().accountOpeningBalances || {};
+        activeMonth().accountOpeningBalances[accountId] = amount;
+        if (currentMonth === 0) {
+          const account = accountRows().find((item) => item.id === accountId);
+          if (account) account.openingBalance = amount === "" ? 0 : amount;
+        }
+      }
+
       function accountSummary(index = currentMonth) {
         const month = state.months[monthKeys[index]];
         return accountRows().map((account) => {
+          const openingBalance = openingBalanceFor(account, index);
           const allocated = Number(month.accountAllocations?.[account.id]) || 0;
           const budgetedExpenses = templateRows().reduce((sum, row) => {
             const manual = month.expenseSources?.[row.id] === account.id ? Number(month.expenseActuals?.[row.id]) || 0 : 0;
@@ -2005,8 +2025,8 @@
           const expenses = budgetedExpenses + unbudgetedExpenses;
           const savingsIn = savingsRows().reduce((sum, row) => row.accountId === account.id ? sum + actualFor(row, "savings", month) : sum, 0);
           const extraSavingsIn = Math.max(0, savingsIn - allocated);
-          const balance = (Number(account.openingBalance) || 0) + allocated + extraSavingsIn - expenses;
-          return { ...account, allocated, expenses, savingsIn, balance };
+          const balance = openingBalance + allocated + extraSavingsIn - expenses;
+          return { ...account, openingBalance, allocated, expenses, savingsIn, balance };
         });
       }
 
@@ -2303,7 +2323,7 @@
               <option value="buffert"${account.type === "buffert" ? " selected" : ""}>Buffert</option>
               <option value="sparande"${account.type === "sparande" ? " selected" : ""}>Sparande</option>
             </select></label>
-            <label class="line-field"><span>Ingående saldo</span><input class="money" value="${account.openingBalance || ""}" data-account-field="openingBalance" inputmode="numeric" placeholder="0" /></label>
+            <label class="line-field"><span>Ingående saldo</span><input class="money" value="${openingBalanceFor(account) || ""}" data-account-field="openingBalance" inputmode="numeric" placeholder="0" /></label>
             <button class="icon-button" type="button" data-remove-account="${account.id}" aria-label="Ta bort">×</button>
           </div>`).join("");
         const summaries = accountSummary();
@@ -2703,6 +2723,14 @@
         month.closed = !month.closed;
         month.closedAt = month.closed ? new Date().toISOString() : "";
         month.closedBy = month.closed ? (currentUser?.user_metadata?.name || currentUser?.email || "") : "";
+        if (month.closed && currentMonth < monthKeys.length - 1) {
+          const nextMonth = state.months[monthKeys[currentMonth + 1]];
+          nextMonth.accountOpeningBalances = nextMonth.accountOpeningBalances || {};
+          const accountIds = new Set(accountRows().map((account) => account.id));
+          bagSummary(currentMonth).forEach((row) => {
+            if (accountIds.has(row.id)) nextMonth.accountOpeningBalances[row.id] = Number(row.balance) || 0;
+          });
+        }
         saveState();
         render();
       }
@@ -2731,7 +2759,13 @@
         }
         if (accountRow && target.dataset.accountField) {
           const row = accountRows().find((item) => item.id === accountRow.dataset.accountId);
-          if (row) row[target.dataset.accountField] = target.dataset.accountField === "openingBalance" ? (target.value.trim() === "" ? 0 : parseAmount(target.value)) : target.value;
+          if (row) {
+            if (target.dataset.accountField === "openingBalance") {
+              setOpeningBalance(accountRow.dataset.accountId, target.value);
+            } else {
+              row[target.dataset.accountField] = target.value;
+            }
+          }
         }
         if (allocationRow && target.dataset.allocationField) {
           activeMonth().accountAllocations[allocationRow.dataset.allocationAccountId] = target.value.trim() === "" ? "" : parseAmount(target.value);
@@ -2778,7 +2812,13 @@
         const actualRow = event.target.closest("[data-actual-id]");
         if (accountRow && event.target.dataset.accountField) {
           const row = accountRows().find((item) => item.id === accountRow.dataset.accountId);
-          if (row) row[event.target.dataset.accountField] = event.target.dataset.accountField === "openingBalance" ? (event.target.value.trim() === "" ? 0 : parseAmount(event.target.value)) : event.target.value;
+          if (row) {
+            if (event.target.dataset.accountField === "openingBalance") {
+              setOpeningBalance(accountRow.dataset.accountId, event.target.value);
+            } else {
+              row[event.target.dataset.accountField] = event.target.value;
+            }
+          }
           saveState();
         }
         if (templateRow && event.target.dataset.templateField === "accountId") {
@@ -2842,6 +2882,7 @@
         if (removeAccount) {
           state.accounts = state.accounts.filter((row) => row.id !== removeAccount);
           for (const month of Object.values(state.months)) {
+            if (month.accountOpeningBalances) delete month.accountOpeningBalances[removeAccount];
             delete month.accountAllocations[removeAccount];
             for (const [key, value] of Object.entries(month.expenseSources || {})) {
               if (value === removeAccount) month.expenseSources[key] = "monthly";

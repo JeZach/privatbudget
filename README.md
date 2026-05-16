@@ -17,7 +17,7 @@ Den här versionen av PrivEk är gjord för att publiceras på GitHub Pages och 
 - Sparmål med målbelopp, måldatum och prognos
 - Historik med återställning av tidigare budgetversioner
 - Tydligare översikt med utgiftsläge, sparande mot årsmål och AI-kommentar
-- Pengapåsar med ingående saldo, fördelning, sparande och kvarvarande utrymme
+- Pengapåsar med ingående saldo, fördelning, sparande, kvarvarande utrymme och saldo som förs vidare när en månad stängs
 
 ## 1. Skapa Supabase-projekt
 
@@ -123,6 +123,7 @@ Exempel att säga i ChatGPT: "Lägg till ett köp: Jag handlade en smörgås på
 - **Utgifter** registreras som faktiskt utfall per månad mot budgetmallen.
 - **Sparande** har egen plan och eget månadsutfall.
 - Inkomster i en månad används som tillgång för nästa månads utgifter och sparande.
+- När en månad stängs förs kvarvarande saldo i varje pengapåse över som nästa månads ingående saldo.
 
 För en mer privat familjeapp kan du stänga av öppen registrering i Supabase och skapa/bjuda in användare därifrån.
 
