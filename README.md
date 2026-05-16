@@ -1,6 +1,6 @@
-# Privatbudget för GitHub Pages + Supabase
+# PrivEk för GitHub Pages + Supabase
 
-Den här versionen är gjord för att publiceras på GitHub Pages och använda Supabase för inloggning och gemensam datalagring.
+Den här versionen av PrivEk är gjord för att publiceras på GitHub Pages och använda Supabase för inloggning och gemensam datalagring.
 
 ## Vad som ingår
 

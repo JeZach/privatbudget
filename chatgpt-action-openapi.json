@@ -1,7 +1,7 @@
 {
   "openapi": "3.1.0",
   "info": {
-    "title": "Privatbudget köp",
+    "title": "PrivEk köp",
     "version": "1.0.0"
   },
   "servers": [
@@ -14,7 +14,7 @@
       "post": {
         "operationId": "addPurchaseForApproval",
         "summary": "Lägg till ett köp i budgetens godkännandekö",
-        "description": "Tolkar ett svenskt köp och lägger det i Godkänn köp i Privatbudget.",
+        "description": "Tolkar ett svenskt köp och lägger det i Godkänn köp i PrivEk.",
         "parameters": [
           {
             "name": "x-budget-action-key",

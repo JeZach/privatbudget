@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="96" fill="#10251d"/>
-  <rect x="96" y="96" width="320" height="320" rx="64" fill="#d8edba"/>
-  <text x="256" y="292" text-anchor="middle" font-family="Arial, sans-serif" font-size="112" font-weight="800" fill="#10251d">kr</text>
+  <rect width="512" height="512" rx="96" fill="#0D2D38"/>
+  <rect x="86" y="86" width="340" height="340" rx="64" fill="#EEF7F7"/>
+  <text x="256" y="296" text-anchor="middle" font-family="Geist, Arial, sans-serif" font-size="124" font-weight="800" fill="#00A1B0">PE</text>
 </svg>

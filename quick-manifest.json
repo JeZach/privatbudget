@@ -1,10 +1,10 @@
 {
-  "name": "Snabbköp",
-  "short_name": "Köp",
+  "name": "PrivEk Köp",
+  "short_name": "PrivEk",
   "start_url": "./quick.html",
   "display": "standalone",
-  "background_color": "#eef4f0",
-  "theme_color": "#10251d",
+  "background_color": "#EEF7F7",
+  "theme_color": "#0D2D38",
   "icons": [
     {
       "src": "icon.svg",
