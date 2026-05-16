@@ -1350,6 +1350,14 @@
             </article>
           </section>
 
+          <section class="panel month-control-panel">
+            <div class="panel-title">
+              <h3>Månadskontroll</h3>
+              <button class="copy-button" id="closeMonthButton" type="button">Stäng månad</button>
+            </div>
+            <div class="recent-list" id="monthControlRows"></div>
+          </section>
+
           <section class="panel bags-panel">
             <div class="panel-title">
               <h3>Pengapåsar</h3>
@@ -1617,10 +1625,15 @@
               <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end">
                 <button class="copy-button" id="aiReportButton" type="button">Sammanfatta månaden</button>
                 <button class="copy-button" id="exportReportButton" type="button">Exportera CSV</button>
+                <button class="copy-button" id="exportBackupButton" type="button">Backup JSON</button>
               </div>
             </div>
             <div class="report-text" id="monthlyReport"></div>
             <div class="recent-list" id="aiReportResult"></div>
+          </article>
+          <article class="panel">
+            <div class="panel-title"><h3>Återkommande förslag</h3><span>poster som ofta återkommer</span></div>
+            <div class="recent-list" id="recurringSuggestions"></div>
           </article>
           <article class="panel">
             <div class="panel-title"><h3>Att hålla koll på</h3><span>största avvikelser</span></div>
@@ -1733,6 +1746,9 @@
           expenseSources: {},
           savingActuals: {},
           purchases: [],
+          closed: false,
+          closedAt: "",
+          closedBy: "",
         };
       }
 
@@ -1820,6 +1836,9 @@
           expenseSources: normalizeSourceMap(month.expenseSources),
           savingActuals: normalizeActualMap(month.savingActuals),
           purchases: normalizePurchases(month.purchases || []),
+          closed: Boolean(month.closed),
+          closedAt: month.closedAt || "",
+          closedBy: month.closedBy || "",
         };
       }
 
@@ -2083,6 +2102,7 @@
         document.getElementById("incomeHelperText").textContent = `${monthLabels[currentMonth]}s inkomster blir tillgång för ${monthLabels[Math.min(currentMonth + 1, monthLabels.length - 1)]}.`;
         renderPage();
         renderSummary();
+        renderMonthControl();
         renderBagOverview();
         renderExpenseHealth();
         renderSavingsGoals();
@@ -2100,6 +2120,7 @@
         renderPurchaseInbox();
         renderCategoryRules();
         renderInsights();
+        renderRecurringSuggestions();
         renderHistory();
         renderUsers();
         updateAuthUi();
@@ -2137,6 +2158,48 @@
         document.getElementById("actualStatus").className = expenseLeft >= 0 ? "trend" : "trend risk";
         document.getElementById("varianceStatus").textContent = total.actualSavings > 0 ? "registrerat sparande" : "inget sparande registrerat";
         document.getElementById("varianceStatus").className = total.actualSavings > 0 ? "trend" : "trend risk";
+      }
+
+      function monthControl() {
+        const month = activeMonth();
+        const total = totals();
+        const bags = bagSummary();
+        const income = sumActuals(month.incomes);
+        const allocated = accountRows().reduce((sum, account) => sum + (Number(month.accountAllocations?.[account.id]) || 0), 0);
+        const allocationLeft = income - allocated;
+        const bagBalance = bags.reduce((sum, row) => sum + (Number(row.balance) || 0), 0);
+        const expenseLeft = total.budgetedExpenses - total.actualExpenses;
+        const savingsLeft = total.budgetedSavings - total.actualSavings;
+        const unbudgeted = unbudgetedPurchaseTotal(month);
+        const warnings = [];
+        if (allocationLeft !== 0) warnings.push(allocationLeft > 0 ? `${money(allocationLeft)} kvar att fördela.` : `${money(Math.abs(allocationLeft))} mer fördelat än registrerad inkomst.`);
+        if (expenseLeft < 0) warnings.push(`Utgifterna ligger ${money(Math.abs(expenseLeft))} över budget.`);
+        if (savingsLeft > 0) warnings.push(`${money(savingsLeft)} kvar till månadens sparplan.`);
+        if (unbudgeted > 0) warnings.push(`${money(unbudgeted)} finns som köp utan budgetpost.`);
+        if (!warnings.length) warnings.push("Månaden ser balanserad ut utifrån det som är registrerat.");
+        return { income, allocated, allocationLeft, bagBalance, expenseLeft, savingsLeft, unbudgeted, warnings };
+      }
+
+      function renderMonthControl() {
+        const node = document.getElementById("monthControlRows");
+        const button = document.getElementById("closeMonthButton");
+        if (!node || !button) return;
+        const month = activeMonth();
+        const control = monthControl();
+        button.textContent = month.closed ? "Öppna månad" : "Stäng månad";
+        const closedText = month.closed
+          ? `Stängd ${new Date(month.closedAt || Date.now()).toLocaleString("sv-SE", { dateStyle: "medium", timeStyle: "short" })}${month.closedBy ? ` av ${escapeHtml(month.closedBy)}` : ""}`
+          : "Månaden är öppen";
+        const rows = [
+          ["Inkomst att fördela", `${money(control.income)} - ${money(control.allocated)}`, control.allocationLeft, "Kvar efter fördelning"],
+          ["Kvar i pengapåsar", `fördelat, använt och sparat`, control.bagBalance, "Likviditet i månaden"],
+          ["Utgiftsläge", `${money(totals().budgetedExpenses)} - ${money(totals().actualExpenses)}`, control.expenseLeft, "Kvar mot budget"],
+          ["Sparläge", `${money(totals().budgetedSavings)} - ${money(totals().actualSavings)}`, control.savingsLeft, "Kvar till sparplan"],
+        ];
+        node.innerHTML = `
+          <div class="recent-item"><div><strong>${escapeHtml(closedText)}</strong><small>${control.warnings.map(escapeHtml).join(" ")}</small></div></div>
+          ${rows.map(([label, detail, value, hint]) => `<div class="recent-item"><div><strong>${label}</strong><small>${detail} · ${hint}</small></div><strong class="trend ${Number(value) < 0 ? "risk" : ""}">${money(value)}</strong></div>`).join("")}
+        `;
       }
 
       function renderBagOverview() {
@@ -2533,10 +2596,40 @@
           : `<div class="recent-item"><div><strong>Inga sparmål ännu</strong><small>Lägg till sparande för att få prognos.</small></div></div>`;
       }
 
+      function recurringSuggestions() {
+        if (currentMonth <= 0) return [];
+        const previousMonth = state.months[monthKeys[currentMonth - 1]];
+        const month = activeMonth();
+        return templateRows()
+          .filter((row) => row.name.trim())
+          .map((row) => {
+            const currentActual = actualFor(row, "expense", month);
+            const previousActual = actualFor(row, "expense", previousMonth);
+            const previousSource = previousMonth.expenseSources?.[row.id] || "monthly";
+            return { row, currentActual, previousActual, previousSource };
+          })
+          .filter((item) => item.currentActual <= 0 && item.previousActual > 0)
+          .slice(0, 6);
+      }
+
+      function renderRecurringSuggestions() {
+        const node = document.getElementById("recurringSuggestions");
+        if (!node) return;
+        const suggestions = recurringSuggestions();
+        node.innerHTML = suggestions.length
+          ? suggestions.map((item) => `<div class="recent-item">
+              <div><strong>${escapeHtml(item.row.name)}</strong><small>Fanns förra månaden med ${money(item.previousActual)}. Kan kopieras till ${monthLabels[currentMonth]}.</small></div>
+              <button class="copy-button" type="button" data-apply-recurring="${item.row.id}">Använd</button>
+            </div>`).join("")
+          : `<div class="recent-item"><div><strong>Inga förslag just nu</strong><small>När en post fanns föregående månad men saknas i aktuell månad visas den här.</small></div></div>`;
+      }
+
       function monthlyReportPayload() {
         return {
           month: monthLabels[currentMonth],
           totals: totals(),
+          monthControl: monthControl(),
+          bags: bagSummary(),
           rows: allRowsForFocus(),
           savings: accumulatedSavingsRows(),
           purchases: activeMonth().purchases,
@@ -2584,6 +2677,46 @@
         URL.revokeObjectURL(url);
       }
 
+      function downloadBlob(filename, content, type) {
+        const blob = new Blob([content], { type });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = filename;
+        link.click();
+        URL.revokeObjectURL(url);
+      }
+
+      function exportFullBackup() {
+        const backup = {
+          app: "PrivEk",
+          exportedAt: new Date().toISOString(),
+          activeMonth: monthKeys[currentMonth],
+          data: state,
+        };
+        downloadBlob(`privek-backup-${today()}.json`, JSON.stringify(backup, null, 2), "application/json;charset=utf-8");
+      }
+
+      function toggleMonthClosed() {
+        const month = activeMonth();
+        month.closed = !month.closed;
+        month.closedAt = month.closed ? new Date().toISOString() : "";
+        month.closedBy = month.closed ? (currentUser?.user_metadata?.name || currentUser?.email || "") : "";
+        saveState();
+        render();
+      }
+
+      function applyRecurringExpense(targetId) {
+        if (currentMonth <= 0) return;
+        const previousMonth = state.months[monthKeys[currentMonth - 1]];
+        const value = actualFor(templateRows().find((row) => row.id === targetId) || { id: targetId }, "expense", previousMonth);
+        if (value <= 0) return;
+        activeMonth().expenseActuals[targetId] = value;
+        activeMonth().expenseSources[targetId] = previousMonth.expenseSources?.[targetId] || "monthly";
+        saveState();
+        render();
+      }
+
       document.addEventListener("input", (event) => {
         const target = event.target;
         const incomeRow = target.closest("[data-income-id]");
@@ -2603,6 +2736,7 @@
           activeMonth().accountAllocations[allocationRow.dataset.allocationAccountId] = target.value.trim() === "" ? "" : parseAmount(target.value);
           renderIncomeAllocationSummary();
           renderSummary();
+          renderMonthControl();
           renderBagOverview();
           renderSavingsGoals();
           renderSavingsPie();
@@ -2630,6 +2764,7 @@
           if (actualRow.dataset.actualType === "expense") {
             renderExpenseTotals();
             renderSummary();
+            renderMonthControl();
             renderExpenseHealth();
           }
         }
@@ -2669,6 +2804,7 @@
         const rejectPurchase = event.target.closest("[data-reject-purchase]")?.dataset.rejectPurchase;
         const removeRule = event.target.closest("[data-remove-rule]")?.dataset.removeRule;
         const restoreHistory = event.target.closest("[data-restore-history]")?.dataset.restoreHistory;
+        const applyRecurring = event.target.closest("[data-apply-recurring]")?.dataset.applyRecurring;
         const expenseTab = event.target.closest("[data-expense-tab]")?.dataset.expenseTab;
         const budgetTab = event.target.closest("[data-budget-tab]")?.dataset.budgetTab;
         if (pageTarget && pages[pageTarget]) {
@@ -2759,6 +2895,9 @@
           await loadFromSupabase();
           await loadHistory();
           render();
+        }
+        if (applyRecurring) {
+          applyRecurringExpense(applyRecurring);
         }
       });
 
@@ -2866,6 +3005,8 @@
       });
 
       document.getElementById("exportReportButton").addEventListener("click", exportMonthlyCsv);
+      document.getElementById("exportBackupButton").addEventListener("click", exportFullBackup);
+      document.getElementById("closeMonthButton").addEventListener("click", toggleMonthClosed);
       document.getElementById("aiReportButton").addEventListener("click", summarizeMonthWithAi);
       document.getElementById("overviewAiButton").addEventListener("click", summarizeMonthWithAi);
 
