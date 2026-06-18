@@ -1,16 +1,16 @@
 {
-  "name": "PrivEk",
+  "name": "PrivEk Enkel Budget",
   "short_name": "PrivEk",
-  "start_url": "./index.html#overview",
+  "start_url": ".",
   "display": "standalone",
-  "background_color": "#EEF7F7",
-  "theme_color": "#0D2D38",
+  "background_color": "#eef7f7",
+  "theme_color": "#0d2d38",
   "icons": [
     {
       "src": "icon.svg",
       "sizes": "any",
       "type": "image/svg+xml",
-      "purpose": "any maskable"
+      "purpose": "any"
     }
   ]
 }

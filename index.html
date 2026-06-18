@@ -3,36 +3,29 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#0D2D38" />
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; form-action 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; connect-src 'self' https://*.supabase.co; img-src 'self' data: blob:; font-src 'self' data:; manifest-src 'self'; worker-src 'self'; upgrade-insecure-requests" />
-    <meta name="referrer" content="strict-origin-when-cross-origin" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-title" content="PrivEk" />
-    <title>PrivEk</title>
+    <meta name="theme-color" content="#0d2d38" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; base-uri 'none'; object-src 'none'; form-action 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; connect-src 'self' https://*.supabase.co; img-src 'self' data:; font-src 'self' data:; upgrade-insecure-requests"
+    />
+    <title>PrivEk Enkel Budget</title>
     <link rel="manifest" href="manifest.json" />
     <link rel="icon" href="icon.svg" type="image/svg+xml" />
     <style>
       :root {
         color-scheme: light;
         --ink: #0d2d38;
-        --muted: #63747b;
-        --line: #cfd6d8;
+        --muted: #60747b;
+        --line: #cfdbde;
         --paper: #eef7f7;
         --panel: #ffffff;
         --deep: #0d2d38;
-        --green: #00a1b0;
-        --mint: #9ed0c4;
-        --blue: #80cbd1;
-        --amber: #bd7b16;
-        --rose: #b83b5e;
+        --aqua: #00a1b0;
+        --good: #0f8b62;
+        --bad: #b83b5e;
         --soft: #d9ebed;
-        --snow: #eef7f7;
-        --frost: #d9ebed;
-        --aqua: #bbe1e3;
-        --harbor: #245c66;
-        --sand: #ede4da;
-        --shadow: 0 16px 40px rgba(13, 45, 56, 0.08);
-        font-family: Geist, Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        --shadow: 0 14px 34px rgba(13, 45, 56, 0.08);
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       }
 
       * {
@@ -46,8 +39,7 @@
       }
 
       button,
-      input,
-      select {
+      input {
         font: inherit;
       }
 
@@ -57,17 +49,25 @@
 
       .app {
         min-height: 100vh;
-        display: grid;
-        grid-template-columns: 280px 1fr;
       }
 
-      aside {
+      header {
         background: var(--deep);
         color: #eef7f7;
-        padding: 28px 22px;
+        padding: 22px clamp(16px, 4vw, 34px);
+      }
+
+      .topbar,
+      main {
+        width: min(1180px, 100%);
+        margin: 0 auto;
+      }
+
+      .topbar {
         display: flex;
-        flex-direction: column;
-        gap: 26px;
+        justify-content: space-between;
+        align-items: center;
+        gap: 18px;
       }
 
       .brand {
@@ -80,3278 +80,696 @@
         width: 42px;
         height: 42px;
         border-radius: 8px;
-        background: var(--deep);
         display: grid;
         place-items: center;
-        color: var(--blue);
+        background: #eef7f7;
+        color: var(--deep);
         font-weight: 850;
       }
 
-      .brand h1 {
+      h1,
+      h2,
+      h3,
+      p {
         margin: 0;
-        font-size: 18px;
-        line-height: 1.15;
       }
 
-      .wordmark {
-        letter-spacing: 0;
+      h1 {
+        font-size: 21px;
       }
 
-      .wordmark-accent {
-        color: var(--blue);
-      }
-
-      .brand p,
-      .nav-label,
-      .small {
-        margin: 0;
-        color: rgba(238, 247, 247, 0.68);
-        font-size: 13px;
-      }
-
-      nav,
-      .save-card {
-        display: grid;
-        gap: 8px;
-      }
-
-      .nav-item,
-      .side-action {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        border: 1px solid transparent;
-        background: transparent;
-        color: inherit;
-        width: 100%;
-        min-height: 42px;
-        padding: 10px 12px;
-        border-radius: 8px;
-        text-align: left;
-      }
-
-      .nav-item.active,
-      .nav-item:hover,
-      .side-action:hover {
-        background: rgba(255, 255, 255, 0.1);
-        border-color: rgba(255, 255, 255, 0.12);
-      }
-
-      .icon {
-        width: 20px;
-        height: 20px;
-        display: inline-grid;
-        place-items: center;
-        flex: 0 0 auto;
-      }
-
-      .save-card {
-        margin-top: auto;
-        border: 1px solid rgba(255, 255, 255, 0.16);
-        border-radius: 8px;
-        padding: 14px;
-        background: rgba(255, 255, 255, 0.06);
+      .subtle {
+        color: rgba(238, 247, 247, 0.72);
+        font-size: 14px;
       }
 
       main {
-        padding: 28px;
+        padding: 26px clamp(16px, 4vw, 34px) 38px;
         display: grid;
-        gap: 22px;
-        align-content: start;
+        gap: 18px;
       }
 
-      header {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
-        gap: 16px;
-      }
-
-      .title h2 {
-        margin: 0;
-        font-size: clamp(28px, 4vw, 42px);
-        letter-spacing: 0;
-      }
-
-      .title p {
-        margin: 8px 0 0;
-        color: var(--muted);
-        max-width: 680px;
-      }
-
-      .period {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        background: var(--panel);
-        border: 1px solid var(--line);
-        border-radius: 8px;
-        padding: 8px;
-        box-shadow: 0 8px 22px rgba(13, 45, 56, 0.05);
-      }
-
-      .period button,
-      .icon-button {
-        border: 0;
-        background: transparent;
-        min-width: 38px;
-        height: 34px;
-        border-radius: 8px;
-      }
-
-      .period button:hover,
-      .icon-button:hover {
-        background: var(--soft);
-      }
-
-      .period strong {
-        min-width: 128px;
-        text-align: center;
-      }
-
-      .summary {
-        display: grid;
-        grid-template-columns: repeat(12, minmax(0, 1fr));
-        gap: 14px;
-      }
-
-      .metric,
-      .panel {
+      .toolbar,
+      .summary,
+      .panel,
+      .auth {
         background: var(--panel);
         border: 1px solid var(--line);
         border-radius: 8px;
         box-shadow: var(--shadow);
       }
 
-      .metric {
-        padding: 20px;
-        min-height: 154px;
+      .toolbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        padding: 14px;
+      }
+
+      .month-control,
+      .actions,
+      .auth-actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+
+      .month-label {
+        min-width: 140px;
+        text-align: center;
+        font-weight: 800;
+      }
+
+      .summary {
         display: grid;
-        align-content: space-between;
-        position: relative;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 1px;
         overflow: hidden;
       }
 
-      .metric::before {
-        content: "";
-        position: absolute;
-        inset: 0 0 auto;
-        height: 5px;
-        background: var(--accent, var(--green));
+      .metric {
+        padding: 20px;
+        background: #fff;
+        display: grid;
+        gap: 8px;
       }
 
-      .metric:nth-child(1) {
-        grid-column: span 3;
-        --accent: var(--green);
-      }
-
-      .metric:nth-child(2) {
-        grid-column: span 3;
-        --accent: var(--amber);
-      }
-
-      .metric:nth-child(3) {
-        grid-column: span 3;
-        --accent: var(--blue);
-      }
-
-      .metric:nth-child(4) {
-        grid-column: span 3;
-        --accent: var(--rose);
-      }
-
-      .metric span,
-      .panel-title span,
-      th,
-      label,
-      .field-label {
+      .metric span {
         color: var(--muted);
-        font-size: 13px;
+        font-size: 14px;
         font-weight: 700;
       }
 
       .metric strong {
-        display: block;
-        font-size: clamp(24px, 3vw, 34px);
-        margin-top: 8px;
+        font-size: clamp(26px, 4vw, 40px);
+        letter-spacing: 0;
       }
 
-      .trend {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        color: var(--green);
-        font-weight: 750;
-        font-size: 13px;
+      .metric.good strong {
+        color: var(--good);
       }
 
-      .trend.warn {
-        color: var(--amber);
+      .metric.bad strong {
+        color: var(--bad);
       }
 
-      .trend.risk {
-        color: var(--rose);
-      }
-
-      .metric-breakdown {
+      .grid {
         display: grid;
-        gap: 5px;
-        color: var(--muted);
-        font-size: 13px;
-        font-weight: 750;
-      }
-
-      .metric-breakdown div {
-        display: flex;
-        justify-content: space-between;
-        gap: 10px;
-      }
-
-      .page {
-        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 18px;
-      }
-
-      .page[data-page="overview"] {
-        grid-template-columns: repeat(12, minmax(0, 1fr));
-      }
-
-      .page[data-page="overview"] .summary {
-        grid-column: 1 / -1;
-      }
-
-      .page[data-page="overview"] .panel {
-        grid-column: 1 / -1;
-      }
-
-      .page[data-page="overview"] .savings-pie-panel {
-        grid-column: span 5;
-      }
-
-      .page[data-page="overview"] .deviation-panel {
-        grid-column: span 7;
-      }
-
-      .page[data-page="overview"] .expense-health-panel,
-      .page[data-page="overview"] .overview-ai-panel {
-        grid-column: span 7;
-      }
-
-      .page[data-page="overview"] .savings-target-panel {
-        grid-column: span 5;
-      }
-
-      .page[hidden] {
-        display: none;
-      }
-
-      .trend-layout {
-        display: grid;
-        grid-template-columns: repeat(12, minmax(0, 1fr));
-        gap: 18px;
-        align-items: start;
-      }
-
-      .trend-layout .panel:first-child {
-        grid-column: span 8;
-      }
-
-      .trend-layout .panel:last-child {
-        grid-column: span 4;
-      }
-
-      .insight-grid {
-        display: grid;
-        grid-template-columns: repeat(12, minmax(0, 1fr));
-        gap: 18px;
-        align-items: start;
-      }
-
-      .insight-grid .panel {
-        grid-column: span 6;
-      }
-
-      .insight-grid .panel:first-child {
-        grid-column: 1 / -1;
-      }
-
-      .report-text {
-        display: grid;
-        gap: 10px;
-        margin: 0;
-      }
-
-      .report-text p {
-        margin: 0;
-        color: var(--muted);
-        line-height: 1.5;
-      }
-
-      .status-grid {
-        display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 10px;
-      }
-
-      .status-tile {
-        border: 1px solid var(--line);
-        border-radius: 8px;
-        padding: 12px;
-        background: var(--snow);
-        display: grid;
-        gap: 6px;
-      }
-
-      .status-tile span {
-        color: var(--muted);
-        font-size: 12px;
-        font-weight: 800;
-      }
-
-      .status-tile strong {
-        font-size: 22px;
-      }
-
-      .progress-block {
-        display: grid;
-        gap: 10px;
-      }
-
-      .progress-row {
-        display: grid;
-        grid-template-columns: minmax(0, 1fr) auto;
-        gap: 12px;
-        align-items: center;
-      }
-
-      .progress-row strong {
-        min-width: 0;
-      }
-
-      .progress-bar {
-        grid-column: 1 / -1;
-        height: 12px;
-        background: var(--soft);
-        border-radius: 999px;
-        overflow: hidden;
-      }
-
-      .progress-bar i {
-        display: block;
-        width: min(100%, var(--progress, 0%));
-        height: 100%;
-        border-radius: inherit;
-        background: linear-gradient(90deg, var(--green), var(--blue));
       }
 
       .panel {
-        padding: 20px;
-        min-width: 0;
-      }
-
-      .panel-title {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 12px;
-        margin-bottom: 16px;
-      }
-
-      .panel-title h3 {
-        margin: 0;
-        font-size: 18px;
-      }
-
-      .editor {
+        padding: 18px;
         display: grid;
-        grid-template-columns: repeat(12, minmax(0, 1fr));
-        gap: 16px;
-      }
-
-      .editor > .panel-title {
-        grid-column: 1 / -1;
-      }
-
-      .editor > section {
-        grid-column: span 6;
-        background: var(--snow);
-        border: 1px solid var(--line);
-        border-radius: 8px;
-        padding: 16px;
-      }
-
-      .editor > section:first-of-type {
-        grid-column: 1 / -1;
-      }
-
-      [data-page="budget"] .budget-tab-panel {
-        grid-column: 1 / -1;
-      }
-
-      [data-page="expenses"] .expense-tab-panel {
-        grid-column: 1 / -1;
-      }
-
-      .section-head {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 12px;
-        margin-bottom: 10px;
-      }
-
-      .section-head h4 {
-        margin: 0;
-        font-size: 15px;
-      }
-
-      .add-button,
-      .copy-button {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-        min-height: 36px;
-        border: 1px solid var(--line);
-        border-radius: 8px;
-        background: var(--panel);
-        color: var(--ink);
-        font-weight: 750;
-        padding: 0 12px;
-      }
-
-      .add-button:hover,
-      .copy-button:hover {
-        background: var(--soft);
-      }
-
-      .entry-list {
-        display: grid;
-        gap: 8px;
-      }
-
-      .expense-tabs {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 8px;
-        grid-column: 1 / -1;
-      }
-
-      .budget-tabs {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 8px;
-        grid-column: 1 / -1;
-      }
-
-      .expense-tab {
-        min-height: 44px;
-        border: 1px solid var(--line);
-        border-radius: 8px;
-        background: var(--snow);
-        color: var(--muted);
-        font-weight: 850;
-      }
-
-      .expense-tab.active {
-        background: var(--ink);
-        border-color: var(--ink);
-        color: #fff;
-      }
-
-      .budget-tab {
-        min-height: 44px;
-        border: 1px solid var(--line);
-        border-radius: 8px;
-        background: var(--snow);
-        color: var(--muted);
-        font-weight: 850;
-      }
-
-      .budget-tab.active {
-        background: var(--ink);
-        border-color: var(--ink);
-        color: #fff;
-      }
-
-      .expense-tab-panel {
-        grid-column: 1 / -1;
-      }
-
-      .expense-tab-panel[hidden] {
-        display: none;
-      }
-
-      .budget-tab-panel {
-        grid-column: 1 / -1;
-      }
-
-      .budget-tab-panel[hidden] {
-        display: none;
-      }
-
-      .entry-heading,
-      .entry-row {
-        display: grid;
-        grid-template-columns: minmax(140px, 1fr) minmax(100px, 140px) minmax(100px, 140px) minmax(100px, 140px) 38px;
-        gap: 8px;
-        align-items: center;
-      }
-
-      [data-page="savings-plan"] .savings-plan-row {
-        grid-template-columns: minmax(160px, 1fr) minmax(100px, 140px) minmax(100px, 140px) minmax(130px, 150px) minmax(120px, 170px) 38px;
-      }
-
-      [data-page="savings-plan"] .savings-plan-heading {
-        grid-template-columns: minmax(160px, 1fr) minmax(100px, 140px) minmax(100px, 140px) minmax(130px, 150px) minmax(120px, 170px) 38px;
-        padding-right: 0;
-      }
-
-      [data-page="savings-actual"] .savings-actual-row {
-        grid-template-columns: minmax(160px, 1fr) minmax(100px, 140px) minmax(100px, 140px) minmax(100px, 140px);
-      }
-
-      [data-page="savings-actual"] .savings-actual-heading {
-        grid-template-columns: minmax(160px, 1fr) minmax(100px, 140px) minmax(100px, 140px) minmax(100px, 140px);
-        padding-right: 0;
-      }
-
-      [data-page="accounts"] .account-row,
-      [data-page="income"] .account-allocation-row {
-        grid-template-columns: minmax(160px, 1fr) minmax(100px, 140px) minmax(100px, 140px) 38px;
-      }
-
-      [data-page="accounts"] .account-heading,
-      [data-page="income"] .account-allocation-heading {
-        grid-template-columns: minmax(160px, 1fr) minmax(100px, 140px) minmax(100px, 140px) 38px;
-        padding-right: 0;
-      }
-
-      .entry-row.sortable-row {
-        grid-template-columns: 34px minmax(140px, 1fr) minmax(100px, 140px) minmax(100px, 140px) minmax(120px, 170px) minmax(100px, 140px);
-      }
-
-      .entry-row.budget-template-row {
-        grid-template-columns: 34px minmax(140px, 1fr) minmax(100px, 140px) minmax(100px, 140px) 38px;
-      }
-
-      .entry-heading.budget-template-heading {
-        grid-template-columns: 34px minmax(140px, 1fr) minmax(100px, 140px) minmax(100px, 140px) 38px;
-        padding-right: 0;
-      }
-
-      .entry-row.dragging {
-        opacity: 0.45;
-      }
-
-      .entry-row.drag-over {
-        box-shadow: inset 0 2px 0 var(--green);
-      }
-
-      .drag-handle {
-        width: 34px;
-        min-height: 42px;
-        border: 1px solid var(--line);
-        border-radius: 8px;
-        background: var(--soft);
-        color: var(--muted);
-        cursor: grab;
-        font-weight: 900;
-      }
-
-      .drag-handle:active {
-        cursor: grabbing;
-      }
-
-      .section-total {
-        display: grid;
-        grid-template-columns: minmax(0, 1fr) repeat(3, minmax(140px, auto));
+        align-content: start;
         gap: 14px;
+      }
+
+      .panel-head {
+        display: flex;
         align-items: center;
-        grid-column: 1 / -1;
-        border: 1px solid var(--line);
-        border-radius: 8px;
-        background: var(--snow);
-        padding: 12px 16px;
-        color: var(--muted);
-        font-size: 13px;
-        font-weight: 800;
+        justify-content: space-between;
+        gap: 12px;
       }
 
-      .section-total strong {
-        color: var(--ink);
-        font-size: 15px;
+      .panel-head h2 {
+        font-size: 20px;
       }
 
-      .entry-heading {
-        color: var(--muted);
-        font-size: 12px;
-        font-weight: 800;
-        padding: 0 46px 0 2px;
+      .rows {
+        display: grid;
+        gap: 10px;
       }
 
-      .entry-heading.sortable-heading {
-        grid-template-columns: 34px minmax(140px, 1fr) minmax(100px, 140px) minmax(100px, 140px) minmax(120px, 170px) minmax(100px, 140px);
-        padding-right: 0;
+      .row {
+        display: grid;
+        grid-template-columns: minmax(120px, 1fr) minmax(110px, 150px) 38px;
+        gap: 8px;
+        align-items: center;
       }
 
-      input,
-      select {
+      input {
         width: 100%;
-        min-height: 42px;
         border: 1px solid var(--line);
         border-radius: 8px;
-        background: var(--snow);
+        padding: 10px 11px;
+        background: #fff;
         color: var(--ink);
-        padding: 10px 12px;
       }
 
-      .line-field {
-        display: grid;
-        gap: 5px;
-      }
-
-      .line-field span {
-        display: none;
-        color: var(--muted);
-        font-size: 12px;
-        font-weight: 800;
-      }
-
-      input:focus,
-      select:focus {
-        outline: 2px solid rgba(0, 161, 176, 0.18);
-        border-color: rgba(0, 161, 176, 0.55);
-      }
-
-      .quick-form {
-        display: grid;
-        grid-template-columns: repeat(6, minmax(0, 1fr));
-        gap: 10px;
-      }
-
-      .quick-form label {
-        display: grid;
-        gap: 6px;
-      }
-
-      .quick-form label:nth-child(1),
-      .quick-form label:nth-child(3) {
-        grid-column: span 2;
-      }
-
-      .quick-form label:nth-child(2),
-      .quick-form label:nth-child(4) {
-        grid-column: span 4;
-      }
-
-      .quick-form button {
-        grid-column: 1 / -1;
-      }
-
-      [data-page="users"] #userForm,
-      [data-page="users"] #userList {
-        grid-column: 1 / -1;
-      }
-
-      [data-page="users"] #userForm {
-        grid-template-columns: minmax(180px, 1.2fr) minmax(260px, 2fr) minmax(150px, 0.8fr) auto;
-        align-items: end;
-      }
-
-      [data-page="users"] #userForm label:nth-child(n),
-      [data-page="users"] #userForm button {
-        grid-column: auto;
-      }
-
-      [data-page="users"] #userForm button {
-        min-height: 42px;
-        white-space: nowrap;
-      }
-
-      .allocation-summary {
-        display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 8px;
-        margin: 8px 0 14px;
-      }
-
-      .allocation-summary div {
-        border: 1px solid var(--line);
-        border-radius: 8px;
-        background: var(--snow);
-        padding: 12px;
-      }
-
-      .allocation-summary span {
-        display: block;
-        color: var(--muted);
-        font-size: 12px;
-        font-weight: 800;
-      }
-
-      .allocation-summary strong {
-        display: block;
-        margin-top: 5px;
-        font-size: 18px;
-      }
-
-      .recent-list {
-        display: grid;
-        gap: 8px;
-        margin-top: 16px;
-      }
-
-      .recent-item {
-        display: grid;
-        grid-template-columns: minmax(0, 1fr) auto;
-        gap: 8px;
-        align-items: center;
-        border: 1px solid var(--line);
-        border-radius: 8px;
-        padding: 10px 12px;
-        background: var(--snow);
-      }
-
-      .recent-item small {
-        display: block;
-        color: var(--muted);
-        margin-top: 2px;
-      }
-
-      .savings-chart-layout {
-        display: grid;
-        grid-template-columns: minmax(160px, 220px) minmax(0, 1fr);
-        gap: 18px;
-        align-items: center;
-      }
-
-      .pie-wrap {
-        position: relative;
-        display: grid;
-        place-items: center;
-      }
-
-      .pie-chart {
-        width: min(220px, 100%);
-        aspect-ratio: 1;
-        border-radius: 50%;
-        background: conic-gradient(var(--soft) 0deg 360deg);
-        display: grid;
-        place-items: center;
-        box-shadow: inset 0 0 0 1px var(--line);
-      }
-
-      .pie-chart::before {
-        content: "";
-        width: 54%;
-        aspect-ratio: 1;
-        border-radius: 50%;
-        background: var(--panel);
-        box-shadow: 0 0 0 1px var(--line);
-      }
-
-      .pie-total {
-        position: absolute;
-        text-align: center;
-        display: grid;
-        gap: 2px;
-      }
-
-      .pie-total strong {
-        font-size: 18px;
-      }
-
-      .pie-total span {
-        color: var(--muted);
-        font-size: 12px;
-        font-weight: 800;
-      }
-
-      .savings-legend {
-        display: grid;
-        gap: 8px;
-      }
-
-      .legend-row {
-        display: grid;
-        grid-template-columns: 12px minmax(0, 1fr) auto;
-        gap: 10px;
-        align-items: center;
-        border-bottom: 1px solid var(--line);
-        padding: 8px 0;
-      }
-
-      .legend-row i {
-        width: 12px;
-        height: 12px;
-        border-radius: 50%;
-        background: var(--color);
-      }
-
-      .legend-row strong,
-      .legend-row span {
-        min-width: 0;
+      input:focus {
+        outline: 3px solid rgba(0, 161, 176, 0.18);
+        border-color: var(--aqua);
       }
 
       .money {
         text-align: right;
       }
 
-      .variance {
-        min-height: 42px;
-        display: flex;
-        align-items: center;
-        justify-content: flex-end;
-        border-radius: 8px;
-        background: var(--soft);
-        color: var(--muted);
-        font-weight: 800;
-        padding: 0 10px;
-      }
-
-      .variance.good {
-        background: var(--mint);
-        color: var(--green);
-      }
-
-      .variance.bad {
-        background: #f7dde6;
-        color: var(--rose);
-      }
-
-      .variance.missing {
-        color: var(--muted);
-        font-size: 12px;
-        justify-content: center;
-      }
-
-      .helper-text {
-        margin: -4px 0 12px;
-        color: var(--muted);
-      }
-
-      .auth-screen {
-        position: fixed;
-        inset: 0;
-        z-index: 20;
-        display: grid;
-        place-items: center;
-        padding: 20px;
-        background: rgba(13, 45, 56, 0.74);
-      }
-
-      .auth-screen[hidden] {
-        display: none !important;
-      }
-
-      .auth-screen.auth-hidden {
-        display: none !important;
-        pointer-events: none !important;
-        visibility: hidden !important;
-      }
-
-      .auth-card {
-        width: min(440px, 100%);
-        background: var(--panel);
+      button {
         border: 1px solid var(--line);
+        background: #fff;
+        color: var(--ink);
         border-radius: 8px;
-        padding: 24px;
-        box-shadow: var(--shadow);
+        min-height: 38px;
+        padding: 9px 12px;
+        font-weight: 700;
       }
 
-      .auth-card h2 {
-        margin: 0 0 8px;
+      button:hover {
+        background: var(--soft);
       }
 
-      .auth-card p {
-        color: var(--muted);
-        margin: 0 0 16px;
+      .primary {
+        background: var(--deep);
+        color: #fff;
+        border-color: var(--deep);
       }
 
-      .auth-card form {
-        display: grid;
-        gap: 12px;
+      .primary:hover {
+        background: #174653;
       }
 
-      .auth-card label {
-        display: grid;
-        gap: 6px;
-        color: var(--muted);
-        font-size: 13px;
-        font-weight: 800;
-      }
-
-      .auth-card [hidden] {
-        display: none !important;
-      }
-
-      .auth-error {
-        min-height: 22px;
-        border-radius: 8px;
-        color: var(--rose);
-        font-weight: 800;
-        line-height: 1.35;
+      .icon-button {
         padding: 0;
+        width: 38px;
       }
 
-      .auth-error:not(:empty) {
-        background: #f7dde6;
-        border: 1px solid #ebc2cf;
-        padding: 10px 12px;
+      .danger {
+        color: var(--bad);
       }
 
-      .auth-actions {
-        display: grid;
-        grid-template-columns: 1fr auto;
-        gap: 10px;
-      }
-
-      .user-pill {
-        margin: 0;
-        color: rgba(238, 247, 247, 0.72);
-        font-size: 13px;
-        line-height: 1.35;
-      }
-
-      .bars {
-        height: 280px;
-        display: grid;
-        grid-template-columns: repeat(12, minmax(32px, 1fr));
-        align-items: end;
-        gap: 10px;
-        padding-top: 12px;
-      }
-
-      .bar {
-        display: grid;
-        gap: 8px;
-        justify-items: center;
-      }
-
-      .bar i {
-        width: 100%;
-        min-height: 10px;
-        height: var(--height);
-        background: linear-gradient(180deg, var(--blue), var(--green));
-        border-radius: 6px 6px 3px 3px;
-      }
-
-      .bar.negative i {
-        background: linear-gradient(180deg, #d86f83, var(--rose));
-      }
-
-      .bar span {
+      .status {
         color: var(--muted);
-        font-size: 12px;
-        text-align: center;
+        font-size: 14px;
       }
 
-      .category-list {
+      .auth {
+        padding: 18px;
         display: grid;
         gap: 14px;
       }
 
-      .category {
+      .auth-grid {
         display: grid;
-        gap: 8px;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+        gap: 10px;
       }
 
-      .category-head {
-        display: flex;
-        justify-content: space-between;
-        gap: 12px;
-        font-size: 14px;
+      .hidden {
+        display: none !important;
       }
 
-      .track {
-        height: 10px;
-        background: var(--frost);
-        border-radius: 999px;
-        overflow: hidden;
-      }
-
-      .fill {
-        width: var(--width);
-        height: 100%;
-        background: var(--color, var(--green));
-      }
-
-      table {
-        width: 100%;
-        border-collapse: collapse;
-      }
-
-      th,
-      td {
-        text-align: left;
-        padding: 12px 8px;
-        border-bottom: 1px solid var(--line);
-        font-size: 14px;
-      }
-
-      td:last-child,
-      th:last-child {
-        text-align: right;
-      }
-
-      .status {
-        display: inline-flex;
-        align-items: center;
-        min-height: 26px;
-        padding: 4px 9px;
-        border-radius: 999px;
-        font-size: 12px;
-        font-weight: 800;
-      }
-
-      .ok {
-        background: var(--mint);
-        color: var(--green);
-      }
-
-      .watch {
-        background: var(--sand);
-        color: var(--amber);
-      }
-
-      .risk-badge {
-        background: #f7dde6;
-        color: var(--rose);
-      }
-
-      .stack {
-        display: grid;
-        gap: 18px;
-      }
-
-      @media (max-width: 1080px) {
-        .summary {
-          grid-template-columns: 1fr 1fr;
-        }
-
-        .metric:nth-child(n) {
-          grid-column: auto;
-        }
-
-        .trend-layout,
-        .insight-grid {
+      @media (max-width: 820px) {
+        .topbar,
+        .toolbar,
+        .grid,
+        .auth-grid {
           grid-template-columns: 1fr;
+          display: grid;
         }
 
-        .editor {
-          grid-template-columns: 1fr;
-        }
-
-        .trend-layout .panel:first-child,
-        .trend-layout .panel:last-child,
-        .insight-grid .panel,
-        .insight-grid .panel:first-child,
-        .page[data-page="overview"] .savings-pie-panel,
-        .page[data-page="overview"] .deviation-panel,
-        .page[data-page="overview"] .expense-health-panel,
-        .page[data-page="overview"] .savings-target-panel,
-        .page[data-page="overview"] .overview-ai-panel,
-        .editor > section,
-        .editor > section:first-of-type {
-          grid-column: auto;
-        }
-      }
-
-      @media (max-width: 860px) {
-        .app {
-          grid-template-columns: 1fr;
-        }
-
-        aside {
-          position: sticky;
-          top: 0;
-          z-index: 2;
-          padding: 16px;
-        }
-
-        nav {
-          grid-template-columns: repeat(3, minmax(0, 1fr));
-        }
-
-        .save-card {
-          display: none;
-        }
-
-        header {
-          flex-direction: column;
-        }
-
-      }
-
-      @media (max-width: 640px) {
-        main {
-          padding: 18px;
-        }
-
-        nav {
-          display: flex;
-          overflow-x: auto;
-        }
-
-        .nav-item {
-          white-space: nowrap;
-        }
-
-        .entry-row {
-          grid-template-columns: 1fr;
-          border: 1px solid var(--line);
-          border-radius: 8px;
-          padding: 10px;
-        }
-
-        .entry-row.sortable-row {
-          grid-template-columns: 34px 1fr;
-        }
-
-        .entry-row.budget-template-row {
-          grid-template-columns: 34px 1fr;
-        }
-
-        .entry-row.sortable-row .variance,
-        .entry-row.sortable-row .line-field,
-        .entry-row.budget-template-row .line-field,
-        .entry-row.budget-template-row .icon-button {
-          grid-column: 2;
-        }
-
-        .drag-handle {
-          grid-row: 1 / span 4;
-          align-self: stretch;
-        }
-
-        .entry-heading {
-          display: none;
-        }
-
-        .line-field span {
-          display: block;
-        }
-
-        .quick-form,
-        .quick-form label:nth-child(n) {
-          grid-template-columns: 1fr;
-          grid-column: auto;
-        }
-
-        .savings-chart-layout {
-          grid-template-columns: 1fr;
-          justify-items: center;
-        }
-
-        [data-page="users"] #userForm,
-        [data-page="users"] #userList,
-        [data-page="users"] #userForm label:nth-child(n),
-        [data-page="users"] #userForm button {
-          grid-column: 1 / -1;
-        }
-
-        .bars {
-          overflow-x: auto;
-          grid-template-columns: repeat(12, 46px);
-        }
-      }
-
-      @media (max-width: 480px) {
         .summary {
           grid-template-columns: 1fr;
         }
 
-        .status-grid {
+        .row {
           grid-template-columns: 1fr;
         }
 
-        .section-total {
-          grid-template-columns: 1fr;
-          gap: 4px;
+        .icon-button {
+          width: 100%;
+        }
+
+        .month-label {
+          min-width: 0;
         }
       }
     </style>
   </head>
   <body>
     <div class="app">
-      <aside>
-        <div class="brand">
-          <div class="mark">PE</div>
-          <div>
-            <h1 class="wordmark">Priv<span class="wordmark-accent">Ek</span></h1>
-            <p>Privatekonomisk puls</p>
+      <header>
+        <div class="topbar">
+          <div class="brand">
+            <div class="mark">PE</div>
+            <div>
+              <h1>PrivEk Enkel Budget</h1>
+              <p class="subtle">Inkomster, fasta kostnader och vad som är kvar.</p>
+            </div>
+          </div>
+          <div class="auth-actions">
+            <span class="subtle" id="userStatus">Inte inloggad</span>
+            <button id="logoutButton" class="hidden" type="button">Logga ut</button>
           </div>
         </div>
-
-        <nav aria-label="Vyval">
-          <button class="nav-item active" data-page-target="overview" type="button"><span class="icon">⌂</span>Översikt</button>
-          <button class="nav-item" data-page-target="purchases" type="button"><span class="icon">＋</span>Köp</button>
-          <button class="nav-item" data-page-target="inbox" type="button"><span class="icon">✓</span>Godkänn</button>
-          <button class="nav-item" data-page-target="income" type="button"><span class="icon">＋</span>Inkomster</button>
-          <button class="nav-item" data-page-target="accounts" type="button"><span class="icon">▤</span>Fördelning</button>
-          <button class="nav-item" data-page-target="budget" type="button"><span class="icon">✎</span>Budgetmall</button>
-          <button class="nav-item" data-page-target="expenses" type="button"><span class="icon">−</span>Utgifter</button>
-          <button class="nav-item" data-page-target="savings-plan" type="button"><span class="icon">◇</span>Sparplan</button>
-          <button class="nav-item" data-page-target="savings-actual" type="button"><span class="icon">＋</span>Månadssparande</button>
-          <button class="nav-item" data-page-target="users" type="button"><span class="icon">☉</span>Användare</button>
-          <button class="nav-item" data-page-target="trend" type="button"><span class="icon">↗</span>Trend</button>
-          <button class="nav-item" data-page-target="insights" type="button"><span class="icon">▣</span>Rapport</button>
-          <button class="nav-item" data-page-target="history" type="button"><span class="icon">↺</span>Historik</button>
-        </nav>
-
-        <div class="save-card">
-          <p class="nav-label">Sparstatus</p>
-          <p class="small" id="saveStatus">Autosparar i den här webbläsaren.</p>
-          <p class="user-pill" id="userStatus">Inte inloggad</p>
-          <button class="side-action" id="logoutButton" type="button"><span class="icon">⇥</span>Logga ut</button>
-          <button class="side-action" id="resetActualsButton" type="button"><span class="icon">↺</span>Nollställ utfall</button>
-        </div>
-      </aside>
+      </header>
 
       <main>
-        <header>
-          <div class="title">
-            <h2 id="pageTitle">Ekonomisk puls</h2>
-            <p id="pageIntro">Budgeten är en gemensam mall. Utfallet registreras per månad och jämförs mot mallen.</p>
+        <section class="auth" id="authPanel">
+          <div>
+            <h2>Logga in</h2>
+            <p class="status">Använd samma konto som i den skarpa webbversionen.</p>
           </div>
-          <div class="period" aria-label="Välj period">
+          <form class="auth-grid" id="authForm">
+            <input id="emailInput" autocomplete="email" type="email" placeholder="E-post" required />
+            <input id="passwordInput" autocomplete="current-password" type="password" placeholder="Lösenord" required />
+            <button class="primary" type="submit">Logga in</button>
+          </form>
+          <p class="status" id="authMessage"></p>
+        </section>
+
+        <section class="toolbar">
+          <div class="month-control">
             <button id="previousMonth" type="button" aria-label="Föregående månad">‹</button>
-            <strong id="periodLabel">Maj 2027</strong>
+            <strong class="month-label" id="monthLabel"></strong>
             <button id="nextMonth" type="button" aria-label="Nästa månad">›</button>
           </div>
-        </header>
+          <div class="actions">
+            <button id="copyPrevious" type="button">Kopiera föregående månad</button>
+            <button id="lockMonth" type="button">Markera klar</button>
+          </div>
+          <p class="status" id="saveStatus">Läser data...</p>
+        </section>
 
-        <section class="page active" data-page="overview">
-          <section class="summary" aria-label="Sammanfattning">
-            <article class="metric">
-              <span>Inkomst att fördela</span>
-              <strong id="availableValue">0 kr</strong>
-              <small class="trend" id="availableSourceText">månadens registrerade inkomster</small>
-            </article>
-            <article class="metric">
-              <span>Kvar i pengapåsar</span>
-              <strong id="budgetedOutgoValue">0 kr</strong>
-              <div class="metric-breakdown">
-                <div><span>Fördelat</span><b id="budgetedFixedValue">0 kr</b></div>
-                <div><span>Använt</span><b id="budgetedVariableValue">0 kr</b></div>
-                <div><span>Sparat</span><b id="budgetedSavingsValue">0 kr</b></div>
-              </div>
-            </article>
-            <article class="metric">
-              <span>Budgetläge</span>
-              <strong id="actualLeftValue">0 kr</strong>
-              <small class="trend" id="actualStatus">kvar mot utgiftsbudget</small>
-            </article>
-            <article class="metric">
-              <span>Sparande denna månad</span>
-              <strong id="varianceValue">0 kr</strong>
-              <small class="trend" id="varianceStatus">registrerat sparande</small>
-            </article>
+        <section class="summary" aria-label="Sammanfattning">
+          <div class="metric">
+            <span>Inkomster</span>
+            <strong id="incomeTotal">0 kr</strong>
+          </div>
+          <div class="metric">
+            <span>Fasta kostnader</span>
+            <strong id="costTotal">0 kr</strong>
+          </div>
+          <div class="metric" id="leftMetric">
+            <span>Kvar</span>
+            <strong id="leftTotal">0 kr</strong>
+          </div>
+        </section>
+
+        <section class="grid">
+          <section class="panel">
+            <div class="panel-head">
+              <h2>Inkomster</h2>
+              <button id="addIncome" type="button">+ Lägg till</button>
+            </div>
+            <div class="rows" id="incomeRows"></div>
           </section>
 
-          <section class="panel month-control-panel">
-            <div class="panel-title">
-              <h3>Månadskontroll</h3>
-              <button class="copy-button" id="closeMonthButton" type="button">Stäng månad</button>
+          <section class="panel">
+            <div class="panel-head">
+              <h2>Fasta kostnader</h2>
+              <button id="addCost" type="button">+ Lägg till</button>
             </div>
-            <div class="recent-list" id="monthControlRows"></div>
+            <div class="rows" id="costRows"></div>
           </section>
-
-          <section class="panel bags-panel">
-            <div class="panel-title">
-              <h3>Pengapåsar</h3>
-              <span>fördelat, använt, sparat och kvar</span>
-            </div>
-            <div class="recent-list" id="bagOverviewRows"></div>
-          </section>
-
-          <section class="panel expense-health-panel">
-            <div class="panel-title">
-              <h3>Utgiftsläge</h3>
-              <span>budget, utfall och kvar att använda</span>
-            </div>
-            <div class="status-grid">
-              <div class="status-tile"><span>Utgiftsbudget</span><strong id="expenseBudgetValue">0 kr</strong></div>
-              <div class="status-tile"><span>Utfall hittills</span><strong id="expenseActualValue">0 kr</strong></div>
-              <div class="status-tile"><span>Kvar/över</span><strong id="expenseLeftValue">0 kr</strong></div>
-            </div>
-            <div class="recent-list" id="expenseHealthRows"></div>
-          </section>
-
-          <section class="panel savings-target-panel">
-            <div class="panel-title">
-              <h3>Sparande mot mål</h3>
-              <span>ackumulerat jämfört med mål</span>
-            </div>
-            <div class="status-grid">
-              <div class="status-tile"><span>Ackumulerat</span><strong id="savingsAccumulatedValue">0 kr</strong></div>
-              <div class="status-tile"><span>Slutmål/årsplan</span><strong id="savingsYearGoalValue">0 kr</strong></div>
-              <div class="status-tile"><span>Uppnått</span><strong id="savingsGoalPercentValue">0%</strong></div>
-            </div>
-            <div class="recent-list" id="savingsGoalRows"></div>
-          </section>
-
-          <section class="panel savings-pie-panel">
-            <div class="panel-title">
-              <h3>Ackumulerat sparande</h3>
-              <span>per sparpost fram till vald månad</span>
-            </div>
-            <div class="savings-chart-layout">
-              <div class="pie-wrap">
-                <div class="pie-chart" id="savingsPieChart" aria-label="Ackumulerat sparande per post"></div>
-                <div class="pie-total"><strong id="savingsPieTotal">0 kr</strong><span>sparat</span></div>
-              </div>
-              <div class="savings-legend" id="savingsPieLegend"></div>
-            </div>
-          </section>
-
-          <section class="panel deviation-panel">
-            <div class="panel-title">
-              <h3>Avvikelser</h3>
-              <span>månadens största skillnader</span>
-            </div>
-            <table>
-              <thead>
-                <tr><th>Område</th><th>Budget</th><th>Utfall</th><th>Avvikelse</th></tr>
-              </thead>
-              <tbody id="focusRows"></tbody>
-            </table>
-          </section>
-
-          <section class="panel overview-ai-panel">
-            <div class="panel-title">
-              <h3>AI-kommentar</h3>
-              <button class="copy-button" id="overviewAiButton" type="button">Analysera läget</button>
-            </div>
-            <div class="recent-list" id="overviewAiResult"></div>
-          </section>
-
-        </section>
-
-        <section class="page" data-page="purchases" hidden>
-          <section class="panel quick-panel">
-            <div class="panel-title">
-              <h3>Snabbregistrera köp</h3>
-              <span>lägg direkt på månadens utfall</span>
-            </div>
-            <form class="quick-form" id="purchaseForm">
-              <label>Datum <input id="purchaseDate" type="date" /></label>
-              <label>Beskrivning <input id="purchaseDescription" placeholder="Till exempel ICA, apotek, SL" /></label>
-              <label>Belopp <input class="money" id="purchaseAmount" inputmode="numeric" placeholder="0" /></label>
-              <label>Budgetpost <select id="purchaseCategory"></select></label>
-              <label>Betalas från <select id="purchaseSource"></select></label>
-              <button class="add-button" type="submit">+ Lägg till köp</button>
-            </form>
-            <div class="recent-list" id="recentPurchases"></div>
-          </section>
-        </section>
-
-        <section class="page" data-page="inbox" hidden>
-          <article class="panel">
-            <div class="panel-title">
-              <h3>Att godkänna</h3>
-              <span>snabbköp från mobil och AI</span>
-            </div>
-            <div class="recent-list" id="purchaseInbox"></div>
-          </article>
-          <article class="panel">
-            <div class="panel-title">
-              <h3>Kategoriregler</h3>
-              <span>hjälper AI att välja rätt post</span>
-            </div>
-            <form class="quick-form" id="categoryRuleForm">
-              <label>Text att känna igen <input id="rulePattern" placeholder="Till exempel ICA Maxi" /></label>
-              <label>Budgetpost <select id="ruleTarget"></select></label>
-              <button class="add-button" type="submit">+ Lägg till regel</button>
-            </form>
-            <div class="recent-list" id="categoryRules"></div>
-          </article>
-        </section>
-
-        <section class="page" data-page="income" hidden>
-          <article class="panel editor">
-            <div class="panel-title">
-              <h3>Inkomster</h3>
-              <span id="incomeContext">registreras och fördelas per månad</span>
-            </div>
-            <section>
-              <div class="section-head">
-                <h4>Månadens löner och intäkter</h4>
-                <button class="add-button" data-add-income type="button">+ Lägg till</button>
-              </div>
-              <p class="helper-text" id="incomeHelperText">Maj 2027s inkomster används som tillgång för Juni 2027.</p>
-              <div class="entry-heading"><span>Post</span><span></span><span>Utfall</span><span></span></div>
-              <div class="entry-list" id="incomeRows"></div>
-            </section>
-            <section>
-              <div class="section-head"><h4>Fördela inkomsten</h4><span class="small">räknas ned medan du fyller i</span></div>
-              <div class="allocation-summary">
-                <div><span>Inkomst att fördela</span><strong id="incomeAllocationTotal">0 kr</strong></div>
-                <div><span>Fördelat</span><strong id="incomeAllocationAllocated">0 kr</strong></div>
-                <div><span>Kvar att fördela</span><strong id="incomeAllocationRemaining">0 kr</strong></div>
-              </div>
-              <div class="entry-heading account-allocation-heading"><span>Pengapåse</span><span>Typ</span><span>Belopp</span><span></span></div>
-              <div class="entry-list" id="incomeAllocationRows"></div>
-            </section>
-          </article>
-        </section>
-
-        <section class="page" data-page="accounts" hidden>
-          <article class="panel editor">
-            <div class="panel-title">
-              <h3>Fördelning</h3>
-              <span>räkningar, kassabuffert och sparande</span>
-            </div>
-            <section>
-              <div class="section-head"><h4>Pengapåsar</h4><button class="add-button" data-add-account type="button">+ Lägg till</button></div>
-              <p class="helper-text">Ingående saldo är pengarna som redan finns i påsen när ni börjar använda PrivEk. När en månad stängs förs kvarvarande saldo vidare till nästa månads ingående saldo.</p>
-              <div class="entry-heading account-heading"><span>Pengapåse</span><span>Typ</span><span>Ingående saldo</span><span></span></div>
-              <div class="entry-list" id="accountRows"></div>
-            </section>
-            <section>
-              <div class="section-head"><h4>Fördelningsläge</h4><span class="small">vald månad</span></div>
-              <div class="recent-list" id="accountOverviewRows"></div>
-            </section>
-          </article>
-        </section>
-
-        <section class="page" data-page="budget" hidden>
-          <article class="panel editor">
-            <div class="panel-title">
-              <h3>Budgetmall</h3>
-              <span>sätts en gång och används varje månad</span>
-            </div>
-            <div class="budget-tabs" role="tablist" aria-label="Välj budgettyp">
-              <button class="budget-tab" data-budget-tab="fixedCosts" type="button">Fasta utgifter</button>
-              <button class="budget-tab" data-budget-tab="variableCosts" type="button">Rörliga utgifter</button>
-            </div>
-            <div class="section-total" id="budgetActiveTotal"></div>
-            <section class="budget-tab-panel" data-budget-panel="fixedCosts">
-              <div class="section-head"><h4>Fasta utgifter</h4><button class="add-button" data-add-template="fixedCosts" type="button">+ Lägg till</button></div>
-              <div class="entry-heading budget-template-heading"><span></span><span>Post</span><span>Budget/mån</span><span>Budget/år</span><span></span></div>
-              <div class="entry-list" id="fixedBudgetRows"></div>
-            </section>
-            <section class="budget-tab-panel" data-budget-panel="variableCosts">
-              <div class="section-head"><h4>Rörliga utgifter</h4><button class="add-button" data-add-template="variableCosts" type="button">+ Lägg till</button></div>
-              <div class="entry-heading budget-template-heading"><span></span><span>Post</span><span>Budget/mån</span><span>Budget/år</span><span></span></div>
-              <div class="entry-list" id="variableBudgetRows"></div>
-            </section>
-          </article>
-        </section>
-
-        <section class="page" data-page="expenses" hidden>
-          <article class="panel editor">
-            <div class="panel-title">
-              <h3>Utgifter</h3>
-              <span>utfall för vald månad</span>
-            </div>
-            <div class="expense-tabs" role="tablist" aria-label="Välj utgiftstyp">
-              <button class="expense-tab" data-expense-tab="fixedCosts" type="button">Fasta utgifter</button>
-              <button class="expense-tab" data-expense-tab="variableCosts" type="button">Rörliga utgifter</button>
-            </div>
-            <div class="section-total" id="expenseActiveTotal"></div>
-            <section class="expense-tab-panel" data-expense-panel="fixedCosts">
-              <div class="section-head"><h4>Fasta utgifter</h4><span class="small">från budgetmallen</span></div>
-              <div class="entry-heading sortable-heading"><span></span><span>Post</span><span>Budget/mån</span><span>Utfall</span><span>Betalas från</span><span>Avvikelse</span></div>
-              <div class="entry-list" id="fixedActualRows"></div>
-            </section>
-            <section class="expense-tab-panel" data-expense-panel="variableCosts">
-              <div class="section-head"><h4>Rörliga utgifter</h4><span class="small">från budgetmallen</span></div>
-              <div class="entry-heading sortable-heading"><span></span><span>Post</span><span>Budget/mån</span><span>Utfall</span><span>Betalas från</span><span>Avvikelse</span></div>
-              <div class="entry-list" id="variableActualRows"></div>
-            </section>
-          </article>
-        </section>
-
-        <section class="page" data-page="savings-plan" hidden>
-          <article class="panel editor">
-            <div class="panel-title">
-              <h3>Sparplan</h3>
-              <span>mål, plan och slutdatum</span>
-            </div>
-            <section>
-              <div class="section-head"><h4>Sparplan</h4><button class="add-button" data-add-template="savings" type="button">+ Lägg till</button></div>
-              <div class="entry-heading savings-plan-heading"><span>Sparmål</span><span>Plan/mån</span><span>Slutmål</span><span>Nås senast</span><span>Pengapåse</span><span></span></div>
-              <div class="entry-list" id="savingsPlanRows"></div>
-            </section>
-          </article>
-        </section>
-
-        <section class="page" data-page="savings-actual" hidden>
-          <article class="panel editor">
-            <div class="panel-title">
-              <h3>Månadssparande</h3>
-              <span>faktiskt sparande för vald månad</span>
-            </div>
-            <section>
-              <div class="section-head"><h4>Månadens sparande</h4><span class="small">registreras för vald månad</span></div>
-              <div class="entry-heading savings-actual-heading"><span>Sparmål</span><span>Plan/mån</span><span>Utfall</span><span>Avvikelse</span></div>
-              <div class="entry-list" id="savingsActualRows"></div>
-            </section>
-          </article>
-        </section>
-
-        <section class="page" data-page="users" hidden>
-          <article class="panel editor">
-            <div class="panel-title">
-              <h3>Användare</h3>
-              <span id="adminStatus">Endast admin kan lägga till användare</span>
-            </div>
-            <form class="quick-form" id="userForm">
-              <label>Namn <input id="newUserName" autocomplete="name" placeholder="Namn" /></label>
-              <label>E-post <input id="newUserEmail" type="email" autocomplete="email" placeholder="namn@example.com" /></label>
-              <label>Roll <select id="newUserRole"><option value="user">Användare</option><option value="admin">Admin</option></select></label>
-              <button class="add-button" type="submit">+ Lägg till användare</button>
-            </form>
-            <div class="recent-list" id="userList"></div>
-          </article>
-        </section>
-
-        <section class="page trend-layout" data-page="trend" hidden>
-          <article class="panel">
-            <div class="panel-title"><h3>Årsöversikt</h3><span>faktiskt kvar per månad</span></div>
-            <div class="bars" id="bars" aria-label="Faktiskt kvar per månad"></div>
-          </article>
-          <article class="panel">
-            <div class="panel-title"><h3>Kategorier</h3><span>största utfall</span></div>
-            <div class="category-list" id="categories"></div>
-          </article>
-        </section>
-
-        <section class="page insight-grid" data-page="insights" hidden>
-          <article class="panel">
-            <div class="panel-title">
-              <h3>Månadsrapport</h3>
-              <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end">
-                <button class="copy-button" id="aiReportButton" type="button">Sammanfatta månaden</button>
-                <button class="copy-button" id="exportReportButton" type="button">Exportera CSV</button>
-                <button class="copy-button" id="exportBackupButton" type="button">Backup JSON</button>
-              </div>
-            </div>
-            <div class="report-text" id="monthlyReport"></div>
-            <div class="recent-list" id="aiReportResult"></div>
-          </article>
-          <article class="panel">
-            <div class="panel-title"><h3>Återkommande förslag</h3><span>poster som ofta återkommer</span></div>
-            <div class="recent-list" id="recurringSuggestions"></div>
-          </article>
-          <article class="panel">
-            <div class="panel-title"><h3>Att hålla koll på</h3><span>största avvikelser</span></div>
-            <div class="recent-list" id="insightAlerts"></div>
-          </article>
-          <article class="panel">
-            <div class="panel-title"><h3>Sparprognos</h3><span>ackumulerat mot plan</span></div>
-            <div class="recent-list" id="savingsForecast"></div>
-          </article>
-        </section>
-
-        <section class="page" data-page="history" hidden>
-          <article class="panel">
-            <div class="panel-title">
-              <h3>Historik</h3>
-              <span>återställ tidigare sparad version</span>
-            </div>
-            <div class="recent-list" id="historyList"></div>
-          </article>
         </section>
       </main>
     </div>
 
-    <section class="auth-screen" id="authScreen">
-      <div class="auth-card">
-        <h2 id="authTitle">Logga in</h2>
-        <p id="authIntro">Logga in för att använda den gemensamma budgeten på alla enheter.</p>
-        <form id="authForm">
-          <label id="authNameLabel" hidden style="display: none;">Namn <input id="authName" autocomplete="name" /></label>
-          <label>E-post <input id="authEmail" type="email" autocomplete="email" required /></label>
-          <label>Lösenord <input id="authPassword" type="password" autocomplete="current-password" minlength="8" required /></label>
-          <div class="auth-actions">
-            <button class="add-button" type="button" id="authSubmit">Logga in</button>
-            <button class="copy-button" type="button" id="authToggle">Skapa konto</button>
-          </div>
-          <div class="auth-error" id="authError"></div>
-        </form>
-      </div>
-    </section>
-
     <script src="config.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
-      const storageKey = "privateBudgetDashboard.v3";
-      const oldStorageKey = "privateBudgetDashboard.v2";
+      const storageKey = "privek.simpleBudget.v1";
       const budgetRowId = "main";
-      const monthLabels = ["Maj 2027", "Juni 2027", "Juli 2027", "Augusti 2027", "September 2027", "Oktober 2027", "November 2027", "December 2027", "Januari 2028", "Februari 2028", "Mars 2028", "April 2028"];
-      const monthKeys = ["maj-27", "jun-27", "jul-27", "aug-27", "sep-27", "okt-27", "nov-27", "dec-27", "jan-28", "feb-28", "mar-28", "apr-28"];
-      const oldMonthKeys = ["jun-26", "jul-26", "aug-26", "sep-26", "okt-26", "nov-26", "dec-26", "jan-27", "feb-27", "mar-27", "apr-27", "maj-27"];
-      const colors = ["#00a1b0", "#004b56", "#80cbd1", "#245c66", "#9ed0c4", "#63747b", "#ede4da"];
-      const pages = {
-        overview: { title: "Ekonomisk puls", intro: "Vald månads utfall jämförs mot budgetmallen och föregående månads inkomster." },
-        purchases: { title: "Köp", intro: "Registrera löpande köp direkt mot rätt budgetpost för vald månad." },
-        inbox: { title: "Godkänn köp", intro: "Kontrollera snabbköp innan de förs in i budgeten." },
-        income: { title: "Inkomster", intro: "Registrera faktisk lön och andra intäkter per månad. De blir tillgång för nästa månad." },
-        accounts: { title: "Fördelning", intro: "Fördela inkomsten till räkningar, kassabuffert och sparande. Lägg ingående saldo på pengapåsar som redan har pengar när ni börjar." },
-        budget: { title: "Budgetmall", intro: "Sätt standardbudget en gång. Den ligger sedan som grund för varje månads uppföljning." },
-        expenses: { title: "Utgifter", intro: "Fyll i månadens faktiska utgifter mot budgetmallen." },
-        "savings-plan": { title: "Sparplan", intro: "Planera sparmål, månadsplan och slutmål." },
-        "savings-actual": { title: "Månadssparande", intro: "Registrera faktiskt sparande för vald månad." },
-        users: { title: "Användare", intro: "Lägg till vilka som får använda budgeten och se vem som registrerat utlägg." },
-        trend: { title: "Trend", intro: "Följ faktiskt kvar per månad och vilka områden som väger tyngst." },
-        insights: { title: "Rapport", intro: "Månadens sammanfattning, varningssignaler och sparprognos." },
-        history: { title: "Historik", intro: "Se tidigare sparade versioner och återställ om något blivit fel." },
+      const supabaseConfig = window.PRIVEK_SUPABASE || window.PRIVATBUDGET_SUPABASE || {};
+      const hasSupabaseConfig = Boolean(supabaseConfig.url && supabaseConfig.anonKey);
+      const supabaseClient = hasSupabaseConfig && window.supabase ? window.supabase.createClient(supabaseConfig.url, supabaseConfig.anonKey) : null;
+      const monthFormatter = new Intl.DateTimeFormat("sv-SE", { month: "long", year: "numeric" });
+      const moneyFormatter = new Intl.NumberFormat("sv-SE", { style: "currency", currency: "SEK", maximumFractionDigits: 0 });
+
+      let currentUser = null;
+      let currentMonth = monthKey(new Date());
+      let saveTimer = null;
+      let state = loadLocalState();
+
+      const nodes = {
+        authPanel: document.getElementById("authPanel"),
+        authForm: document.getElementById("authForm"),
+        authMessage: document.getElementById("authMessage"),
+        emailInput: document.getElementById("emailInput"),
+        passwordInput: document.getElementById("passwordInput"),
+        userStatus: document.getElementById("userStatus"),
+        logoutButton: document.getElementById("logoutButton"),
+        monthLabel: document.getElementById("monthLabel"),
+        saveStatus: document.getElementById("saveStatus"),
+        incomeTotal: document.getElementById("incomeTotal"),
+        costTotal: document.getElementById("costTotal"),
+        leftTotal: document.getElementById("leftTotal"),
+        leftMetric: document.getElementById("leftMetric"),
+        incomeRows: document.getElementById("incomeRows"),
+        costRows: document.getElementById("costRows"),
       };
 
-      let currentMonth = 0;
-      let currentPage = location.hash.replace("#", "") || "overview";
-      if (currentPage === "savings") currentPage = "savings-plan";
-      if (!pages[currentPage]) currentPage = "overview";
-      let activeExpenseTab = "fixedCosts";
-      let activeBudgetTab = "fixedCosts";
-      let authMode = "login";
-      let currentUser = null;
-      let currentProfile = null;
-      let appUsers = [];
-      let purchaseInbox = [];
-      let categoryRules = [];
-      let historyRows = [];
-      let aiReport = null;
-      let saveTimer = null;
-
-      const supabaseConfig = window.PRIVATBUDGET_SUPABASE || {};
-      const hasSupabaseConfig = Boolean(supabaseConfig.url && supabaseConfig.anonKey && !supabaseConfig.url.includes("DIN-"));
-      const supabaseClient = hasSupabaseConfig && window.supabase ? window.supabase.createClient(supabaseConfig.url, supabaseConfig.anonKey) : null;
-      let state = loadState();
-
       function newId() {
-        return crypto.randomUUID();
+        return crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`;
       }
 
-      function templateEntry(name = "", amount = 0, targetAmount = 0, targetDate = "", annualAmount = null) {
-        const monthlyAmount = Number(amount) || 0;
-        return { id: newId(), name, amount: monthlyAmount, annualAmount: annualAmount === null ? monthlyAmount * 12 : Number(annualAmount) || 0, targetAmount: Number(targetAmount) || 0, targetDate: targetDate || "", accountId: "" };
+      function monthKey(date) {
+        return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
       }
 
-      function incomeEntry(name = "", actual = "") {
-        return { id: newId(), name, actual };
+      function dateFromMonthKey(key) {
+        const [year, month] = key.split("-").map(Number);
+        return new Date(year, month - 1, 1);
       }
 
-      function accountEntry(name = "", type = "kassa", openingBalance = 0) {
-        return { id: newId(), name, type, openingBalance: Number(openingBalance) || 0 };
+      function shiftMonth(key, delta) {
+        const date = dateFromMonthKey(key);
+        date.setMonth(date.getMonth() + delta);
+        return monthKey(date);
       }
 
       function blankMonth() {
         return {
-          incomes: [incomeEntry("Lön Jens"), incomeEntry("Lön Lena"), incomeEntry("Övrig intäkt")],
-          accountOpeningBalances: {},
-          accountAllocations: {},
-          expenseActuals: {},
-          expenseSources: {},
-          savingActuals: {},
-          purchases: [],
-          closed: false,
-          closedAt: "",
-          closedBy: "",
+          incomes: [
+            { id: newId(), name: "Lön", amount: 0 },
+            { id: newId(), name: "Övrig inkomst", amount: 0 },
+          ],
+          fixedCosts: [
+            { id: newId(), name: "Hyra", amount: 0 },
+            { id: newId(), name: "El", amount: 0 },
+            { id: newId(), name: "Försäkringar", amount: 0 },
+          ],
+          locked: false,
         };
       }
 
       function defaultState() {
         return {
-          version: 3,
-          budgetTemplate: {
-            fixedCosts: [templateEntry("Hyra"), templateEntry("El"), templateEntry("Försäkringar"), templateEntry("Telefon"), templateEntry("Lån")],
-            variableCosts: [templateEntry("Mat"), templateEntry("Resor"), templateEntry("Hälsa"), templateEntry("Nöje")],
-            savings: [templateEntry("Buffert"), templateEntry("Långsiktigt sparande")],
+          version: 4,
+          mode: "simple-fixed-budget",
+          months: {
+            [currentMonth]: blankMonth(),
           },
-          accounts: [
-            accountEntry("Betala räkningar", "kassa"),
-            accountEntry("Kassabuffert", "buffert"),
-            accountEntry("Kortsiktigt sparande", "sparande"),
-            accountEntry("Långsiktigt sparande", "sparande"),
-            accountEntry("Buffert sparande", "sparande"),
-          ],
-          months: Object.fromEntries(monthKeys.map((key) => [key, blankMonth()])),
         };
       }
 
-      function migrateOldState(oldState) {
-        const base = defaultState();
-        if (!oldState?.months) return base;
-        const source = oldState.months["maj-27"] || oldState.months[oldMonthKeys.find((key) => oldState.months[key])] || {};
-        if (source.fixedCosts?.length) base.budgetTemplate.fixedCosts = source.fixedCosts.map((row) => templateEntry(row.name || "", row.amount));
-        if (source.variableCosts?.length) {
-          const savingsNames = ["sparande", "buffert", "aktier", "fond", "fonder"];
-          base.budgetTemplate.variableCosts = source.variableCosts.filter((row) => !savingsNames.some((name) => String(row.name || "").toLowerCase().includes(name))).map((row) => templateEntry(row.name || "", row.amount));
-          const savings = source.variableCosts.filter((row) => savingsNames.some((name) => String(row.name || "").toLowerCase().includes(name)));
-          if (savings.length) base.budgetTemplate.savings = savings.map((row) => templateEntry(row.name || "", row.amount));
+      function loadLocalState() {
+        const saved = localStorage.getItem(storageKey);
+        if (!saved) return defaultState();
+        try {
+          return normalizeState(JSON.parse(saved));
+        } catch {
+          localStorage.removeItem(storageKey);
+          return defaultState();
         }
-        for (const key of monthKeys) {
-          const oldMonth = oldState.months[key];
-          if (!oldMonth) continue;
-          base.months[key].incomes = (oldMonth.incomes || []).map((row) => incomeEntry(row.name || "", row.actual === "" || row.actual === undefined ? row.amount || "" : row.actual));
-          base.months[key].purchases = normalizePurchases(oldMonth.purchases || []);
-        }
-        return base;
       }
 
       function normalizeState(value) {
-        if (!value?.budgetTemplate) return migrateOldState(value);
-        const next = defaultState();
-        next.budgetTemplate.fixedCosts = normalizeTemplate(value.budgetTemplate.fixedCosts, next.budgetTemplate.fixedCosts);
-        next.budgetTemplate.variableCosts = normalizeTemplate(value.budgetTemplate.variableCosts, next.budgetTemplate.variableCosts);
-        next.budgetTemplate.savings = normalizeTemplate(value.budgetTemplate.savings, next.budgetTemplate.savings);
-        next.accounts = normalizeAccounts(value.accounts, next.accounts, next.budgetTemplate.savings);
-        next.months = Object.fromEntries(monthKeys.map((key) => [key, normalizeMonth(value.months?.[key])]));
-        return next;
-      }
-
-      function normalizeTemplate(rows, fallback) {
-        const source = rows?.length ? rows : fallback;
-        return source.map((row) => {
-          const amount = Number(row.amount) || 0;
-          return { id: row.id || newId(), name: row.name || "", amount, annualAmount: row.annualAmount === "" || row.annualAmount === undefined ? amount * 12 : Number(row.annualAmount) || 0, targetAmount: Number(row.targetAmount) || 0, targetDate: row.targetDate || "", accountId: row.accountId || "" };
-        });
-      }
-
-      function normalizeAccounts(rows, fallback, savings = []) {
-        const source = rows?.length ? rows : fallback;
-        let accounts = source.map((row) => ({ id: row.id || newId(), name: row.name || "", type: row.type || "kassa", openingBalance: Number(row.openingBalance) || 0 }));
-        accounts = accounts.filter((account) => !/^lönekonto\b/i.test(account.name.trim()));
-        accounts.forEach((account) => {
-          if (account.name === "Buffertkonto löpande") account.name = "Kassabuffert";
-        });
-        for (const required of fallback) {
-          if (!accounts.some((account) => account.name.toLowerCase() === required.name.toLowerCase())) accounts.push(required);
+        if (value?.mode === "simple-fixed-budget") {
+          return {
+            version: 4,
+            mode: "simple-fixed-budget",
+            months: Object.fromEntries(Object.entries(value.months || {}).map(([key, month]) => [key, normalizeMonth(month)])),
+          };
         }
-        for (const saving of savings) {
-          if (saving.accountId || !saving.name) continue;
-          const match = accounts.find((account) => account.name.toLowerCase() === saving.name.toLowerCase());
-          if (match) saving.accountId = match.id;
-        }
-        return accounts;
+        return migrateLegacyState(value);
       }
 
       function normalizeMonth(month = {}) {
         return {
-          incomes: (month.incomes?.length ? month.incomes : blankMonth().incomes).map((row) => ({ id: row.id || newId(), name: row.name || "", actual: row.actual === "" || row.actual === undefined ? "" : Number(row.actual) || 0 })),
-          accountOpeningBalances: normalizeActualMap(month.accountOpeningBalances),
-          accountAllocations: normalizeActualMap(month.accountAllocations),
-          expenseActuals: normalizeActualMap(month.expenseActuals),
-          expenseSources: normalizeSourceMap(month.expenseSources),
-          savingActuals: normalizeActualMap(month.savingActuals),
-          purchases: normalizePurchases(month.purchases || []),
-          closed: Boolean(month.closed),
-          closedAt: month.closedAt || "",
-          closedBy: month.closedBy || "",
+          incomes: normalizeRows(month.incomes, "Inkomst"),
+          fixedCosts: normalizeRows(month.fixedCosts, "Fast kostnad"),
+          locked: Boolean(month.locked),
         };
       }
 
-      function normalizeActualMap(map = {}) {
-        return Object.fromEntries(Object.entries(map || {}).map(([key, value]) => [key, value === "" || value === undefined ? "" : Number(value) || 0]));
-      }
-
-      function normalizeSourceMap(map = {}) {
-        return Object.fromEntries(Object.entries(map || {}).map(([key, value]) => [key, String(value || "monthly")]));
-      }
-
-      function normalizePurchases(purchases) {
-        return purchases.map((purchase) => ({
-          id: purchase.id || newId(),
-          date: purchase.date || today(),
-          description: purchase.description || "",
-          amount: Number(purchase.amount) || 0,
-          targetId: purchase.targetId || "",
-          userId: purchase.userId || null,
-          userName: purchase.userName || "",
-          userEmail: purchase.userEmail || "",
-          sourceId: purchase.sourceId || "monthly",
+      function normalizeRows(rows, fallbackName) {
+        const source = Array.isArray(rows) ? rows : [];
+        return source.map((row) => ({
+          id: row.id || newId(),
+          name: String(row.name || fallbackName),
+          amount: Number(row.amount ?? row.actual ?? 0) || 0,
         }));
       }
 
-      function loadState() {
-        for (const key of [storageKey, oldStorageKey]) {
-          const saved = localStorage.getItem(key);
-          if (!saved) continue;
-          try {
-            return normalizeState(JSON.parse(saved));
-          } catch {
-            localStorage.removeItem(key);
-          }
+      function migrateLegacyState(value) {
+        const next = { version: 4, mode: "simple-fixed-budget", months: {} };
+        const oldMonths = value?.months || {};
+        const templateFixed = Array.isArray(value?.budgetTemplate?.fixedCosts) ? value.budgetTemplate.fixedCosts : [];
+        const legacyKeys = Object.keys(oldMonths);
+        const keys = legacyKeys.length ? legacyKeys : [currentMonth];
+
+        for (const key of keys) {
+          const oldMonth = oldMonths[key] || {};
+          next.months[convertLegacyMonthKey(key)] = {
+            incomes: normalizeRows(oldMonth.incomes, "Inkomst").map((row) => ({ ...row, amount: Number(row.actual ?? row.amount ?? 0) || 0 })),
+            fixedCosts: templateFixed.map((row) => ({
+              id: row.id || newId(),
+              name: String(row.name || "Fast kostnad"),
+              amount: Number(row.amount || 0) || 0,
+            })),
+            locked: Boolean(oldMonth.closed),
+          };
         }
-        return defaultState();
+        return next;
       }
 
-      function saveState() {
-        localStorage.setItem(storageKey, JSON.stringify(state));
-        document.getElementById("saveStatus").textContent = `Sparat ${new Date().toLocaleTimeString("sv-SE", { hour: "2-digit", minute: "2-digit" })}`;
-        queueServerSave();
-      }
-
-      function queueServerSave() {
-        if (!currentUser || !supabaseClient) return;
-        clearTimeout(saveTimer);
-        saveTimer = setTimeout(saveToSupabase, 500);
-      }
-
-      async function saveToSupabase() {
-        let { error } = await supabaseClient.rpc("save_budget_state", { p_data: state });
-        if (error) {
-          const fallback = await supabaseClient.from("budget_state").upsert({ id: budgetRowId, data: state, updated_by: currentUser.id, updated_at: new Date().toISOString() });
-          error = fallback.error;
-        }
-        document.getElementById("saveStatus").textContent = error ? "Sparat lokalt, kunde inte synka" : `Synkat ${new Date().toLocaleTimeString("sv-SE", { hour: "2-digit", minute: "2-digit" })}`;
+      function convertLegacyMonthKey(key) {
+        const legacy = {
+          "maj-27": "2027-05",
+          "jun-27": "2027-06",
+          "jul-27": "2027-07",
+          "aug-27": "2027-08",
+          "sep-27": "2027-09",
+          "okt-27": "2027-10",
+          "nov-27": "2027-11",
+          "dec-27": "2027-12",
+          "jan-28": "2028-01",
+          "feb-28": "2028-02",
+          "mar-28": "2028-03",
+          "apr-28": "2028-04",
+        };
+        return legacy[key] || (/^\d{4}-\d{2}$/.test(key) ? key : currentMonth);
       }
 
       function activeMonth() {
-        return state.months[monthKeys[currentMonth]];
+        if (!state.months[currentMonth]) {
+          state.months[currentMonth] = blankMonth();
+        }
+        return state.months[currentMonth];
       }
 
-      function incomeSourceIndex(index = currentMonth) {
-        return Math.max(0, index - 1);
-      }
-
-      function sourceIncome(index = currentMonth) {
-        return sumActuals(state.months[monthKeys[incomeSourceIndex(index)]].incomes);
-      }
-
-      function templateRows() {
-        return [...state.budgetTemplate.fixedCosts, ...state.budgetTemplate.variableCosts];
-      }
-
-      function savingsRows() {
-        return state.budgetTemplate.savings;
-      }
-
-      function accountRows() {
-        return state.accounts || [];
-      }
-
-      function sumBudget(rows) {
+      function sum(rows) {
         return rows.reduce((total, row) => total + (Number(row.amount) || 0), 0);
       }
 
-      function sumAnnualBudget(rows) {
-        return rows.reduce((total, row) => total + (Number(row.annualAmount) || (Number(row.amount) || 0) * 12), 0);
-      }
-
-      function sumActuals(rows) {
-        return rows.reduce((total, row) => total + (row.actual === "" || row.actual === undefined ? 0 : Number(row.actual) || 0), 0);
-      }
-
-      function purchaseTotal(targetId, month = activeMonth()) {
-        return month.purchases.reduce((total, purchase) => purchase.targetId === targetId ? total + (Number(purchase.amount) || 0) : total, 0);
-      }
-
-      function unbudgetedPurchaseTotal(month = activeMonth()) {
-        return month.purchases.reduce((total, purchase) => purchase.targetId ? total : total + (Number(purchase.amount) || 0), 0);
-      }
-
-      function expenseFromMonthlyCash(row, month = activeMonth()) {
-        const manual = month.expenseActuals[row.id] === "" || month.expenseActuals[row.id] === undefined ? 0 : Number(month.expenseActuals[row.id]) || 0;
-        const manualSource = month.expenseSources?.[row.id] || "monthly";
-        const manualCash = manualSource === "monthly" ? manual : 0;
-        const purchaseCash = month.purchases.reduce((total, purchase) => {
-          if (purchase.targetId !== row.id) return total;
-          return (purchase.sourceId || "monthly") === "monthly" ? total + (Number(purchase.amount) || 0) : total;
-        }, 0);
-        return manualCash + purchaseCash;
-      }
-
-      function actualFor(row, type, month = activeMonth()) {
-        const map = type === "savings" ? month.savingActuals : month.expenseActuals;
-        if (type === "savings") {
-          const allocation = savingsAllocationFor(row, month);
-          if (allocation !== null) return allocation;
-        }
-        const manual = map[row.id] === "" || map[row.id] === undefined ? 0 : Number(map[row.id]) || 0;
-        return type === "expense" ? manual + purchaseTotal(row.id, month) : manual;
-      }
-
-      function savingsAllocationFor(row, month = activeMonth()) {
-        if (!row.accountId) return null;
-        const value = month.accountAllocations?.[row.accountId];
-        if (value === "" || value === undefined) return null;
-        return Number(value) || 0;
-      }
-
-      function paymentAccounts() {
-        return [{ id: "monthly", name: "Kassabuffert" }, ...accountRows().filter((row) => String(row.name || "").trim()).map((row) => ({ id: row.id, name: row.name.trim() }))];
-      }
-
-      function accountOptions(selected = "monthly") {
-        const value = selected || "monthly";
-        const accounts = paymentAccounts();
-        const hasSelected = accounts.some((account) => account.id === value);
-        const rows = hasSelected ? accounts : [...accounts, { id: value, name: "Tidigare konto" }];
-        return rows.map((account) => `<option value="${escapeHtml(account.id)}"${account.id === value ? " selected" : ""}>${escapeHtml(account.name)}</option>`).join("");
-      }
-
-      function accountName(accountId) {
-        if (!accountId || accountId === "monthly") return "Kassabuffert";
-        return accountRows().find((account) => account.id === accountId)?.name || "Okänd pengapåse";
-      }
-
-      function accountTypeName(type) {
-        return ({ kassa: "Kassa", buffert: "Buffert", sparande: "Sparande" })[type] || "Kassa";
-      }
-
-      function openingBalanceFor(account, index = currentMonth) {
-        const month = state.months[monthKeys[index]];
-        const value = month?.accountOpeningBalances?.[account.id];
-        if (value !== "" && value !== undefined) return Number(value) || 0;
-        return Number(account.openingBalance) || 0;
-      }
-
-      function setOpeningBalance(accountId, value) {
-        const amount = value.trim() === "" ? "" : parseAmount(value);
-        activeMonth().accountOpeningBalances = activeMonth().accountOpeningBalances || {};
-        activeMonth().accountOpeningBalances[accountId] = amount;
-        if (currentMonth === 0) {
-          const account = accountRows().find((item) => item.id === accountId);
-          if (account) account.openingBalance = amount === "" ? 0 : amount;
-        }
-      }
-
-      function accountSummary(index = currentMonth) {
-        const month = state.months[monthKeys[index]];
-        return accountRows().map((account) => {
-          const openingBalance = openingBalanceFor(account, index);
-          const allocated = Number(month.accountAllocations?.[account.id]) || 0;
-          const budgetedExpenses = templateRows().reduce((sum, row) => {
-            const manual = month.expenseSources?.[row.id] === account.id ? Number(month.expenseActuals?.[row.id]) || 0 : 0;
-            const purchases = month.purchases.reduce((total, purchase) => purchase.targetId === row.id && purchase.sourceId === account.id ? total + (Number(purchase.amount) || 0) : total, 0);
-            return sum + manual + purchases;
-          }, 0);
-          const unbudgetedExpenses = month.purchases.reduce((sum, purchase) => !purchase.targetId && purchase.sourceId === account.id ? sum + (Number(purchase.amount) || 0) : sum, 0);
-          const expenses = budgetedExpenses + unbudgetedExpenses;
-          const savingsIn = savingsRows().reduce((sum, row) => row.accountId === account.id ? sum + actualFor(row, "savings", month) : sum, 0);
-          const extraSavingsIn = Math.max(0, savingsIn - allocated);
-          const balance = openingBalance + allocated + extraSavingsIn - expenses;
-          return { ...account, openingBalance, allocated, expenses, savingsIn, balance };
-        });
-      }
-
-      function bagSummary(index = currentMonth) {
-        const month = state.months[monthKeys[index]];
-        const rows = accountSummary(index).map((row) => ({ ...row }));
-        const monthlyManualExpenses = templateRows().reduce((sum, row) => {
-          const source = month.expenseSources?.[row.id] || "monthly";
-          if (source !== "monthly") return sum;
-          return sum + (month.expenseActuals?.[row.id] === "" || month.expenseActuals?.[row.id] === undefined ? 0 : Number(month.expenseActuals?.[row.id]) || 0);
-        }, 0);
-        const monthlyPurchaseExpenses = month.purchases.reduce((sum, purchase) => {
-          return (purchase.sourceId || "monthly") === "monthly" ? sum + (Number(purchase.amount) || 0) : sum;
-        }, 0);
-        const monthlyExpenses = monthlyManualExpenses + monthlyPurchaseExpenses;
-        const kassabuffert = rows.find((row) => row.name.trim().toLowerCase() === "kassabuffert");
-        if (kassabuffert) {
-          kassabuffert.expenses += monthlyExpenses;
-          kassabuffert.balance -= monthlyExpenses;
-        } else if (monthlyExpenses > 0) {
-          rows.unshift({
-            id: "monthly",
-            name: "Kassabuffert",
-            type: "buffert",
-            openingBalance: 0,
-            allocated: 0,
-            expenses: monthlyExpenses,
-            savingsIn: 0,
-            balance: -monthlyExpenses,
-          });
-        }
-        return rows;
-      }
-
-      function totals(index = currentMonth) {
-        const month = state.months[monthKeys[index]];
-        const budgetedExpenses = sumBudget(templateRows());
-        const budgetedSavings = sumBudget(savingsRows());
-        const actualExpenses = templateRows().reduce((total, row) => total + actualFor(row, "expense", month), 0) + unbudgetedPurchaseTotal(month);
-        const actualSavings = savingsRows().reduce((total, row) => total + actualFor(row, "savings", month), 0);
-        const available = sourceIncome(index);
-        const budgetedOutgo = budgetedExpenses + budgetedSavings;
-        const actualOutgo = actualExpenses + actualSavings;
-        return {
-          available,
-          budgetedExpenses,
-          budgetedSavings,
-          budgetedOutgo,
-          actualExpenses,
-          actualSavings,
-          actualOutgo,
-          plannedLeft: available - budgetedOutgo,
-          actualLeft: available - actualOutgo,
-          variance: budgetedOutgo - actualOutgo,
-        };
-      }
-
       function money(value) {
-        return new Intl.NumberFormat("sv-SE", { style: "currency", currency: "SEK", maximumFractionDigits: 0 }).format(Number(value) || 0);
+        return moneyFormatter.format(Number(value) || 0);
       }
 
       function parseAmount(value) {
-        return Number(String(value).replace(/\s/g, "").replace("kr", "").replace(",", ".").replace(/[^\d.-]/g, "")) || 0;
+        return Number(String(value).replace(/\s/g, "").replace(",", ".")) || 0;
+      }
+
+      function saveLocal() {
+        localStorage.setItem(storageKey, JSON.stringify(state));
+      }
+
+      function queueSave() {
+        saveLocal();
+        renderSummary();
+        if (!currentUser || !supabaseClient) {
+          nodes.saveStatus.textContent = "Sparad lokalt";
+          return;
+        }
+        nodes.saveStatus.textContent = "Sparar...";
+        clearTimeout(saveTimer);
+        saveTimer = setTimeout(saveRemote, 450);
+      }
+
+      async function saveRemote() {
+        const { error } = await supabaseClient.rpc("save_budget_state", { p_data: state });
+        if (error) {
+          nodes.saveStatus.textContent = "Kunde inte spara till Supabase.";
+          return;
+        }
+        nodes.saveStatus.textContent = "Sparad";
+      }
+
+      async function loadRemote() {
+        if (!currentUser || !supabaseClient) return;
+        nodes.saveStatus.textContent = "Läser från Supabase...";
+        const { data, error } = await supabaseClient.from("budget_state").select("data").eq("id", budgetRowId).maybeSingle();
+        if (error) {
+          nodes.saveStatus.textContent = "Kunde inte läsa från Supabase.";
+          return;
+        }
+        if (data?.data) {
+          state = normalizeState(data.data);
+          if (!state.months[currentMonth]) {
+            currentMonth = Object.keys(state.months).sort().at(-1) || currentMonth;
+          }
+          saveLocal();
+          await saveRemote();
+        }
+        nodes.saveStatus.textContent = "Sparad";
+        render();
+      }
+
+      function render() {
+        const date = dateFromMonthKey(currentMonth);
+        nodes.monthLabel.textContent = monthFormatter.format(date);
+        document.getElementById("lockMonth").textContent = activeMonth().locked ? "Öppna månad" : "Markera klar";
+        renderRows("incomes", nodes.incomeRows);
+        renderRows("fixedCosts", nodes.costRows);
+        renderSummary();
+      }
+
+      function renderSummary() {
+        const month = activeMonth();
+        const income = sum(month.incomes);
+        const cost = sum(month.fixedCosts);
+        const left = income - cost;
+        nodes.incomeTotal.textContent = money(income);
+        nodes.costTotal.textContent = money(cost);
+        nodes.leftTotal.textContent = money(left);
+        nodes.leftMetric.classList.toggle("good", left >= 0);
+        nodes.leftMetric.classList.toggle("bad", left < 0);
+      }
+
+      function renderRows(type, container) {
+        const rows = activeMonth()[type];
+        container.innerHTML = rows
+          .map(
+            (row) => `
+              <div class="row" data-type="${type}" data-id="${row.id}">
+                <input data-field="name" aria-label="Namn" value="${escapeHtml(row.name)}" placeholder="Namn" />
+                <input class="money" data-field="amount" aria-label="Belopp" value="${row.amount || ""}" inputmode="decimal" placeholder="0" />
+                <button class="icon-button danger" data-remove="${row.id}" type="button" aria-label="Ta bort">×</button>
+              </div>
+            `
+          )
+          .join("");
       }
 
       function escapeHtml(value) {
         return String(value).replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" })[char]);
       }
 
-      function today() {
-        return new Date().toISOString().slice(0, 10);
-      }
-
-      function monthEndDateFromIndex(index) {
-        const [monthName, yearText] = monthLabels[Math.min(Math.max(index, 0), monthLabels.length - 1)].split(" ");
-        const monthIndex = ["januari", "februari", "mars", "april", "maj", "juni", "juli", "augusti", "september", "oktober", "november", "december"].indexOf(monthName.toLowerCase());
-        const year = Number(yearText);
-        if (monthIndex < 0 || !year) return today();
-        return new Date(year, monthIndex + 1, 0).toISOString().slice(0, 10);
-      }
-
-      function automaticSavingsTargetDate(row, index = currentMonth) {
-        const monthlyPlan = Number(row.monthlyPlan ?? row.amount) || 0;
-        if (monthlyPlan <= 0) return "";
-        const actual = row.actual ?? monthKeys.slice(0, index + 1).reduce((total, key) => total + actualFor(row, "savings", state.months[key]), 0);
-        const target = Number(row.targetAmount) > 0 ? Number(row.targetAmount) : monthlyPlan * monthKeys.length;
-        const remaining = Math.max(0, target - actual);
-        const monthsNeeded = Math.max(1, Math.ceil(remaining / monthlyPlan));
-        return monthEndDateFromIndex(index + monthsNeeded - 1);
-      }
-
-      function render() {
-        document.getElementById("periodLabel").textContent = monthLabels[currentMonth];
-        document.getElementById("incomeHelperText").textContent = `${monthLabels[currentMonth]}s inkomster blir tillgång för ${monthLabels[Math.min(currentMonth + 1, monthLabels.length - 1)]}.`;
-        renderPage();
-        renderSummary();
-        renderMonthControl();
-        renderBagOverview();
-        renderExpenseHealth();
-        renderSavingsGoals();
-        renderIncomeRows();
-        renderAccountRows();
-        renderIncomeAllocations();
-        renderBudgetRows();
-        renderExpenseRows();
-        renderSavingsRows();
-        renderPurchaseForm();
-        renderFocus();
-        renderSavingsPie();
-        renderBars();
-        renderCategories();
-        renderPurchaseInbox();
-        renderCategoryRules();
-        renderInsights();
-        renderRecurringSuggestions();
-        renderHistory();
-        renderUsers();
-        updateAuthUi();
-      }
-
-      function renderPage() {
-        document.getElementById("pageTitle").textContent = pages[currentPage].title;
-        document.getElementById("pageIntro").textContent = pages[currentPage].intro;
-        document.querySelectorAll("[data-page]").forEach((page) => {
-          page.hidden = page.dataset.page !== currentPage;
-        });
-        document.querySelectorAll("[data-page-target]").forEach((button) => {
-          button.classList.toggle("active", button.dataset.pageTarget === currentPage);
-        });
-      }
-
-      function renderSummary() {
-        const total = totals();
-        const bags = bagSummary();
-        const incomeToDistribute = sumActuals(activeMonth().incomes);
-        const allocated = bags.reduce((sum, row) => sum + (Number(row.allocated) || 0), 0);
-        const used = bags.reduce((sum, row) => sum + (Number(row.expenses) || 0), 0);
-        const saved = bags.reduce((sum, row) => sum + (Number(row.savingsIn) || 0), 0);
-        const remaining = bags.reduce((sum, row) => sum + (Number(row.balance) || 0), 0);
-        const expenseLeft = total.budgetedExpenses - total.actualExpenses;
-        document.getElementById("availableValue").textContent = money(incomeToDistribute);
-        document.getElementById("availableSourceText").textContent = "månadens registrerade inkomster";
-        document.getElementById("budgetedOutgoValue").textContent = money(remaining);
-        document.getElementById("budgetedFixedValue").textContent = money(allocated);
-        document.getElementById("budgetedVariableValue").textContent = money(used);
-        document.getElementById("budgetedSavingsValue").textContent = money(saved);
-        document.getElementById("actualLeftValue").textContent = money(expenseLeft);
-        document.getElementById("varianceValue").textContent = money(total.actualSavings);
-        document.getElementById("actualStatus").textContent = expenseLeft >= 0 ? "kvar mot utgiftsbudget" : "över utgiftsbudget";
-        document.getElementById("actualStatus").className = expenseLeft >= 0 ? "trend" : "trend risk";
-        document.getElementById("varianceStatus").textContent = total.actualSavings > 0 ? "registrerat sparande" : "inget sparande registrerat";
-        document.getElementById("varianceStatus").className = total.actualSavings > 0 ? "trend" : "trend risk";
-      }
-
-      function monthControl() {
-        const month = activeMonth();
-        const total = totals();
-        const bags = bagSummary();
-        const income = sumActuals(month.incomes);
-        const allocated = accountRows().reduce((sum, account) => sum + (Number(month.accountAllocations?.[account.id]) || 0), 0);
-        const allocationLeft = income - allocated;
-        const bagBalance = bags.reduce((sum, row) => sum + (Number(row.balance) || 0), 0);
-        const expenseLeft = total.budgetedExpenses - total.actualExpenses;
-        const savingsLeft = total.budgetedSavings - total.actualSavings;
-        const unbudgeted = unbudgetedPurchaseTotal(month);
-        const warnings = [];
-        if (allocationLeft !== 0) warnings.push(allocationLeft > 0 ? `${money(allocationLeft)} kvar att fördela.` : `${money(Math.abs(allocationLeft))} mer fördelat än registrerad inkomst.`);
-        if (expenseLeft < 0) warnings.push(`Utgifterna ligger ${money(Math.abs(expenseLeft))} över budget.`);
-        if (savingsLeft > 0) warnings.push(`${money(savingsLeft)} kvar till månadens sparplan.`);
-        if (unbudgeted > 0) warnings.push(`${money(unbudgeted)} finns som köp utan budgetpost.`);
-        if (!warnings.length) warnings.push("Månaden ser balanserad ut utifrån det som är registrerat.");
-        return { income, allocated, allocationLeft, bagBalance, expenseLeft, savingsLeft, unbudgeted, warnings };
-      }
-
-      function renderMonthControl() {
-        const node = document.getElementById("monthControlRows");
-        const button = document.getElementById("closeMonthButton");
-        if (!node || !button) return;
-        const month = activeMonth();
-        const control = monthControl();
-        button.textContent = month.closed ? "Öppna månad" : "Stäng månad";
-        const closedText = month.closed
-          ? `Stängd ${new Date(month.closedAt || Date.now()).toLocaleString("sv-SE", { dateStyle: "medium", timeStyle: "short" })}${month.closedBy ? ` av ${escapeHtml(month.closedBy)}` : ""}`
-          : "Månaden är öppen";
-        const rows = [
-          ["Inkomst att fördela", `${money(control.income)} - ${money(control.allocated)}`, control.allocationLeft, "Kvar efter fördelning"],
-          ["Kvar i pengapåsar", `fördelat, använt och sparat`, control.bagBalance, "Likviditet i månaden"],
-          ["Utgiftsläge", `${money(totals().budgetedExpenses)} - ${money(totals().actualExpenses)}`, control.expenseLeft, "Kvar mot budget"],
-          ["Sparläge", `${money(totals().budgetedSavings)} - ${money(totals().actualSavings)}`, control.savingsLeft, "Kvar till sparplan"],
-        ];
-        node.innerHTML = `
-          <div class="recent-item"><div><strong>${escapeHtml(closedText)}</strong><small>${control.warnings.map(escapeHtml).join(" ")}</small></div></div>
-          ${rows.map(([label, detail, value, hint]) => `<div class="recent-item"><div><strong>${label}</strong><small>${detail} · ${hint}</small></div><strong class="trend ${Number(value) < 0 ? "risk" : ""}">${money(value)}</strong></div>`).join("")}
-        `;
-      }
-
-      function renderBagOverview() {
-        const node = document.getElementById("bagOverviewRows");
-        if (!node) return;
-        const rows = bagSummary().filter((row) => String(row.name || "").trim());
-        node.innerHTML = rows.length
-          ? rows.map((row) => {
-            const balance = Number(row.balance) || 0;
-            const balanceClass = balance >= 0 ? "trend" : "trend risk";
-            return `<div class="recent-item">
-              <div>
-                <strong>${escapeHtml(row.name)}</strong>
-                <small>${accountTypeName(row.type)} · ingående ${money(row.openingBalance)} · fördelat ${money(row.allocated)} · använt ${money(row.expenses)} · sparat ${money(row.savingsIn)}</small>
-              </div>
-              <strong class="${balanceClass}">${money(balance)}</strong>
-            </div>`;
-          }).join("")
-          : `<div class="recent-item"><div><strong>Inga pengapåsar ännu</strong><small>Lägg upp Betala räkningar, Kassabuffert och sparpåsar på Fördelning-sidan.</small></div></div>`;
-      }
-
-      function expenseOnlyRows() {
-        return templateRows().map((row) => ({ name: row.name, budget: Number(row.amount) || 0, actual: actualFor(row, "expense"), variance: (Number(row.amount) || 0) - actualFor(row, "expense") })).filter((row) => row.name.trim());
-      }
-
-      function renderExpenseHealth() {
-        const rows = expenseOnlyRows();
-        const budget = rows.reduce((sum, row) => sum + row.budget, 0);
-        const actual = rows.reduce((sum, row) => sum + row.actual, 0);
-        const left = budget - actual;
-        const risky = rows.filter((row) => row.actual > 0 || row.budget > 0).sort((a, b) => a.variance - b.variance).slice(0, 4);
-        document.getElementById("expenseBudgetValue").textContent = money(budget);
-        document.getElementById("expenseActualValue").textContent = money(actual);
-        document.getElementById("expenseLeftValue").textContent = money(left);
-        document.getElementById("expenseLeftValue").style.color = left >= 0 ? "var(--green)" : "var(--rose)";
-        document.getElementById("expenseHealthRows").innerHTML = risky.length
-          ? risky.map((row) => `<div class="recent-item"><div><strong>${escapeHtml(row.name)}</strong><small>Budget ${money(row.budget)} · utfall ${money(row.actual)}</small></div><strong class="trend ${row.variance < 0 ? "risk" : ""}">${money(row.variance)}</strong></div>`).join("")
-          : `<div class="recent-item"><div><strong>Inga utgifter registrerade ännu</strong><small>När utfall finns visas de viktigaste kostnadsposterna här.</small></div></div>`;
-      }
-
-      function renderSavingsGoals() {
-        const rows = accumulatedSavingsRows().filter((row) => row.name.trim());
-        const actual = rows.reduce((sum, row) => sum + Math.max(0, row.actual), 0);
-        const totalGoal = rows.reduce((sum, row) => sum + savingsGoalForRow(row), 0);
-        const percent = totalGoal > 0 ? Math.round((actual / totalGoal) * 100) : 0;
-        document.getElementById("savingsAccumulatedValue").textContent = money(actual);
-        document.getElementById("savingsYearGoalValue").textContent = money(totalGoal);
-        document.getElementById("savingsGoalPercentValue").textContent = `${percent}%`;
-        document.getElementById("savingsGoalRows").innerHTML = rows.length
-          ? rows.map((row) => {
-              const goal = savingsGoalForRow(row);
-              const rowPercent = goal > 0 ? Math.min(100, Math.round((row.actual / goal) * 100)) : 0;
-              return `<div class="progress-row"><strong>${escapeHtml(row.name)}</strong><span>${money(row.actual)} / ${money(goal)}</span><div class="progress-bar"><i style="--progress:${rowPercent}%"></i></div></div>`;
-            }).join("")
-          : `<div class="recent-item"><div><strong>Inga sparmål ännu</strong><small>Lägg till sparande för att jämföra mot årsmål.</small></div></div>`;
-      }
-
-      function renderIncomeRows() {
-        document.getElementById("incomeRows").innerHTML = activeMonth().incomes.map((row) => `
-          <div class="entry-row" data-income-id="${row.id}">
-            <label class="line-field"><span>Post</span><input value="${escapeHtml(row.name)}" data-income-field="name" placeholder="Namn" /></label>
-            <span></span>
-            <label class="line-field"><span>Utfall</span><input class="money" value="${row.actual === "" ? "" : row.actual}" data-income-field="actual" inputmode="numeric" placeholder="0" /></label>
-            <button class="icon-button" type="button" data-remove-income="${row.id}" aria-label="Ta bort">×</button>
-          </div>`).join("");
-      }
-
-      function renderIncomeAllocations() {
-        renderIncomeAllocationSummary();
-        document.getElementById("incomeAllocationRows").innerHTML = accountRows().length
-          ? accountRows().map((account) => `
-            <div class="entry-row account-allocation-row" data-allocation-account-id="${account.id}">
-              <label class="line-field"><span>Pengapåse</span><input value="${escapeHtml(account.name)}" disabled /></label>
-              <label class="line-field"><span>Typ</span><input value="${accountTypeName(account.type)}" disabled /></label>
-              <label class="line-field"><span>Belopp</span><input class="money" value="${activeMonth().accountAllocations?.[account.id] ?? ""}" data-allocation-field="amount" inputmode="numeric" placeholder="0" /></label>
-              <span></span>
-            </div>`).join("")
-          : `<div class="recent-item"><div><strong>Inga pengapåsar ännu</strong><small>Lägg till dem på Fördelning-sidan först.</small></div></div>`;
-      }
-
-      function renderIncomeAllocationSummary() {
-        const totalIncome = sumActuals(activeMonth().incomes);
-        const allocated = accountRows().reduce((sum, account) => sum + (Number(activeMonth().accountAllocations?.[account.id]) || 0), 0);
-        const remaining = totalIncome - allocated;
-        document.getElementById("incomeAllocationTotal").textContent = money(totalIncome);
-        document.getElementById("incomeAllocationAllocated").textContent = money(allocated);
-        document.getElementById("incomeAllocationRemaining").textContent = money(remaining);
-        document.getElementById("incomeAllocationRemaining").style.color = remaining < 0 ? "var(--rose)" : "var(--green)";
-      }
-
-      function renderAccountRows() {
-        const rowsNode = document.getElementById("accountRows");
-        const overviewNode = document.getElementById("accountOverviewRows");
-        if (!rowsNode || !overviewNode) return;
-        rowsNode.innerHTML = accountRows().map((account) => `
-          <div class="entry-row account-row" data-account-id="${account.id}">
-            <label class="line-field"><span>Pengapåse</span><input value="${escapeHtml(account.name)}" data-account-field="name" placeholder="Pengapåse" /></label>
-            <label class="line-field"><span>Typ</span><select data-account-field="type">
-              <option value="kassa"${account.type === "kassa" ? " selected" : ""}>Kassa</option>
-              <option value="buffert"${account.type === "buffert" ? " selected" : ""}>Buffert</option>
-              <option value="sparande"${account.type === "sparande" ? " selected" : ""}>Sparande</option>
-            </select></label>
-            <label class="line-field"><span>Ingående saldo</span><input class="money" value="${openingBalanceFor(account) || ""}" data-account-field="openingBalance" inputmode="numeric" placeholder="0" /></label>
-            <button class="icon-button" type="button" data-remove-account="${account.id}" aria-label="Ta bort">×</button>
-          </div>`).join("");
-        const summaries = accountSummary();
-        overviewNode.innerHTML = summaries.length
-          ? summaries.map((row) => `<div class="recent-item"><div><strong>${escapeHtml(row.name)}</strong><small>${accountTypeName(row.type)} · ingående ${money(row.openingBalance)} · in ${money(row.allocated)} · sparande ${money(row.savingsIn)} · ut ${money(row.expenses)}</small></div><strong>${money(row.balance)}</strong></div>`).join("")
-          : `<div class="recent-item"><div><strong>Inga pengapåsar ännu</strong><small>Lägg till räkningar, kassabuffert och sparande för att följa likviditeten.</small></div></div>`;
-      }
-
-      function renderBudgetRows() {
-        renderBudgetTabs();
-        renderTemplateGroup("fixedCosts", "fixedBudgetRows");
-        renderTemplateGroup("variableCosts", "variableBudgetRows");
-        renderBudgetTotal();
-      }
-
-      function renderBudgetTabs() {
-        document.querySelectorAll("[data-budget-tab]").forEach((button) => {
-          button.classList.toggle("active", button.dataset.budgetTab === activeBudgetTab);
-        });
-        document.querySelectorAll("[data-budget-panel]").forEach((panel) => {
-          panel.hidden = panel.dataset.budgetPanel !== activeBudgetTab;
-        });
-      }
-
-      function renderBudgetTotal() {
-        const label = activeBudgetTab === "fixedCosts" ? "Summa fasta" : "Summa rörliga";
-        const budget = sumBudget(state.budgetTemplate[activeBudgetTab]);
-        const annualBudget = sumAnnualBudget(state.budgetTemplate[activeBudgetTab]);
-        document.getElementById("budgetActiveTotal").innerHTML = `
-          <span>${label}</span>
-          <strong>Budget/mån ${money(budget)}</strong>
-          <strong>Budget/år ${money(annualBudget)}</strong>
-          <span></span>`;
-      }
-
-      function renderTemplateGroup(type, containerId) {
-        document.getElementById(containerId).innerHTML = state.budgetTemplate[type].map((row) => `
-          <div class="entry-row budget-template-row" draggable="true" data-sortable-type="${type}" data-sort-id="${row.id}" data-template-type="${type}" data-template-id="${row.id}">
-            <button class="drag-handle" type="button" aria-label="Flytta rad">↕</button>
-            <label class="line-field"><span>Post</span><input value="${escapeHtml(row.name)}" data-template-field="name" placeholder="Namn" /></label>
-            <label class="line-field"><span>Budget/mån</span><input class="money" value="${row.amount || ""}" data-template-field="amount" inputmode="numeric" placeholder="0" /></label>
-            <label class="line-field"><span>Budget/år</span><input class="money" value="${row.annualAmount || ""}" data-template-field="annualAmount" inputmode="numeric" placeholder="0" /></label>
-            <button class="icon-button" type="button" data-remove-template="${type}:${row.id}" aria-label="Ta bort">×</button>
-          </div>`).join("");
-      }
-
-      function renderExpenseRows() {
-        renderExpenseTabs();
-        renderActualGroup("fixedCosts", "fixedActualRows", "expense");
-        renderActualGroup("variableCosts", "variableActualRows", "expense");
-        renderExpenseTotals();
-      }
-
-      function renderExpenseTabs() {
-        document.querySelectorAll("[data-expense-tab]").forEach((button) => {
-          button.classList.toggle("active", button.dataset.expenseTab === activeExpenseTab);
-        });
-        document.querySelectorAll("[data-expense-panel]").forEach((panel) => {
-          panel.hidden = panel.dataset.expensePanel !== activeExpenseTab;
-        });
-      }
-
-      function renderExpenseTotals() {
-        const label = activeExpenseTab === "fixedCosts" ? "Summa fasta" : "Summa rörliga";
-        renderExpenseTotal(activeExpenseTab, "expenseActiveTotal", label);
-      }
-
-      function renderExpenseTotal(type, containerId, label) {
-        const rows = state.budgetTemplate[type];
-        const budget = sumBudget(rows);
-        const actual = rows.reduce((total, row) => total + actualFor(row, "expense"), 0);
-        const monthlyCash = rows.reduce((total, row) => total + expenseFromMonthlyCash(row), 0);
-        const variance = budget - actual;
-        document.getElementById(containerId).innerHTML = `
-          <span>${label}</span>
-          <strong>Budget ${money(budget)}</strong>
-          <strong>Utfall ${money(actual)}</strong>
-          <strong>Kassabuffert ${money(monthlyCash)}</strong>
-          <strong class="${variance < 0 ? "trend risk" : "trend"}">${money(variance)}</strong>`;
-      }
-
-      function renderSavingsRows() {
-        document.getElementById("savingsPlanRows").innerHTML = state.budgetTemplate.savings.map((row) => savingsPlanRowHtml(row)).join("");
-        document.getElementById("savingsActualRows").innerHTML = state.budgetTemplate.savings.map((row) => savingsActualRowHtml(row)).join("");
-      }
-
-      function renderActualGroup(type, containerId, actualType) {
-        document.getElementById(containerId).innerHTML = state.budgetTemplate[type].map((row) => actualRowHtml(row, actualType, type)).join("");
-      }
-
-      function actualRowHtml(row, actualType, groupType) {
-        const actual = actualFor(row, actualType);
-        const isSavings = actualType === "savings";
-        const hasManual = isSavings ? activeMonth().savingActuals[row.id] !== undefined && activeMonth().savingActuals[row.id] !== "" : activeMonth().expenseActuals[row.id] !== undefined && activeMonth().expenseActuals[row.id] !== "";
-        const hasPurchase = actualType === "expense" && purchaseTotal(row.id) > 0;
-        const variance = (Number(row.amount) || 0) - actual;
-        const selectedSource = activeMonth().expenseSources?.[row.id] || "monthly";
-        return `
-          <div class="entry-row ${isSavings ? "" : "sortable-row"}" ${isSavings ? "" : `draggable="true" data-sortable-type="${groupType}"`} data-actual-type="${actualType}" data-group-type="${groupType}" data-actual-id="${row.id}"${isSavings ? ` data-template-type="${groupType}" data-template-id="${row.id}"` : ""}>
-            ${isSavings ? "" : `<button class="drag-handle" type="button" aria-label="Flytta rad">↕</button>`}
-            <label class="line-field"><span>Post</span><input value="${escapeHtml(row.name)}" ${isSavings ? `data-template-field="name" placeholder="Namn"` : "disabled"} /></label>
-            <label class="line-field"><span>${isSavings ? "Plan" : "Budget/mån"}</span><input class="money" value="${row.amount || ""}" ${isSavings ? `data-template-field="amount" inputmode="numeric" placeholder="0"` : "disabled"} /></label>
-            <label class="line-field"><span>Utfall</span><input class="money" value="${isSavings ? activeMonth().savingActuals[row.id] ?? "" : activeMonth().expenseActuals[row.id] ?? ""}" data-actual-field="actual" inputmode="numeric" placeholder="${hasPurchase ? `Köp: ${money(purchaseTotal(row.id))}` : "0"}" /></label>
-            ${isSavings ? "" : `<label class="line-field"><span>Betalas från</span><select data-actual-field="source">${accountOptions(selectedSource)}</select></label>`}
-            <output class="variance ${hasManual || hasPurchase ? varianceClass(variance) : "missing"}">${hasManual || hasPurchase ? money(variance) : "Ej ifyllt"}</output>
-          </div>`;
-      }
-
-      function savingsPlanRowHtml(row) {
-        const displayTargetDate = row.targetDate || automaticSavingsTargetDate(row);
-        return `
-          <div class="entry-row savings-plan-row" data-template-type="savings" data-template-id="${row.id}">
-            <label class="line-field"><span>Sparmål</span><input value="${escapeHtml(row.name)}" data-template-field="name" placeholder="Namn" /></label>
-            <label class="line-field"><span>Plan/mån</span><input class="money" value="${row.amount || ""}" data-template-field="amount" inputmode="numeric" placeholder="0" /></label>
-            <label class="line-field"><span>Slutmål</span><input class="money" value="${row.targetAmount || ""}" data-template-field="targetAmount" inputmode="numeric" placeholder="årsplan om tomt" /></label>
-            <label class="line-field"><span>Nås senast</span><input value="${escapeHtml(displayTargetDate)}" data-template-field="targetDate" type="date" /></label>
-            <label class="line-field"><span>Pengapåse</span><select data-template-field="accountId">${accountOptions(row.accountId)}</select></label>
-            <button class="icon-button" type="button" data-remove-template="savings:${row.id}" aria-label="Ta bort">×</button>
-          </div>`;
-      }
-
-      function savingsActualRowHtml(row) {
-        const actual = actualFor(row, "savings");
-        const allocation = savingsAllocationFor(row);
-        const isFromAllocation = allocation !== null;
-        const hasManual = activeMonth().savingActuals[row.id] !== undefined && activeMonth().savingActuals[row.id] !== "";
-        const hasActual = isFromAllocation || hasManual;
-        const variance = (Number(row.amount) || 0) - actual;
-        return `
-          <div class="entry-row savings-actual-row" data-actual-type="savings" data-group-type="savings" data-actual-id="${row.id}">
-            <label class="line-field"><span>Sparmål</span><input value="${escapeHtml(row.name)}" disabled /></label>
-            <label class="line-field"><span>Plan/mån</span><input class="money" value="${row.amount || ""}" disabled /></label>
-            <label class="line-field"><span>${isFromAllocation ? "Från fördelning" : "Utfall"}</span><input class="money" value="${isFromAllocation ? allocation : activeMonth().savingActuals[row.id] ?? ""}" data-actual-field="actual" inputmode="numeric" placeholder="0" ${isFromAllocation ? "disabled" : ""} /></label>
-            <output class="variance ${hasActual ? varianceClass(variance) : "missing"}">${hasActual ? money(variance) : "Ej ifyllt"}</output>
-          </div>`;
-      }
-
-      function varianceClass(value) {
-        if (value > 0) return "good";
-        if (value < 0) return "bad";
-        return "";
-      }
-
-      function renderPurchaseForm() {
-        const dateInput = document.getElementById("purchaseDate");
-        if (!dateInput.value) dateInput.value = today();
-        const options = templateRows().filter((row) => row.name.trim());
-        const categorySelect = document.getElementById("purchaseCategory");
-        const selected = categorySelect.value;
-        categorySelect.innerHTML = `<option value="">Ingen budgetpost</option>${options.map((row) => `<option value="${row.id}">${escapeHtml(row.name || "Namnlös post")}</option>`).join("")}`;
-        if (options.some((row) => row.id === selected)) categorySelect.value = selected;
-        const sourceSelect = document.getElementById("purchaseSource");
-        const sourceSelected = sourceSelect.value || "monthly";
-        sourceSelect.innerHTML = accountOptions(sourceSelected);
-        if (paymentAccounts().some((account) => account.id === sourceSelected)) sourceSelect.value = sourceSelected;
-        const recent = [...activeMonth().purchases].slice(-5).reverse();
-        document.getElementById("recentPurchases").innerHTML = recent.length
-          ? recent.map((purchase) => {
-              const target = options.find((row) => row.id === purchase.targetId);
-              const user = purchase.userName || purchase.userEmail ? ` · ${escapeHtml(purchase.userName || purchase.userEmail)}` : "";
-              return `<div class="recent-item"><div><strong>${escapeHtml(purchase.description || "Köp")}</strong><small>${purchase.date} · ${escapeHtml(target?.name || "Ingen budgetpost")} · ${escapeHtml(accountName(purchase.sourceId))}${user}</small></div><strong>${money(purchase.amount)}</strong></div>`;
-            }).join("")
-          : `<div class="recent-item"><div><strong>Inga köp registrerade ännu</strong><small>Registrera första köpet ovan.</small></div><strong>0 kr</strong></div>`;
-      }
-
-      function allRowsForFocus() {
-        const expenseRows = templateRows().map((row) => ({ name: row.name, budget: row.amount, actual: actualFor(row, "expense"), variance: (Number(row.amount) || 0) - actualFor(row, "expense") }));
-        const savingRows = savingsRows().map((row) => ({ name: row.name, budget: row.amount, actual: actualFor(row, "savings"), variance: (Number(row.amount) || 0) - actualFor(row, "savings") }));
-        return [...expenseRows, ...savingRows].filter((row) => row.name.trim());
-      }
-
-      function accumulatedSavingsRows(index = currentMonth) {
-        return savingsRows().map((row) => {
-          const actual = monthKeys.slice(0, index + 1).reduce((total, key) => total + actualFor(row, "savings", state.months[key]), 0);
-          const planned = (Number(row.amount) || 0) * (index + 1);
-          return { id: row.id, name: row.name || "Namnlös post", planned, actual, variance: actual - planned, targetAmount: Number(row.targetAmount) || 0, targetDate: row.targetDate || "", monthlyPlan: Number(row.amount) || 0 };
-        });
-      }
-
-      function savingsGoalForRow(row) {
-        return Number(row.targetAmount) > 0 ? Number(row.targetAmount) : (Number(row.monthlyPlan) || 0) * monthKeys.length;
-      }
-
-      function renderFocus() {
-        const rows = allRowsForFocus().filter((row) => row.actual > 0).sort((a, b) => Math.abs(b.variance) - Math.abs(a.variance)).slice(0, 6);
-        document.getElementById("focusRows").innerHTML = rows.length
-          ? rows.map((row) => `<tr><td>${escapeHtml(row.name)}</td><td>${money(row.budget)}</td><td>${money(row.actual)}</td><td><span class="status ${row.variance >= 0 ? "ok" : "risk-badge"}">${money(row.variance)}</span></td></tr>`).join("")
-          : `<tr><td>Fyll i utfall för månaden</td><td>0 kr</td><td>0 kr</td><td><span class="status watch">Väntar</span></td></tr>`;
-      }
-
-      function renderSavingsPie() {
-        const rows = accumulatedSavingsRows().filter((row) => row.name.trim() || row.planned || row.actual);
-        const chart = document.getElementById("savingsPieChart");
-        const legend = document.getElementById("savingsPieLegend");
-        const totalNode = document.getElementById("savingsPieTotal");
-        if (!chart || !legend || !totalNode) return;
-        const total = rows.reduce((sum, row) => sum + Math.max(0, row.actual), 0);
-        totalNode.textContent = money(total);
-        if (!rows.length || total <= 0) {
-          chart.style.background = "conic-gradient(var(--soft) 0deg 360deg)";
-          legend.innerHTML = `<div class="legend-row"><i style="--color:var(--soft)"></i><strong>Lägg till ett sparmål</strong><span>0 kr</span></div>`;
-          return;
-        }
-        let start = 0;
-        const segments = rows.map((row, index) => {
-          const value = Math.max(0, row.actual);
-          const end = start + (value / total) * 360;
-          const segment = `${colors[index % colors.length]} ${start}deg ${end}deg`;
-          start = end;
-          return segment;
-        });
-        chart.style.background = `conic-gradient(${segments.join(", ")})`;
-        legend.innerHTML = rows.map((row, index) => `<div class="legend-row"><i style="--color:${colors[index % colors.length]}"></i><strong>${escapeHtml(row.name)}</strong><span>${money(row.actual)}</span></div>`).join("");
-      }
-
-      function renderBars() {
-        const values = monthKeys.map((key, index) => totals(index).actualLeft);
-        const max = Math.max(...values.map((value) => Math.abs(value)), 1);
-        document.getElementById("bars").innerHTML = values.map((value, index) => {
-          const height = Math.max(10, Math.round((Math.abs(value) / max) * 190));
-          return `<div class="bar${value < 0 ? " negative" : ""}"><i style="--height:${height}px"></i><span>${monthKeys[index]}</span></div>`;
-        }).join("");
-      }
-
-      function renderCategories() {
-        const rows = allRowsForFocus().sort((a, b) => b.actual - a.actual).slice(0, 7);
-        const max = Math.max(...rows.map((row) => row.actual), 1);
-        document.getElementById("categories").innerHTML = rows.map((row, index) => {
-          const width = Math.max(4, Math.round((row.actual / max) * 100));
-          return `<div class="category"><div class="category-head"><strong>${escapeHtml(row.name)}</strong><span>${money(row.actual)}</span></div><div class="track"><div class="fill" style="--width:${width}%;--color:${colors[index % colors.length]}"></div></div></div>`;
-        }).join("");
-      }
-
-      function monthHasData(index) {
-        const month = state.months[monthKeys[index]];
-        return sumActuals(month.incomes) > 0 || month.purchases.length > 0 || Object.values(month.expenseActuals).some((value) => Number(value) > 0) || Object.values(month.savingActuals).some((value) => Number(value) > 0);
-      }
-
-      function targetMonthLabel(dateValue) {
-        if (!dateValue) return "";
-        const date = new Date(`${dateValue}T00:00:00`);
-        if (Number.isNaN(date.getTime())) return "";
-        return date.toLocaleDateString("sv-SE", { month: "long", year: "numeric" });
-      }
-
-      function projectedSavingsLabel(row) {
-        const remaining = Math.max(0, row.targetAmount - row.actual);
-        if (!row.targetAmount) return `Årsplan, beräknas till ${targetMonthLabel(automaticSavingsTargetDate(row))}.`;
-        if (remaining <= 0) return "Målet är uppnått.";
-        const monthlyPace = row.actual / Math.max(1, currentMonth + 1);
-        if (monthlyPace <= 0) return "Prognos saknas tills utfall finns.";
-        const monthsLeft = Math.ceil(remaining / monthlyPace);
-        const date = new Date();
-        date.setMonth(date.getMonth() + monthsLeft);
-        const projected = date.toLocaleDateString("sv-SE", { month: "long", year: "numeric" });
-        const target = targetMonthLabel(row.targetDate);
-        return target ? `Med nuvarande takt: ${projected}. Mål: ${target}.` : `Med nuvarande takt: ${projected}.`;
-      }
-
-      function renderInsights() {
-        const total = totals();
-        const monthRows = allRowsForFocus().filter((row) => row.actual > 0 || row.budget > 0);
-        const overspent = monthRows.filter((row) => row.variance < 0).sort((a, b) => a.variance - b.variance);
-        const best = monthRows.filter((row) => row.variance > 0).sort((a, b) => b.variance - a.variance)[0];
-        const activeIndexes = monthKeys.map((_, index) => index).filter(monthHasData);
-        const averageLeft = activeIndexes.length ? activeIndexes.reduce((sum, index) => sum + totals(index).actualLeft, 0) / activeIndexes.length : total.actualLeft;
-        const report = [
-          `${monthLabels[currentMonth]} har ${money(total.actualLeft)} kvar efter registrerat utfall.`,
-          total.variance >= 0 ? `Ni ligger ${money(total.variance)} bättre än budgetmallen just nu.` : `Ni ligger ${money(Math.abs(total.variance))} sämre än budgetmallen just nu.`,
-          overspent[0] ? `Största avvikelsen är ${overspent[0].name}, ${money(Math.abs(overspent[0].variance))} över plan.` : "Inga kostnadsposter ligger över plan just nu.",
-          best ? `Bästa bufferten finns i ${best.name}, ${money(best.variance)} under plan.` : "Det finns ännu ingen tydlig buffertpost den här månaden.",
-          `Genomsnittligt faktiskt kvar för månader med data är ${money(averageLeft)}.`,
-        ];
-        document.getElementById("monthlyReport").innerHTML = report.map((line) => `<p>${escapeHtml(line)}</p>`).join("");
-        document.getElementById("aiReportResult").innerHTML = aiReport
-          ? `<div class="recent-item"><div><strong>AI-kommentar</strong><small>${escapeHtml(aiReport.summary || "")}</small></div></div>${(aiReport.actions || []).map((item) => `<div class="recent-item"><div><strong>${escapeHtml(item)}</strong></div></div>`).join("")}`
-          : `<div class="recent-item"><div><strong>Ingen AI-kommentar ännu</strong><small>Klicka på Sammanfatta månaden för en kort tolkning.</small></div></div>`;
-        document.getElementById("overviewAiResult").innerHTML = aiReport
-          ? `<div class="recent-item"><div><strong>AI-kommentar</strong><small>${escapeHtml(aiReport.summary || "")}</small></div></div>${(aiReport.risks || []).slice(0, 2).map((item) => `<div class="recent-item"><div><strong>${escapeHtml(item)}</strong></div></div>`).join("")}`
-          : `<div class="recent-item"><div><strong>Ingen AI-kommentar ännu</strong><small>Klicka på Analysera läget för en kort tolkning av utgifter, sparande och avvikelser.</small></div></div>`;
-        document.getElementById("insightAlerts").innerHTML = overspent.length
-          ? overspent.slice(0, 5).map((row) => `<div class="recent-item"><div><strong>${escapeHtml(row.name)}</strong><small>Budget ${money(row.budget)} · utfall ${money(row.actual)}</small></div><strong class="trend risk">${money(row.variance)}</strong></div>`).join("")
-          : `<div class="recent-item"><div><strong>Inga varningar</strong><small>Alla ifyllda poster ligger inom plan.</small></div></div>`;
-        const savings = accumulatedSavingsRows().filter((row) => row.name.trim());
-        document.getElementById("savingsForecast").innerHTML = savings.length
-          ? savings.map((row) => {
-              const pace = row.actual - row.planned;
-              const targetText = row.targetAmount ? ` · mål ${money(row.targetAmount)}` : "";
-              return `<div class="recent-item"><div><strong>${escapeHtml(row.name)}</strong><small>${pace >= 0 ? "Före plan" : "Efter plan"} ${money(Math.abs(pace))}${targetText}<br>${escapeHtml(projectedSavingsLabel(row))}</small></div><strong>${money(row.actual)}</strong></div>`;
-            }).join("")
-          : `<div class="recent-item"><div><strong>Inga sparmål ännu</strong><small>Lägg till sparande för att få prognos.</small></div></div>`;
-      }
-
-      function recurringSuggestions() {
-        if (currentMonth <= 0) return [];
-        const previousMonth = state.months[monthKeys[currentMonth - 1]];
-        const month = activeMonth();
-        return templateRows()
-          .filter((row) => row.name.trim())
-          .map((row) => {
-            const currentActual = actualFor(row, "expense", month);
-            const previousActual = actualFor(row, "expense", previousMonth);
-            const previousSource = previousMonth.expenseSources?.[row.id] || "monthly";
-            return { row, currentActual, previousActual, previousSource };
-          })
-          .filter((item) => item.currentActual <= 0 && item.previousActual > 0)
-          .slice(0, 6);
-      }
-
-      function renderRecurringSuggestions() {
-        const node = document.getElementById("recurringSuggestions");
-        if (!node) return;
-        const suggestions = recurringSuggestions();
-        node.innerHTML = suggestions.length
-          ? suggestions.map((item) => `<div class="recent-item">
-              <div><strong>${escapeHtml(item.row.name)}</strong><small>Fanns förra månaden med ${money(item.previousActual)}. Kan kopieras till ${monthLabels[currentMonth]}.</small></div>
-              <button class="copy-button" type="button" data-apply-recurring="${item.row.id}">Använd</button>
-            </div>`).join("")
-          : `<div class="recent-item"><div><strong>Inga förslag just nu</strong><small>När en post fanns föregående månad men saknas i aktuell månad visas den här.</small></div></div>`;
-      }
-
-      function monthlyReportPayload() {
-        return {
-          month: monthLabels[currentMonth],
-          totals: totals(),
-          monthControl: monthControl(),
-          bags: bagSummary(),
-          rows: allRowsForFocus(),
-          savings: accumulatedSavingsRows(),
-          purchases: activeMonth().purchases,
-        };
-      }
-
-      async function summarizeMonthWithAi() {
-        if (!supabaseClient || !currentUser) return;
-        const buttons = [document.getElementById("aiReportButton"), document.getElementById("overviewAiButton")].filter(Boolean);
-        buttons.forEach((button) => {
-          button.disabled = true;
-          button.textContent = "Analyserar...";
-        });
-        try {
-          const { data, error } = await supabaseClient.functions.invoke("ai-parse-purchase", {
-            body: { mode: "monthly_report", report: monthlyReportPayload() },
-          });
-          if (error || data?.error) throw new Error(data?.error || error?.message || "AI-rapporten kunde inte skapas.");
-          aiReport = data;
-          renderInsights();
-        } catch (error) {
-          aiReport = { summary: error.message || "AI-rapporten kunde inte skapas.", actions: [] };
-          renderInsights();
-        } finally {
-          buttons.forEach((button) => {
-            button.disabled = false;
-          });
-          document.getElementById("aiReportButton").textContent = "Sammanfatta månaden";
-          document.getElementById("overviewAiButton").textContent = "Analysera läget";
-        }
-      }
-
-      function exportMonthlyCsv() {
-        const rows = [
-          ["Månad", "Område", "Budget", "Utfall", "Avvikelse"],
-          ...allRowsForFocus().map((row) => [monthLabels[currentMonth], row.name, row.budget, row.actual, row.variance]),
-        ];
-        const csv = rows.map((row) => row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(";")).join("\n");
-        const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement("a");
-        link.href = url;
-        link.download = `budgetrapport-${monthKeys[currentMonth]}.csv`;
-        link.click();
-        URL.revokeObjectURL(url);
-      }
-
-      function downloadBlob(filename, content, type) {
-        const blob = new Blob([content], { type });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement("a");
-        link.href = url;
-        link.download = filename;
-        link.click();
-        URL.revokeObjectURL(url);
-      }
-
-      function exportFullBackup() {
-        const backup = {
-          app: "PrivEk",
-          exportedAt: new Date().toISOString(),
-          activeMonth: monthKeys[currentMonth],
-          data: state,
-        };
-        downloadBlob(`privek-backup-${today()}.json`, JSON.stringify(backup, null, 2), "application/json;charset=utf-8");
-      }
-
-      function toggleMonthClosed() {
-        const month = activeMonth();
-        month.closed = !month.closed;
-        month.closedAt = month.closed ? new Date().toISOString() : "";
-        month.closedBy = month.closed ? (currentUser?.user_metadata?.name || currentUser?.email || "") : "";
-        if (month.closed && currentMonth < monthKeys.length - 1) {
-          const nextMonth = state.months[monthKeys[currentMonth + 1]];
-          nextMonth.accountOpeningBalances = nextMonth.accountOpeningBalances || {};
-          const accountIds = new Set(accountRows().map((account) => account.id));
-          bagSummary(currentMonth).forEach((row) => {
-            if (accountIds.has(row.id)) nextMonth.accountOpeningBalances[row.id] = Number(row.balance) || 0;
-          });
-        }
-        saveState();
-        render();
-      }
-
-      function applyRecurringExpense(targetId) {
-        if (currentMonth <= 0) return;
-        const previousMonth = state.months[monthKeys[currentMonth - 1]];
-        const value = actualFor(templateRows().find((row) => row.id === targetId) || { id: targetId }, "expense", previousMonth);
-        if (value <= 0) return;
-        activeMonth().expenseActuals[targetId] = value;
-        activeMonth().expenseSources[targetId] = previousMonth.expenseSources?.[targetId] || "monthly";
-        saveState();
-        render();
+      function setAuthUi() {
+        const loggedIn = Boolean(currentUser);
+        nodes.authPanel.classList.toggle("hidden", loggedIn || !supabaseClient);
+        nodes.logoutButton.classList.toggle("hidden", !loggedIn);
+        nodes.userStatus.textContent = loggedIn ? currentUser.email : supabaseClient ? "Inte inloggad" : "Supabase saknar config";
       }
 
       document.addEventListener("input", (event) => {
-        const target = event.target;
-        const incomeRow = target.closest("[data-income-id]");
-        const accountRow = target.closest("[data-account-id]");
-        const allocationRow = target.closest("[data-allocation-account-id]");
-        const templateRow = target.closest("[data-template-id]");
-        const actualRow = target.closest("[data-actual-id]");
-        if (incomeRow && target.dataset.incomeField) {
-          const row = activeMonth().incomes.find((item) => item.id === incomeRow.dataset.incomeId);
-          if (row) row[target.dataset.incomeField] = target.dataset.incomeField === "actual" ? (target.value.trim() === "" ? "" : parseAmount(target.value)) : target.value;
-        }
-        if (accountRow && target.dataset.accountField) {
-          const row = accountRows().find((item) => item.id === accountRow.dataset.accountId);
-          if (row) {
-            if (target.dataset.accountField === "openingBalance") {
-              setOpeningBalance(accountRow.dataset.accountId, target.value);
-            } else {
-              row[target.dataset.accountField] = target.value;
-            }
-          }
-        }
-        if (allocationRow && target.dataset.allocationField) {
-          activeMonth().accountAllocations[allocationRow.dataset.allocationAccountId] = target.value.trim() === "" ? "" : parseAmount(target.value);
-          renderIncomeAllocationSummary();
-          renderSummary();
-          renderMonthControl();
-          renderBagOverview();
-          renderSavingsGoals();
-          renderSavingsPie();
-        }
-        if (templateRow && target.dataset.templateField) {
-          const row = state.budgetTemplate[templateRow.dataset.templateType].find((item) => item.id === templateRow.dataset.templateId);
-          if (row) {
-            const field = target.dataset.templateField;
-            row[field] = ["amount", "annualAmount", "targetAmount"].includes(field) ? parseAmount(target.value) : target.value;
-            if (["fixedCosts", "variableCosts"].includes(templateRow.dataset.templateType)) {
-              if (field === "amount") row.annualAmount = (Number(row.amount) || 0) * 12;
-              if (field === "annualAmount") row.amount = Math.round((Number(row.annualAmount) || 0) / 12);
-            }
-            if (field === "accountId") renderAccountRows();
-            if (templateRow.dataset.templateType === activeBudgetTab) {
-              renderBudgetTotal();
-            }
-          }
-        }
-        if (actualRow && target.dataset.actualField) {
-          const map = actualRow.dataset.actualType === "savings" ? activeMonth().savingActuals : activeMonth().expenseActuals;
-          if (target.dataset.actualField === "actual") {
-            map[actualRow.dataset.actualId] = target.value.trim() === "" ? "" : parseAmount(target.value);
-          }
-          if (actualRow.dataset.actualType === "expense") {
-            renderExpenseTotals();
-            renderSummary();
-            renderMonthControl();
-            renderExpenseHealth();
-          }
-        }
-        saveState();
-      });
-
-      document.addEventListener("change", (event) => {
-        const accountRow = event.target.closest("[data-account-id]");
-        const templateRow = event.target.closest("[data-template-id]");
-        const actualRow = event.target.closest("[data-actual-id]");
-        if (accountRow && event.target.dataset.accountField) {
-          const row = accountRows().find((item) => item.id === accountRow.dataset.accountId);
-          if (row) {
-            if (event.target.dataset.accountField === "openingBalance") {
-              setOpeningBalance(accountRow.dataset.accountId, event.target.value);
-            } else {
-              row[event.target.dataset.accountField] = event.target.value;
-            }
-          }
-          saveState();
-        }
-        if (templateRow && event.target.dataset.templateField === "accountId") {
-          const row = state.budgetTemplate[templateRow.dataset.templateType].find((item) => item.id === templateRow.dataset.templateId);
-          if (row) row[event.target.dataset.templateField] = event.target.value;
-          saveState();
-        }
-        if (actualRow && event.target.dataset.actualField === "source") {
-          activeMonth().expenseSources[actualRow.dataset.actualId] = event.target.value || "monthly";
-          saveState();
-        }
-        if (!event.target.closest("[data-income-id], [data-account-id], [data-allocation-account-id], [data-template-id], [data-actual-id]")) return;
-        render();
-      });
-
-      document.addEventListener("click", async (event) => {
-        const pageTarget = event.target.closest("[data-page-target]")?.dataset.pageTarget;
-        const addTemplate = event.target.closest("[data-add-template]")?.dataset.addTemplate;
-        const addAccount = event.target.closest("[data-add-account]");
-        const removeAccount = event.target.closest("[data-remove-account]")?.dataset.removeAccount;
-        const removeTemplate = event.target.closest("[data-remove-template]")?.dataset.removeTemplate;
-        const removeIncome = event.target.closest("[data-remove-income]")?.dataset.removeIncome;
-        const approvePurchase = event.target.closest("[data-approve-purchase]")?.dataset.approvePurchase;
-        const rejectPurchase = event.target.closest("[data-reject-purchase]")?.dataset.rejectPurchase;
-        const removeRule = event.target.closest("[data-remove-rule]")?.dataset.removeRule;
-        const restoreHistory = event.target.closest("[data-restore-history]")?.dataset.restoreHistory;
-        const applyRecurring = event.target.closest("[data-apply-recurring]")?.dataset.applyRecurring;
-        const expenseTab = event.target.closest("[data-expense-tab]")?.dataset.expenseTab;
-        const budgetTab = event.target.closest("[data-budget-tab]")?.dataset.budgetTab;
-        if (pageTarget && pages[pageTarget]) {
-          currentPage = pageTarget;
-          history.replaceState(null, "", `#${currentPage}`);
-          renderPage();
-          window.scrollTo({ top: 0, behavior: "smooth" });
-        }
-        if (expenseTab) {
-          activeExpenseTab = expenseTab;
-          renderExpenseTabs();
-          renderExpenseTotals();
-        }
-        if (budgetTab) {
-          activeBudgetTab = budgetTab;
-          renderBudgetTabs();
-          renderBudgetTotal();
-        }
-        if (event.target.closest("[data-add-income]")) {
-          activeMonth().incomes.push(incomeEntry());
-          saveState();
-          render();
-        }
-        if (addTemplate) {
-          state.budgetTemplate[addTemplate].push(templateEntry());
-          saveState();
-          render();
-        }
-        if (addAccount) {
-          state.accounts.push(accountEntry());
-          saveState();
-          render();
-        }
-        if (removeAccount) {
-          state.accounts = state.accounts.filter((row) => row.id !== removeAccount);
-          for (const month of Object.values(state.months)) {
-            if (month.accountOpeningBalances) delete month.accountOpeningBalances[removeAccount];
-            delete month.accountAllocations[removeAccount];
-            for (const [key, value] of Object.entries(month.expenseSources || {})) {
-              if (value === removeAccount) month.expenseSources[key] = "monthly";
-            }
-            month.purchases = month.purchases.map((purchase) => purchase.sourceId === removeAccount ? { ...purchase, sourceId: "monthly" } : purchase);
-          }
-          state.budgetTemplate.savings.forEach((row) => {
-            if (row.accountId === removeAccount) row.accountId = "";
-          });
-          saveState();
-          render();
-        }
-        if (removeTemplate) {
-          const [type, id] = removeTemplate.split(":");
-          state.budgetTemplate[type] = state.budgetTemplate[type].filter((row) => row.id !== id);
-          for (const month of Object.values(state.months)) {
-            delete month.expenseActuals[id];
-            delete month.expenseSources[id];
-            delete month.savingActuals[id];
-            month.purchases = month.purchases.filter((purchase) => purchase.targetId !== id);
-          }
-          saveState();
-          render();
-        }
-        if (removeIncome) {
-          activeMonth().incomes = activeMonth().incomes.filter((row) => row.id !== removeIncome);
-          saveState();
-          render();
-        }
-        if (approvePurchase && supabaseClient) {
-          const { error } = await supabaseClient.rpc("approve_purchase_inbox", { p_id: approvePurchase });
-          document.getElementById("saveStatus").textContent = error ? "Kunde inte godkänna köpet" : "Köpet är godkänt";
-          await loadFromSupabase();
-          await loadPurchaseInbox();
-          render();
-        }
-        if (rejectPurchase && supabaseClient) {
-          const { error } = await supabaseClient.rpc("reject_purchase_inbox", { p_id: rejectPurchase });
-          document.getElementById("saveStatus").textContent = error ? "Kunde inte avvisa köpet" : "Köpet är avvisat";
-          await loadPurchaseInbox();
-          renderPurchaseInbox();
-        }
-        if (removeRule && supabaseClient && isAdmin()) {
-          const { error } = await supabaseClient.from("category_rules").delete().eq("id", removeRule);
-          document.getElementById("saveStatus").textContent = error ? "Kunde inte ta bort regeln" : "Regeln är borttagen";
-          await loadCategoryRules();
-          renderCategoryRules();
-        }
-        if (restoreHistory && supabaseClient && confirm("Återställa budgeten till den här versionen? Nuvarande version sparas i historiken först.")) {
-          const { error } = await supabaseClient.rpc("restore_budget_history", { p_history_id: restoreHistory });
-          document.getElementById("saveStatus").textContent = error ? "Kunde inte återställa" : "Budgeten är återställd";
-          await loadFromSupabase();
-          await loadHistory();
-          render();
-        }
-        if (applyRecurring) {
-          applyRecurringExpense(applyRecurring);
-        }
-      });
-
-      document.addEventListener("dragstart", (event) => {
-        const row = event.target.closest("[data-sortable-type]");
+        const rowElement = event.target.closest(".row");
+        if (!rowElement) return;
+        const rows = activeMonth()[rowElement.dataset.type];
+        const row = rows.find((item) => item.id === rowElement.dataset.id);
         if (!row) return;
-        event.dataTransfer.effectAllowed = "move";
-        event.dataTransfer.setData("text/plain", `${row.dataset.sortableType}:${row.dataset.sortId || row.dataset.actualId}`);
-        row.classList.add("dragging");
+        const field = event.target.dataset.field;
+        row[field] = field === "amount" ? parseAmount(event.target.value) : event.target.value;
+        queueSave();
       });
 
-      document.addEventListener("dragover", (event) => {
-        const row = event.target.closest("[data-sortable-type]");
-        if (!row) return;
-        const active = document.querySelector(".entry-row.dragging");
-        const activeId = active.dataset.sortId || active.dataset.actualId;
-        const rowId = row.dataset.sortId || row.dataset.actualId;
-        if (!active || active.dataset.sortableType !== row.dataset.sortableType || activeId === rowId) return;
-        event.preventDefault();
-        row.classList.add("drag-over");
+      document.addEventListener("click", (event) => {
+        const removeId = event.target.closest("[data-remove]")?.dataset.remove;
+        if (removeId) {
+          for (const type of ["incomes", "fixedCosts"]) {
+            activeMonth()[type] = activeMonth()[type].filter((row) => row.id !== removeId);
+          }
+          render();
+          queueSave();
+        }
       });
 
-      document.addEventListener("dragleave", (event) => {
-        event.target.closest("[data-sortable-type]")?.classList.remove("drag-over");
-      });
-
-      document.addEventListener("drop", (event) => {
-        const targetRow = event.target.closest("[data-sortable-type]");
-        if (!targetRow) return;
-        const [type, draggedId] = String(event.dataTransfer.getData("text/plain")).split(":");
-        const targetId = targetRow.dataset.sortId || targetRow.dataset.actualId;
-        if (!type || type !== targetRow.dataset.sortableType || draggedId === targetId) return;
-        event.preventDefault();
-        moveTemplateRow(type, draggedId, targetId);
-        document.querySelectorAll(".drag-over, .dragging").forEach((row) => row.classList.remove("drag-over", "dragging"));
-        saveState();
+      document.getElementById("addIncome").addEventListener("click", () => {
+        activeMonth().incomes.push({ id: newId(), name: "Ny inkomst", amount: 0 });
         render();
+        queueSave();
       });
 
-      document.addEventListener("dragend", () => {
-        document.querySelectorAll(".drag-over, .dragging").forEach((row) => row.classList.remove("drag-over", "dragging"));
+      document.getElementById("addCost").addEventListener("click", () => {
+        activeMonth().fixedCosts.push({ id: newId(), name: "Ny fast kostnad", amount: 0 });
+        render();
+        queueSave();
       });
-
-      function moveTemplateRow(type, draggedId, targetId) {
-        const rows = state.budgetTemplate[type];
-        const from = rows.findIndex((row) => row.id === draggedId);
-        const to = rows.findIndex((row) => row.id === targetId);
-        if (from < 0 || to < 0 || from === to) return;
-        const [moved] = rows.splice(from, 1);
-        rows.splice(to, 0, moved);
-      }
 
       document.getElementById("previousMonth").addEventListener("click", () => {
-        currentMonth = (currentMonth + monthKeys.length - 1) % monthKeys.length;
-        aiReport = null;
+        currentMonth = shiftMonth(currentMonth, -1);
         render();
       });
 
       document.getElementById("nextMonth").addEventListener("click", () => {
-        currentMonth = (currentMonth + 1) % monthKeys.length;
-        aiReport = null;
+        currentMonth = shiftMonth(currentMonth, 1);
         render();
       });
 
-      document.getElementById("purchaseForm").addEventListener("submit", (event) => {
-        event.preventDefault();
-        const amount = parseAmount(document.getElementById("purchaseAmount").value);
-        const targetId = document.getElementById("purchaseCategory").value;
-        if (!amount) return;
-        activeMonth().purchases.push({
-          id: newId(),
-          date: document.getElementById("purchaseDate").value || today(),
-          description: document.getElementById("purchaseDescription").value.trim(),
-          amount,
-          targetId,
-          sourceId: document.getElementById("purchaseSource").value || "monthly",
-          userId: currentUser?.id || null,
-          userName: currentUser?.user_metadata?.name || currentUser?.email || "",
-          userEmail: currentUser?.email || "",
-        });
-        document.getElementById("purchaseAmount").value = "";
-        document.getElementById("purchaseDescription").value = "";
-        saveState();
-        render();
-      });
-
-      document.getElementById("categoryRuleForm").addEventListener("submit", async (event) => {
-        event.preventDefault();
-        if (!supabaseClient || !isAdmin()) return;
-        const pattern = document.getElementById("rulePattern").value.trim();
-        const targetId = document.getElementById("ruleTarget").value;
-        if (!pattern || !targetId) return;
-        const { error } = await supabaseClient.from("category_rules").insert({ pattern, target_id: targetId });
-        document.getElementById("saveStatus").textContent = error ? "Kunde inte lägga till regeln" : "Regeln är sparad";
-        if (!error) document.getElementById("rulePattern").value = "";
-        await loadCategoryRules();
-        renderCategoryRules();
-      });
-
-      document.getElementById("resetActualsButton").addEventListener("click", () => {
-        if (!confirm(`Nollställa utfall för ${monthLabels[currentMonth]}? Budgetmallen påverkas inte.`)) return;
-        state.months[monthKeys[currentMonth]] = blankMonth();
-        saveState();
-        render();
-      });
-
-      document.getElementById("exportReportButton").addEventListener("click", exportMonthlyCsv);
-      document.getElementById("exportBackupButton").addEventListener("click", exportFullBackup);
-      document.getElementById("closeMonthButton").addEventListener("click", toggleMonthClosed);
-      document.getElementById("aiReportButton").addEventListener("click", summarizeMonthWithAi);
-      document.getElementById("overviewAiButton").addEventListener("click", summarizeMonthWithAi);
-
-      window.addEventListener("hashchange", () => {
-        const page = location.hash.replace("#", "");
-        if (!pages[page]) return;
-        currentPage = page;
-        renderPage();
-      });
-
-      if ("serviceWorker" in navigator) {
-        navigator.serviceWorker.getRegistrations?.().then((registrations) => registrations.forEach((registration) => registration.unregister())).catch(() => {});
-      }
-      if ("caches" in window) {
-        caches.keys().then((keys) => keys.forEach((key) => caches.delete(key))).catch(() => {});
-      }
-
-      async function loadFromSupabase() {
-        const { data, error } = await supabaseClient.from("budget_state").select("data").eq("id", budgetRowId).maybeSingle();
-        if (error) throw error;
-        if (data?.data) {
-          state = normalizeState(data.data);
-          localStorage.setItem(storageKey, JSON.stringify(state));
-          await saveToSupabase();
-        } else {
-          await saveToSupabase();
+      document.getElementById("copyPrevious").addEventListener("click", () => {
+        const previous = state.months[shiftMonth(currentMonth, -1)];
+        if (!previous) {
+          nodes.saveStatus.textContent = "Det finns ingen föregående månad att kopiera.";
+          return;
         }
-      }
+        state.months[currentMonth] = JSON.parse(JSON.stringify(previous));
+        state.months[currentMonth].locked = false;
+        render();
+        queueSave();
+      });
 
-      async function loadPurchaseInbox() {
-        if (!supabaseClient || !currentUser) return;
-        const { data, error } = await supabaseClient.from("purchase_inbox").select("id,purchase_date,month_key,target_id,description,amount,source,created_at").eq("status", "pending").order("created_at", { ascending: false });
+      document.getElementById("lockMonth").addEventListener("click", () => {
+        activeMonth().locked = !activeMonth().locked;
+        render();
+        queueSave();
+      });
+
+      nodes.authForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        nodes.authMessage.textContent = "Loggar in...";
+        const { data, error } = await supabaseClient.auth.signInWithPassword({
+          email: nodes.emailInput.value.trim(),
+          password: nodes.passwordInput.value,
+        });
         if (error) {
-          purchaseInbox = [];
+          nodes.authMessage.textContent = error.message;
           return;
         }
-        purchaseInbox = data || [];
-      }
-
-      async function loadCategoryRules() {
-        if (!supabaseClient || !currentUser) return;
-        const { data, error } = await supabaseClient.from("category_rules").select("id,pattern,target_id,created_at").order("created_at", { ascending: false });
-        categoryRules = error ? [] : data || [];
-      }
-
-      async function loadHistory() {
-        if (!supabaseClient || !currentUser) return;
-        const { data, error } = await supabaseClient.from("budget_state_history").select("id,saved_at,saved_by").order("saved_at", { ascending: false }).limit(20);
-        historyRows = error ? [] : data || [];
-      }
-
-      function isAdmin() {
-        return currentProfile?.role === "admin";
-      }
-
-      async function loadUsers() {
-        const { data, error } = await supabaseClient.from("app_users").select("id,name,email,role,user_id,created_at").order("name", { ascending: true });
-        if (error) throw error;
-        appUsers = data || [];
-        currentProfile = appUsers.find((user) => user.user_id === currentUser.id || user.email.toLowerCase() === currentUser.email.toLowerCase()) || null;
-      }
-
-      async function ensureUserProfile() {
-        await loadUsers();
-        if (!appUsers.length) {
-          const { error } = await supabaseClient.from("app_users").insert({ name: currentUser.user_metadata?.name || currentUser.email, email: currentUser.email, role: "admin", user_id: currentUser.id, created_by: currentUser.id });
-          if (error) throw error;
-          await loadUsers();
-          return;
-        }
-        if (!currentProfile) {
-          await supabaseClient.auth.signOut();
-          currentUser = null;
-          updateAuthUi();
-          document.getElementById("authError").textContent = "Din e-post är inte tillagd som användare ännu.";
-          return;
-        }
-        if (!currentProfile.user_id) {
-          await supabaseClient.from("app_users").update({ user_id: currentUser.id, name: currentProfile.name || currentUser.user_metadata?.name || currentUser.email }).eq("id", currentProfile.id);
-          await loadUsers();
-        }
-      }
-
-      function renderUsers() {
-        const form = document.getElementById("userForm");
-        const admin = isAdmin();
-        form.querySelectorAll("input, select, button").forEach((field) => field.disabled = !admin);
-        document.getElementById("adminStatus").textContent = admin ? "Du är admin" : "Endast admin kan lägga till användare";
-        document.getElementById("userList").innerHTML = appUsers.length
-          ? appUsers.map((user) => `<div class="recent-item"><div><strong>${escapeHtml(user.name || user.email)}</strong><small>${escapeHtml(user.email)} · ${user.role === "admin" ? "Admin" : "Användare"}${user.user_id ? " · aktiv" : " · väntar på konto"}</small></div></div>`).join("")
-          : `<div class="recent-item"><div><strong>Inga användare laddade</strong><small>Logga in och kör databasreglerna om listan inte visas.</small></div></div>`;
-      }
-
-      function renderPurchaseInbox() {
-        const container = document.getElementById("purchaseInbox");
-        if (!container) return;
-        const rows = purchaseInbox.map((item) => {
-          const target = templateRows().find((row) => row.id === item.target_id);
-          const month = monthLabels[monthKeys.indexOf(item.month_key)] || item.month_key;
-          return `<div class="recent-item">
-            <div>
-              <strong>${escapeHtml(item.description)}</strong>
-              <small>${item.purchase_date} · ${escapeHtml(month)} · ${escapeHtml(target?.name || "Okänd post")} · ${escapeHtml(item.source)}</small>
-            </div>
-            <div style="display:grid;gap:6px;justify-items:end">
-              <strong>${money(item.amount)}</strong>
-              <div style="display:flex;gap:6px">
-                <button class="copy-button" type="button" data-reject-purchase="${item.id}">Avvisa</button>
-                <button class="add-button" type="button" data-approve-purchase="${item.id}">Godkänn</button>
-              </div>
-            </div>
-          </div>`;
-        });
-        container.innerHTML = rows.length ? rows.join("") : `<div class="recent-item"><div><strong>Inga köp att godkänna</strong><small>Snabbköp från mobilen visas här först.</small></div></div>`;
-      }
-
-      function renderCategoryRules() {
-        const form = document.getElementById("categoryRuleForm");
-        const target = document.getElementById("ruleTarget");
-        const list = document.getElementById("categoryRules");
-        if (!form || !target || !list) return;
-        const admin = isAdmin();
-        form.querySelectorAll("input, select, button").forEach((field) => field.disabled = !admin);
-        const selected = target.value;
-        const options = templateRows().filter((row) => row.name.trim());
-        target.innerHTML = options.length ? options.map((row) => `<option value="${row.id}">${escapeHtml(row.name)}</option>`).join("") : `<option value="">Lägg till budgetpost först</option>`;
-        if (options.some((row) => row.id === selected)) target.value = selected;
-        list.innerHTML = categoryRules.length
-          ? categoryRules.map((rule) => {
-              const row = templateRows().find((item) => item.id === rule.target_id);
-              return `<div class="recent-item"><div><strong>${escapeHtml(rule.pattern)}</strong><small>${escapeHtml(row?.name || "Okänd post")}</small></div>${admin ? `<button class="icon-button" type="button" data-remove-rule="${rule.id}" aria-label="Ta bort">×</button>` : ""}</div>`;
-            }).join("")
-          : `<div class="recent-item"><div><strong>Inga regler ännu</strong><small>Lägg till butik eller ord som ofta ska hamna på samma post.</small></div></div>`;
-      }
-
-      function renderHistory() {
-        const container = document.getElementById("historyList");
-        if (!container) return;
-        container.innerHTML = historyRows.length
-          ? historyRows.map((row) => {
-              const savedAt = new Date(row.saved_at).toLocaleString("sv-SE", { dateStyle: "medium", timeStyle: "short" });
-              return `<div class="recent-item"><div><strong>${escapeHtml(savedAt)}</strong><small>Automatisk återställningspunkt</small></div><button class="copy-button" type="button" data-restore-history="${row.id}">Återställ</button></div>`;
-            }).join("")
-          : `<div class="recent-item"><div><strong>Ingen historik ännu</strong><small>Historik skapas när budgeten sparas efter att databasschemat uppdaterats.</small></div></div>`;
-      }
-
-      function updateAuthUi() {
-        const authScreen = document.getElementById("authScreen");
-        const loggedIn = !!currentUser;
-        if (loggedIn) {
-          authScreen?.remove();
-        } else if (authScreen) {
-          const authNameLabel = document.getElementById("authNameLabel");
-          authScreen.hidden = false;
-          authScreen.classList.remove("auth-hidden");
-          authScreen.style.setProperty("display", "grid");
-          authScreen.style.setProperty("visibility", "visible");
-          authScreen.style.setProperty("pointer-events", "auto");
-          authNameLabel.hidden = authMode !== "signup";
-          authNameLabel.style.display = authMode === "signup" ? "grid" : "none";
-          document.getElementById("authTitle").textContent = authMode === "signup" ? "Skapa konto" : "Logga in";
-          document.getElementById("authIntro").textContent = hasSupabaseConfig ? (authMode === "signup" ? "Skapa en användare för den gemensamma budgeten." : "Logga in för att läsa och spara budgeten på alla enheter.") : "Supabase är inte kopplat ännu. Fyll i config.js innan appen publiceras.";
-          document.getElementById("authSubmit").textContent = authMode === "signup" ? "Skapa konto" : "Logga in";
-          document.getElementById("authToggle").textContent = authMode === "signup" ? "Jag har konto" : "Skapa konto";
-        }
-        document.getElementById("logoutButton").hidden = !currentUser;
-        const roleText = currentProfile?.role === "admin" ? " · admin" : "";
-        document.getElementById("userStatus").textContent = currentUser ? `Inloggad: ${currentUser.user_metadata?.name || currentUser.email}${roleText}` : "Inte inloggad";
-      }
-
-      async function initializeAuth() {
-        updateAuthUi();
-        if (!supabaseClient) return;
-        const { data } = await supabaseClient.auth.getSession();
-        currentUser = data.session?.user || null;
-        updateAuthUi();
-        if (currentUser) {
-          try {
-            await ensureUserProfile();
-            if (!currentUser) return;
-            await loadFromSupabase();
-            await loadPurchaseInbox();
-            await loadCategoryRules();
-            await loadHistory();
-            updateAuthUi();
-            render();
-          } catch {
-            document.getElementById("saveStatus").textContent = "Kunde inte läsa från Supabase. Kontrollera databasreglerna.";
-          }
-        }
-      }
-
-      document.getElementById("authToggle").addEventListener("click", () => {
-        authMode = authMode === "signup" ? "login" : "signup";
-        document.getElementById("authError").textContent = "";
-        document.getElementById("authError").style.color = "#b83b5e";
-        updateAuthUi();
+        currentUser = data.user;
+        nodes.passwordInput.value = "";
+        nodes.authMessage.textContent = "";
+        setAuthUi();
+        await loadRemote();
       });
 
-      function withTimeout(promise, message) {
-        return Promise.race([
-          promise,
-          new Promise((_, reject) => setTimeout(() => reject(new Error(message)), 12000)),
-        ]);
-      }
-
-      async function handleAuth(event) {
-        event.preventDefault();
-        const authError = document.getElementById("authError");
-        const authSubmit = document.getElementById("authSubmit");
-        authError.textContent = "";
-        authError.style.color = "#b83b5e";
-        if (!supabaseClient) {
-          authError.textContent = "Supabase är inte kopplat ännu.";
-          return;
-        }
-
-        authSubmit.disabled = true;
-        try {
-          authError.style.color = "#63747b";
-          authError.textContent = authMode === "signup" ? "Skapar konto..." : "Loggar in...";
-          const email = document.getElementById("authEmail").value.trim();
-          const password = document.getElementById("authPassword").value;
-          const name = document.getElementById("authName").value.trim();
-          if (!email || !password) throw new Error("Fyll i e-post och lösenord.");
-
-          if (authMode === "signup") {
-            const { data, error } = await withTimeout(
-              supabaseClient.auth.signUp({ email, password, options: { data: { name } } }),
-              "Supabase svarade inte när kontot skulle skapas."
-            );
-            if (error) throw error;
-            currentUser = data.session?.user || null;
-            if (!currentUser) {
-              authError.style.color = "#00a1b0";
-              authError.textContent = "Kontot är skapat. Kontrollera mejlen om Supabase kräver bekräftelse.";
-              authMode = "login";
-              updateAuthUi();
-              return;
-            }
-          } else {
-            const { data, error } = await withTimeout(
-              supabaseClient.auth.signInWithPassword({ email, password }),
-              "Supabase svarade inte på inloggningen."
-            );
-            if (error) throw error;
-            currentUser = data.user;
-          }
-
-          authError.textContent = "Inloggad. Hämtar budget...";
-          updateAuthUi();
-          await withTimeout(ensureUserProfile(), "Inloggad, men användarkontrollen tog för lång tid.");
-          if (!currentUser) return;
-          await withTimeout(loadFromSupabase(), "Inloggad, men budgetdata kunde inte hämtas.");
-          await loadPurchaseInbox();
-          await loadCategoryRules();
-          await loadHistory();
-          updateAuthUi();
-          render();
-          const remainingError = document.getElementById("authError");
-          if (remainingError) remainingError.textContent = "";
-        } catch (error) {
-          authError.style.color = "#b83b5e";
-          authError.textContent = error.message || "Inloggningen misslyckades.";
-          currentUser = null;
-          currentProfile = null;
-        } finally {
-          authSubmit.disabled = false;
-        }
-      }
-
-      document.getElementById("authForm").addEventListener("submit", handleAuth);
-      document.getElementById("authSubmit").addEventListener("click", handleAuth);
-
-      document.getElementById("logoutButton").addEventListener("click", async () => {
+      nodes.logoutButton.addEventListener("click", async () => {
         if (supabaseClient) await supabaseClient.auth.signOut();
         currentUser = null;
-        currentProfile = null;
-        location.reload();
+        setAuthUi();
       });
 
-      document.getElementById("userForm").addEventListener("submit", async (event) => {
-        event.preventDefault();
-        if (!isAdmin()) return;
-        const email = document.getElementById("newUserEmail").value.trim().toLowerCase();
-        const name = document.getElementById("newUserName").value.trim();
-        const role = document.getElementById("newUserRole").value;
-        if (!email || !name) return;
-        const { error } = await supabaseClient.from("app_users").insert({ name, email, role, created_by: currentUser.id });
-        if (error) {
-          document.getElementById("saveStatus").textContent = "Kunde inte lägga till användaren";
+      async function initializeAuth() {
+        if (!supabaseClient) {
+          nodes.saveStatus.textContent = "Sparad lokalt";
+          setAuthUi();
+          render();
           return;
         }
-        event.target.reset();
-        await loadUsers();
-        renderUsers();
-      });
+        const { data } = await supabaseClient.auth.getSession();
+        currentUser = data.session?.user || null;
+        setAuthUi();
+        render();
+        if (currentUser) await loadRemote();
+
+        supabaseClient.auth.onAuthStateChange(async (_event, session) => {
+          currentUser = session?.user || null;
+          setAuthUi();
+          if (currentUser) await loadRemote();
+        });
+      }
 
       render();
       initializeAuth();
-      window.setInterval(() => {
-        if (currentUser) updateAuthUi();
-      }, 1000);
+
+      if ("serviceWorker" in navigator) {
+        navigator.serviceWorker.register("service-worker.js").catch(() => {});
+      }
     </script>
   </body>
 </html>
